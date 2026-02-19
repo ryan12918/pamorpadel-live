@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>MASTER CONTROL PRO (COCKPIT)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Courier+Prime&family=Lato:wght@400;700&family=Montserrat:wght@400;600;700;800&family=Oswald:wght@400;700&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;600;700;800&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --primary: #1a237e; --panel-bg: #f4f6f8; }
+        * { box-sizing: border-box; outline: none; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #eceff1; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-size: 11px; }
+
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0d1117; z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        .login-box { background: white; padding: 40px; border-radius: 12px; width: 350px; text-align: center; }
+        .inp-login { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; text-align: center; }
+        .btn-login { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
+        #main-app { display: none; height: 100%; flex-direction: column; }
+        .top-bar { padding: 8px 15px; background: white; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .nav-pill { padding: 8px 20px; border-radius: 4px; border: 1px solid #ddd; background: #f5f5f5; color: #555; cursor: pointer; font-weight: 700; font-size: 11px; margin-right: 5px; }
+        .nav-pill.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .btn-action { padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; color: white; font-weight: bold; font-size: 10px; display: inline-flex; align-items: center; gap: 5px; transition: 0.3s; }
+        .btn-blue { background: #0277bd; } .btn-grey { background: #546e7a; } .btn-green { background: #2e7d32; } .btn-red { background: #c62828; }
+
+        .view-container { flex: 1; overflow: hidden; position: relative; background: #eceff1; }
+        .view-section { display: none; width: 100%; height: 100%; }
+        .view-section.active { display: block; }
+
+        #view-matches { padding: 10px; display: none; flex-direction: column; }
+        #view-matches.active { display: flex; }
+        .toolbar { display: flex; gap: 10px; margin-bottom: 10px; background: white; padding: 8px; border-radius: 4px; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .table-wrap { background: white; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: auto; flex: 1; padding-bottom: 40px; }
+        table { border-collapse: collapse; width: 100%; min-width: 1500px; }
+        th { background: #263238; color: white; padding: 8px 4px; text-align: center; border-right: 1px solid #37474f; font-size: 10px; text-transform: uppercase; white-space: nowrap; position: sticky; top: 0; z-index: 10; height: 30px; vertical-align: middle; }
+        td { padding: 1px; border-bottom: 1px solid #eee; text-align: center; height: 38px; vertical-align: middle; font-size: 11px; }
+        tr:hover { background: #f1f8e9; }
+        tr.sortable-ghost { background: #e3f2fd; opacity: 0.5; } 
+        input.tbl-inp { border: none; background: transparent; text-align: center; font-size: 11px; width: 100%; height: 100%; padding: 0 2px; }
+        input.tbl-inp:focus { background: white; outline: 1px solid #29b6f6; }
+        textarea.inp-wrap { border: none; background: transparent; font-family: 'Segoe UI', sans-serif; font-size: 11px; width: 100%; height: 100%; min-height: 36px; padding: 4px; resize: none; overflow: hidden; line-height: 1.2; text-align: center; display: flex; align-items: center; justify-content: center; }
+        textarea.inp-wrap:focus { background: white; outline: 1px solid #29b6f6; text-align: left; }
+        .td-team { font-weight: bold; width: 160px; min-width: 140px; }
+        .td-team textarea { font-weight: bold; }
+        .bg-grey { background: #fafafa; }
+        .bg-set { background: #e3f2fd; border-right: 1px solid #fff; width: 34px; }
+        .bg-poin { background: #fff3e0; color: #ef6c00; width: 38px; border-left: 1px solid #ddd; }
+        .inp-score { font-weight: 800; font-size: 13px; }
+        .badge { padding: 3px 6px; border-radius: 3px; color: white; font-size: 9px; cursor: pointer; display:inline-block; font-weight:bold; min-width:35px; }
+        .inp-pin { background: #ffebee; color: #c62828; font-weight: bold; border-radius: 3px; }
+
+        #view-branding { display: none; width: 100%; height: 100%; }
+        #view-branding.active { display: flex; }
+        .branding-panel { flex: 1; height: 100%; padding: 20px; overflow-y: auto; background: white; border-right: 1px solid #ccc; }
+        
+        .preview-panel { width: 280px; flex-shrink: 0; height: 100%; background: transparent; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .phone-wrapper { transform: scale(0.65); transform-origin: center center; display: flex; justify-content: center; align-items: center; }
+        .phone-frame { width: 390px; height: 844px; background: #111; border-radius: 40px; border: 12px solid #333; position: relative; box-shadow: 0 30px 60px rgba(0,0,0,0.5); overflow: hidden; }
+        #preview-frame { width: 100%; height: 100%; border: none; background: transparent; border-radius: 28px; }
+
+        .section-title { font-size: 13px; font-weight: 800; color: #1a237e; margin: 25px 0 15px 0; border-bottom: 2px solid #eee; padding-bottom: 5px; text-transform: uppercase; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-control { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 11px; }
+        .form-group label { display: block; font-size: 10px; font-weight: 700; color: #555; margin-bottom: 4px; }
+        
+        .theme-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .theme-btn { padding: 8px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 10px; text-align: center; font-weight: bold; background: #f9f9f9; }
+        .theme-btn:hover { background: #e3f2fd; border-color: #2196f3; }
+
+        .input-with-color { position: relative; display: flex; align-items: center; }
+        .input-with-color input[type="text"] { padding-right: 35px; width: 100%; }
+        .color-btn { position: absolute; right: 4px; width: 22px; height: 22px; border: none; padding: 0; background: transparent; cursor: pointer; border-radius: 4px; overflow: hidden; }
+        .color-btn::-webkit-color-swatch-wrapper { padding: 0; }
+        .color-btn::-webkit-color-swatch { border: 1px solid #ccc; border-radius: 4px; }
+
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:999; }
+        .modal-box { background: white; padding: 20px; border-radius: 6px; width: 600px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .grid-modal { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        #rich-editor { border: 1px solid #ccc; min-height: 120px; padding: 8px; border-radius: 4px; overflow-y:auto; font-size:11px; }
+        .editor-btn { cursor:pointer; padding:2px 6px; border:1px solid #ccc; background:#eee; font-weight:bold; font-size:10px; }
+        
+        .studio-card { background: #f0f4c3; padding: 15px; border-radius: 8px; border: 1px solid #cddc39; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="login-overlay">
+        <div class="login-box">
+            <h2 style="margin-top:0;">PARTNER COCKPIT</h2>
+            <input id="l-id" class="inp-login" placeholder="Tournament ID">
+            <input id="l-pass" type="password" class="inp-login" placeholder="Password">
+            <button onclick="login()" class="btn-login">MASUK DASHBOARD</button>
+            <p id="err-msg" style="color:red; font-size:12px; display:none; margin-top:10px; font-weight:bold; background:#ffebee; padding:5px; border:1px solid red; border-radius:4px;">Login Gagal!</p>
+        </div>
+    </div>
+
+    <div id="main-app">
+        <div class="top-bar">
+            <div><h3 style="margin:0; color:var(--primary); font-size:16px;">CONTROL PANEL</h3></div>
+            <div>
+                <button class="nav-pill active" onclick="switchTab('matches', this)">DATA MATCH</button>
+                <button class="nav-pill" onclick="switchTab('branding', this)">BRANDING & TAMPILAN</button>
+            </div>
+            <div style="font-size:10px; text-align:right;">ID: <b id="lbl-user">...</b><br><a href="#" onclick="location.reload()" style="color:red; text-decoration:none;">Keluar</a></div>
+        </div>
+
+        <div class="view-container">
+            <div id="view-matches" class="view-section active">
+                <div class="toolbar">
+                    <button class="btn-action btn-blue" onclick="openModalMatch()">+ BARU</button>
+                    <button class="btn-action btn-red" onclick="deleteSelected()">🗑️ HAPUS TERPILIH</button>
+                    <button id="btn-refresh" class="btn-action btn-grey" onclick="loadMatches()">REFRESH</button>
+                    <input id="search-box" class="form-control" style="width:200px; margin-left:auto;" placeholder="🔍 Cari Tim/Court/Kategori..." onkeyup="filterTable()">
+                </div>
+                <div class="table-wrap">
+                    <table id="main-table">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" width="30"><input type="checkbox" id="check-all" onclick="toggleCheckAll(this)" style="cursor:pointer;"></th>
+                                <th rowspan="2" width="30">NO</th><th rowspan="2" width="40">PIN</th><th rowspan="2" width="60">TGL</th><th rowspan="2" width="40">JAM</th><th rowspan="2" width="70">COURT</th><th rowspan="2" width="90">KAT</th><th rowspan="2" width="60">BABAK</th><th rowspan="2" width="60">WASIT</th><th rowspan="2" style="text-align:right">TIM A</th>
+                                <th colspan="2">S1</th> <th colspan="2">S2</th> <th colspan="2">S3</th> <th colspan="2">S4</th> <th colspan="2">S5</th><th colspan="2" style="background:#e65100">POIN</th>
+                                <th rowspan="2" style="text-align:left">TIM B</th><th rowspan="2" width="30">WO</th><th rowspan="2" width="80">STATUS</th><th rowspan="2" width="40">POS</th><th rowspan="2" width="30">DEL</th>
+                            </tr>
+                            <tr><th>A</th> <th>B</th> <th>A</th> <th>B</th> <th>A</th> <th>B</th> <th>A</th> <th>B</th> <th>A</th> <th>B</th><th style="background:#ff9800; color:black">A</th> <th style="background:#ff9800; color:black">B</th></tr>
+                        </thead>
+                        <tbody id="tbl-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="view-branding" class="view-section">
+                <div class="branding-panel">
+                    <div class="section-title" style="margin-top:0;">1. QUICK THEMES (PREMIUM)</div>
+                    <div class="theme-grid" id="theme-container"></div>
+                    
+                    <div class="section-title">2. IDENTITAS & TIPOGRAFI</div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Judul Turnamen</label>
+                            <div class="input-with-color">
+                                <input id="s-name" class="form-control" onkeyup="updateBrandingPreview()">
+                                <input type="color" id="s-col-title" class="color-btn" onchange="updateBrandingPreview()">
+                            </div>
+                            <label style="margin-top:5px; color:#1976d2;">Ukuran Teks Judul (Zoom)</label>
+                            <input type="range" id="s-title-size" class="form-control" min="0.5" max="3" step="0.1" value="1" oninput="updateBrandingPreview()" style="padding:0; cursor:pointer;">
+                        </div>
+                        <div class="form-group">
+                            <label>Sub-Judul</label>
+                            <div class="input-with-color">
+                                <input id="s-sub" class="form-control" onkeyup="updateBrandingPreview()">
+                                <input type="color" id="s-col-sub" class="color-btn" onchange="updateBrandingPreview()">
+                            </div>
+                            <label style="margin-top:5px; color:#1976d2;">Ukuran Teks Sub-Judul (Zoom)</label>
+                            <input type="range" id="s-sub-size" class="form-control" min="0.5" max="3" step="0.1" value="1" oninput="updateBrandingPreview()" style="padding:0; cursor:pointer;">
+                        </div>
+                        <div class="form-group" style="grid-column: span 2; background:#ffebee; padding:10px; border:1px solid #ffcdd2; border-radius:6px;">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:#c62828; font-size:12px;">
+                                <input type="checkbox" id="s-hide-text" onchange="updateBrandingPreview()" style="width:18px; height:18px;">
+                                <b>SEMBUNYIKAN SEMUA TEKS JUDUL (GUNAKAN MODE BANNER/GAMBAR SAJA)</b>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="section-title">3. STUDIO LOGO & WATERMARK</div>
+                    <div class="grid-2">
+                        <div class="form-group" style="grid-column: span 2;"><label>Link Logo Utama (URL)</label><input id="s-logo" class="form-control" onkeyup="updateBrandingPreview()" placeholder="https://....png"></div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Gaya Tampilan Logo</label>
+                            <select id="s-logo-mode" class="form-control" onchange="updateBrandingPreview()">
+                                <option value="watermark">🌟 WATERMARK (Melayang & Bebas Digeser)</option>
+                                <option value="classic">📦 KLASIK (Solid di tengah Header)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" style="grid-column: span 2;">
+                            <div class="studio-card">
+                                <label style="color:#827717; font-weight:800; border-bottom:1px solid #cddc39; padding-bottom:5px; margin-bottom:10px; display:block;">🎛️ PANEL KONTROL LOGO</label>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                    <div><label>🔍 Ukuran (Zoom Scale)</label><input type="range" id="s-logo-size" class="form-control" min="0.1" max="5" step="0.1" value="1" oninput="updateBrandingPreview()" style="padding:0; cursor:pointer;"></div>
+                                    <div><label>👻 Transparansi (Opacity)</label><input type="range" id="s-logo-opacity" class="form-control" min="0.05" max="1" step="0.05" value="1" oninput="updateBrandingPreview()" style="padding:0; cursor:pointer;"></div>
+                                    <div><label>↔️ Geser Kiri - Kanan (X)</label><input type="range" id="s-logo-x" class="form-control" min="-300" max="300" step="5" value="0" oninput="updateBrandingPreview()" style="padding:0; cursor:pointer;"></div>
+                                    <div><label>↕️ Geser Atas - Bawah (Y)</label><input type="range" id="s-logo-y" class="form-control" min="-300" max="300" step="5" value="0" oninput="updateBrandingPreview()" style="padding:0; cursor:pointer;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">4. WARNA & GAYA KARTU</div>
+                    
+                    <div class="grid-2" style="margin-bottom:15px;">
+                        <div class="form-group">
+                            <label style="color:#d81b60;">GAYA KARTU SKOR (50 PILIHAN)</label>
+                            <select id="s-card-preset" class="form-control" onchange="updateBrandingPreview()">
+                                <option value="classic-white">Classic White</option><option value="midnight-blue">Midnight Blue</option><option value="royal-gold">Royal Gold</option><option value="vampire-red">Vampire Red</option><option value="ocean-breeze">Ocean Breeze</option><option value="neon-cyber">Neon Cyber</option><option value="emerald-city">Emerald City</option><option value="sunset-glow">Sunset Glow</option><option value="monochrome">Monochrome</option><option value="lavender">Lavender</option><option value="crimson">Crimson</option><option value="aqua-glass">Aqua Glass</option><option value="forest-dark">Forest Dark</option><option value="rose-gold">Rose Gold</option><option value="matrix-code">Matrix Code</option><option value="obsidian">Obsidian Black</option><option value="pearl">Pearl White</option><option value="ruby">Ruby Flare</option><option value="sapphire">Sapphire Deep</option><option value="amethyst">Amethyst Glow</option><option value="topaz">Topaz Light</option><option value="amber">Amber Warm</option><option value="quartz">Quartz Pink</option><option value="jade">Jade Green</option><option value="onyx">Onyx Dark</option><option value="coral">Coral Reef</option><option value="turquoise">Turquoise Sea</option><option value="malachite">Malachite Rich</option><option value="opal">Opal Shine</option><option value="moonstone">Moonstone Soft</option><option value="sunstone">Sunstone Bright</option><option value="garnet">Garnet Red</option><option value="peridot">Peridot Lime</option><option value="citrine">Citrine Yellow</option><option value="spinel">Spinel Berry</option><option value="zircon">Zircon Blue</option><option value="tourmaline">Tourmaline Mix</option><option value="beryl">Beryl Clear</option><option value="alexandrite">Alexandrite Shift</option><option value="tanzanite">Tanzanite Violet</option><option value="bloodstone">Bloodstone Dark</option><option value="iolite">Iolite Indigo</option><option value="lapis">Lapis Lazuli</option><option value="morganite">Morganite Blush</option><option value="kunzite">Kunzite Lilac</option><option value="tsavorite">Tsavorite Mint</option><option value="rhodolite">Rhodolite Plum</option><option value="spessartite">Spessartite Orange</option><option value="demantoid">Demantoid Olive</option><option value="padparadscha">Padparadscha Peach</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="color:#1976d2;">FORMAT TABEL KLASEMEN</label>
+                            <select id="s-standings-format" class="form-control" onchange="updateBrandingPreview()">
+                                <option value="GD">Format Standar (Selisih Angka / GD)</option>
+                                <option value="PCT">Format Persentase (% Kemenangan Angka)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid-2">
+                        <div class="form-group"><label>Warna Header Awal</label><input type="color" id="s-col-h1" class="form-control" onchange="updateBrandingPreview()" style="height:35px"></div>
+                        <div class="form-group"><label>Warna Header Akhir</label><input type="color" id="s-col-h2" class="form-control" onchange="updateBrandingPreview()" style="height:35px"></div>
+                        <div class="form-group"><label>Warna Background Layar</label><input type="color" id="s-col-bg" class="form-control" onchange="updateBrandingPreview()" style="height:35px"></div>
+                        <div class="form-group"><label>Warna Neon Live</label><input type="color" id="s-neon" class="form-control" onchange="updateBrandingPreview()" style="height:35px"></div>
+                        
+                        <div class="form-group">
+                            <label>Teks Label (Header)</label>
+                            <div class="input-with-color">
+                                <input id="s-tag" class="form-control" onkeyup="updateBrandingPreview()" placeholder="Misal: Live Score & Schedule">
+                                <input type="color" id="s-col-tag" class="color-btn" onchange="updateBrandingPreview()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">5. ATURAN</div>
+                    <div style="margin-bottom:5px;">
+                        <button class="editor-btn" onclick="document.execCommand('bold')"><b>B</b></button>
+                        <button class="editor-btn" onclick="document.execCommand('italic')"><i>I</i></button>
+                        <button class="editor-btn" onclick="document.execCommand('underline')"><u>U</u></button>
+                        <button class="editor-btn" onclick="document.execCommand('insertUnorderedList')">• List</button>
+                    </div>
+                    <div id="rich-editor" contenteditable="true" onkeyup="updateBrandingPreview()"></div>
+                    
+                    <div style="margin-top:20px; text-align:right;">
+                        <button class="btn-action btn-grey" onclick="showQR()">📱 LIHAT QR</button>
+                        <button class="btn-action btn-green" onclick="saveSettings()" style="font-size:14px; padding:10px 20px;">💾 SIMPAN PENGATURAN</button>
+                    </div>
+                </div>
+                
+                <div class="preview-panel">
+                    <div style="position:absolute; top:20px; font-weight:bold; color:#546e7a;">LIVE PREVIEW (100% SYNCED)</div>
+                    <div class="phone-wrapper">
+                        <div class="phone-frame">
+                            <iframe id="preview-frame"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-match" class="modal">
+        <div class="modal-box">
+            <h3 style="margin-top:0;">Match Baru</h3>
+            <div style="font-size:10px; color:#d81b60; margin-bottom:10px;"><b>*PENTING (Untuk Ganda):</b> Pisahkan nama dengan " / ". Contoh: "Ryan / Mimi"</div>
+            <div class="grid-modal">
+                <input id="i-no" class="form-control" placeholder="No Match">
+                <input id="i-pin" class="form-control" value="1234" placeholder="PIN (Kosongi jk tiada)">
+                <input id="i-date" class="form-control" type="date">
+                <input id="i-time" class="form-control" type="time">
+                <input id="i-cat" class="form-control" placeholder="Kategori (Misal: MD Beginner)">
+                <input id="i-round" class="form-control" placeholder="Babak">
+                <input id="i-court" class="form-control" placeholder="Court">
+                <input id="i-ref" class="form-control" placeholder="Wasit">
+                <input id="i-ta" class="form-control" placeholder="Tim A" style="font-weight:bold">
+                <input id="i-tb" class="form-control" placeholder="Tim B" style="font-weight:bold">
+                
+                <div style="grid-column: span 2; background:#e3f2fd; padding:10px; border-radius:6px; border:1px solid #90caf9; margin-top:5px;">
+                    <label style="font-size:11px; font-weight:bold; color:#1565c0; display:block; margin-bottom:5px;">Jumlah Match Dibuat Sekaligus:</label>
+                    <input id="i-qty" type="number" class="form-control" value="1" min="1" max="100" style="font-weight:bold; text-align:center; font-size:14px;">
+                </div>
+            </div>
+            <div style="margin-top:15px; text-align:right;">
+                <button onclick="document.getElementById('modal-match').style.display='none'" style="padding:8px 15px; border:none; cursor:pointer;">Batal</button>
+                <button onclick="submitMatch()" class="btn-action btn-blue">SIMPAN</button>
+            </div>
+        </div>
+    </div>
+    <div id="modal-qr" class="modal"><div class="modal-box" style="width:300px; text-align:center;"><h3>SCAN QR</h3><img id="qr-img" style="width:150px; height:150px; margin-bottom:10px;"><p>ID: <b id="qr-text">...</b></p><button onclick="document.getElementById('modal-qr').style.display='none'" class="btn-action btn-grey">TUTUP</button></div></div>
+
+    <script>
+        const SUPABASE_URL = 'https://gubcvxiupehbdpigrdct.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_k1y6fNI2opEXhwqKMbGYcA__2nD0yT6';
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let ACTIVE_ID = null; let previewTimeout = null; let GLOBAL_MATCHES = []; let pendingUpdates = {}; let updateTimer = null; let dragSyncTimeout = null; 
+
+        const PRESETS = [
+            {n:"Padel Pro", h1:"#1a237e", h2:"#0d47a1", bg:"#e3f2fd", neon:"#76ff03", st:"classic-white"},
+            {n:"Midnight", h1:"#000000", h2:"#212121", bg:"#121212", neon:"#00e5ff", st:"midnight-blue"},
+            {n:"Royal Gold", h1:"#b8860b", h2:"#daa520", bg:"#fffcf5", neon:"#ff0000", st:"royal-gold"},
+            {n:"Vampire", h1:"#b71c1c", h2:"#880e4f", bg:"#ffebee", neon:"#ff1744", st:"vampire-red"},
+            {n:"Ocean", h1:"#0277bd", h2:"#006064", bg:"#e0f7fa", neon:"#00bcd4", st:"ocean-breeze"},
+            {n:"Cyberpunk", h1:"#6200ea", h2:"#311b92", bg:"#111111", neon:"#00ffff", st:"neon-cyber"},
+            {n:"Emerald", h1:"#2e7d32", h2:"#1b5e20", bg:"#e8f5e9", neon:"#69f0ae", st:"emerald-city"},
+            {n:"Sunset", h1:"#e65100", h2:"#bf360c", bg:"#fff3e0", neon:"#ffea00", st:"sunset-glow"},
+            {n:"Monochrome", h1:"#424242", h2:"#212121", bg:"#fafafa", neon:"#000000", st:"monochrome"},
+            {n:"Lavender", h1:"#8e24aa", h2:"#4a148c", bg:"#f3e5f5", neon:"#e040fb", st:"lavender"},
+            {n:"Crimson", h1:"#d32f2f", h2:"#b71c1c", bg:"#ffebee", neon:"#ffeb3b", st:"crimson"},
+            {n:"Aqua Glass", h1:"#0097a7", h2:"#006064", bg:"#e0f7fa", neon:"#18ffff", st:"aqua-glass"},
+            {n:"Forest", h1:"#33691e", h2:"#1b5e20", bg:"#1b5e20", neon:"#b2ff59", st:"forest-dark"},
+            {n:"Rose Gold", h1:"#ad1457", h2:"#880e4f", bg:"#fce4ec", neon:"#ff4081", st:"rose-gold"},
+            {n:"Matrix", h1:"#004d40", h2:"#000000", bg:"#000000", neon:"#00e676", st:"matrix-code"}
+        ];
+
+        function initUI() { const tc = document.getElementById('theme-container'); PRESETS.forEach(t => { tc.innerHTML += `<div class="theme-btn" onclick="applyTheme('${t.h1}','${t.h2}','${t.bg}','${t.neon}','${t.st}')">${t.n}</div>`; }); }
+
+        async function login() {
+            const btn = document.querySelector('.btn-login');
+            const errEl = document.getElementById('err-msg');
+            btn.innerText = "MEMUAT..."; errEl.style.display = 'none';
+            try {
+                const id = document.getElementById('l-id').value.trim(); const pass = document.getElementById('l-pass').value.trim();
+                const { data, error } = await db.from('partners').select('*').eq('tournament_id', id).eq('password', pass).maybeSingle();
+                if (error) throw error;
+                if (data) { 
+                    ACTIVE_ID = data.tournament_id; document.getElementById('login-overlay').style.display = 'none'; document.getElementById('main-app').style.display = 'flex'; document.getElementById('lbl-user').innerText = ACTIVE_ID.toUpperCase(); 
+                    initUI(); loadSettings(data); await loadMatches(); subscribeControl(); 
+                } else { 
+                    errEl.innerText = "Kredensial Salah! Pastikan ID & Password sesuai."; errEl.style.display = 'block'; btn.innerText = "MASUK DASHBOARD";
+                }
+            } catch (err) { errEl.innerText = "Error Jaringan/Server: " + err.message; errEl.style.display = 'block'; btn.innerText = "MASUK DASHBOARD"; }
+        }
+
+        async function loadMatches() { const { data } = await db.from('matches_pro').select('*').eq('tournament_id', ACTIVE_ID).order('created_at', {ascending: true}); GLOBAL_MATCHES = data || []; GLOBAL_MATCHES.sort((a,b) => new Date(a.created_at) - new Date(b.created_at)); renderTableMatches(); updateBrandingPreview(); }
+
+        function subscribeControl() {
+            db.channel('public:matches_pro_admin')
+            .on('postgres_changes', {event:'UPDATE', schema:'public', table:'matches_pro', filter:`tournament_id=eq.${ACTIVE_ID}`}, (payload) => {
+                const newM = payload.new; const index = GLOBAL_MATCHES.findIndex(m => m.id === newM.id);
+                if(index > -1) { GLOBAL_MATCHES[index] = newM; updateRowDOM(newM); updateBrandingPreview(); }
+            }).on('postgres_changes', {event:'INSERT', schema:'public', table:'matches_pro', filter:`tournament_id=eq.${ACTIVE_ID}`}, () => { loadMatches(); })
+            .on('postgres_changes', {event:'DELETE', schema:'public', table:'matches_pro', filter:`tournament_id=eq.${ACTIVE_ID}`}, () => { loadMatches(); }).subscribe();
+        }
+
+        function updateRowDOM(m) {
+            const row = document.querySelector(`tr[data-id="${m.id}"]`); if(!row) return;
+            const fields = ['match_no', 'pin', 'date', 'time', 'court_name', 'category', 'round', 'referee_name', 'team_a', 'set1_a', 'set1_b', 'set2_a', 'set2_b', 'set3_a', 'set3_b', 'set4_a', 'set4_b', 'set5_a', 'set5_b', 'points_a', 'points_b', 'team_b', 'is_wo'];
+            fields.forEach(f => { const el = row.querySelector(`[data-field="${f}"]`); if(el && document.activeElement !== el) { if(f === 'is_wo') el.checked = m[f]; else el.value = m[f] ?? (f.includes('set') || f.includes('point') ? 0 : ''); } });
+            let btn = row.querySelector(`#btn-status-${m.id}`);
+            if(btn) { let status = String(m.status||'').toUpperCase(); btn.innerText = status === 'LIVE' ? 'STOP' : (status === 'FINISHED' ? 'DONE' : 'LIVE'); btn.style.background = status === 'LIVE' ? '#e91e63' : (status === 'FINISHED' ? '#43a047' : '#90a4ae'); }
+        }
+
+        function renderTableMatches() {
+            const tb = document.getElementById('tbl-body'); tb.innerHTML = "";
+            if(GLOBAL_MATCHES && GLOBAL_MATCHES.length > 0) {
+                GLOBAL_MATCHES.forEach((m) => {
+                    const inp = (f, v, c='') => `<input class="tbl-inp ${c}" data-field="${f}" value="${v||''}" onchange="upd('${m.id}','${f}',this.value)">`;
+                    const num = (f, v) => `<input type="number" class="tbl-inp inp-score" data-field="${f}" value="${v}" oninput="upd('${m.id}','${f}',this.value)">`;
+                    const txt = (f, v, c='') => `<textarea class="inp-wrap ${c}" data-field="${f}" onchange="upd('${m.id}','${f}',this.value)">${v||''}</textarea>`;
+                    const cbox = (f, v) => `<input type="checkbox" data-field="${f}" ${v?'checked':''} onchange="upd('${m.id}','${f}',this.checked)">`;
+                    let bCls = m.status==='LIVE'?'#e91e63':(m.status==='FINISHED'?'#43a047':'#90a4ae');
+                    let bTxt = m.status==='LIVE'?'STOP':(m.status==='FINISHED'?'DONE':'LIVE');
+                    
+                    // 💡 INJEKSI CHECKBOX BARU DI KOLOM PERTAMA UNTUK HAPUS MASSAL
+                    tb.innerHTML += `<tr data-id="${m.id}">
+                        <td><input type="checkbox" class="chk-row" value="${m.id}" style="cursor:pointer;"></td>
+                        <td>${inp('match_no', m.match_no)}</td><td>${inp('pin', m.pin, 'inp-pin')}</td><td class="bg-grey">${txt('date', m.date)}</td><td class="bg-grey">${inp('time', m.time)}</td><td class="bg-grey">${txt('court_name', m.court_name)}</td><td class="bg-grey">${txt('category', m.category)}</td><td class="bg-grey">${txt('round', m.round)}</td><td class="bg-grey">${txt('referee_name', m.referee_name)}</td><td class="td-team" style="text-align:right;">${txt('team_a', m.team_a)}</td><td class="bg-set">${num('set1_a', m.set1_a)}</td> <td class="bg-set">${num('set1_b', m.set1_b)}</td><td class="bg-set">${num('set2_a', m.set2_a)}</td> <td class="bg-set">${num('set2_b', m.set2_b)}</td><td class="bg-set">${num('set3_a', m.set3_a)}</td> <td class="bg-set">${num('set3_b', m.set3_b)}</td><td class="bg-set">${num('set4_a', m.set4_a)}</td> <td class="bg-set">${num('set4_b', m.set4_b)}</td><td class="bg-set">${num('set5_a', m.set5_a)}</td> <td class="bg-set">${num('set5_b', m.set5_b)}</td><td class="bg-poin">${num('points_a', m.points_a)}</td><td class="bg-poin">${num('points_b', m.points_b)}</td><td class="td-team" style="text-align:left;">${txt('team_b', m.team_b)}</td><td>${cbox('is_wo', m.is_wo)}</td><td><span id="btn-status-${m.id}" class="badge" style="background:${bCls}" onclick="tog('${m.id}')">${bTxt}</span> <span class="badge" style="background:#2e7d32; margin-left:2px;" onclick="fin('${m.id}')">✅</span></td><td><i class="fas fa-grip-lines drag-handle" style="cursor: grab; color: #546e7a; font-size: 14px; padding: 5px;"></i></td><td><button class="badge" style="background:#c62828; border:none;" onclick="del('${m.id}')">🗑️</button></td>
+                    </tr>`;
+                });
+            }
+            if (window.matchSortable) { window.matchSortable.destroy(); }
+            window.matchSortable = new Sortable(document.getElementById('tbl-body'), { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', onEnd: function () { reorderMatchesSweep(); } });
+        }
+
+        // 💡 FUNGSI CHECKBOX PILIH SEMUA
+        function toggleCheckAll(el) {
+            const checkboxes = document.querySelectorAll('.chk-row');
+            checkboxes.forEach(cb => cb.checked = el.checked);
+        }
+
+        // 💡 FUNGSI HAPUS MASSAL (BULK DELETE)
+        async function deleteSelected() {
+            const checkboxes = document.querySelectorAll('.chk-row:checked');
+            if(checkboxes.length === 0) { alert("Pilih minimal 1 match (centang kotak di sebelah kiri) untuk dihapus!"); return; }
+            if(!confirm(`⚠️ PERINGATAN!\nAnda yakin ingin menghapus ${checkboxes.length} match yang dipilih secara permanen?`)) return;
+            
+            const btn = document.querySelector('button[onclick="deleteSelected()"]');
+            const origText = btn.innerText;
+            btn.innerText = "⏳ MENGHAPUS...";
+            
+            const idsToDelete = Array.from(checkboxes).map(cb => cb.value);
+            
+            const {error} = await db.from('matches_pro').delete().in('id', idsToDelete);
+            if(error) { 
+                alert("Gagal menghapus: " + error.message); 
+            } else {
+                GLOBAL_MATCHES = GLOBAL_MATCHES.filter(m => !idsToDelete.includes(m.id));
+                document.getElementById('check-all').checked = false;
+                let rowElements = document.querySelectorAll('#tbl-body tr');
+                rowElements.forEach(row => { 
+                    if(idsToDelete.includes(row.getAttribute('data-id'))) row.remove(); 
+                });
+                updateBrandingPreview();
+            }
+            btn.innerText = origText;
+        }
+
+        // 💡 PERBAIKAN MESIN PENCARI (DEEP SEARCH)
+        function filterTable() { 
+            const f = document.getElementById('search-box').value.toUpperCase(); 
+            const tr = document.getElementById('main-table').getElementsByTagName('tr'); 
+            for(let i=2; i<tr.length; i++) { 
+                let txt = tr[i].innerText; 
+                // Deteksi teks dari dalam kotak input dan textarea juga
+                const inputs = tr[i].querySelectorAll('input, textarea');
+                inputs.forEach(inp => { if(inp.value) txt += ' ' + inp.value; });
+                
+                tr[i].style.display = txt.toUpperCase().indexOf(f) > -1 ? "" : "none"; 
+            } 
+        }
+
+        function upd(id, f, v) {
+            const index = GLOBAL_MATCHES.findIndex(m => m.id === id);
+            if (index > -1) { 
+                if (f.includes('set') || f.includes('point')) { GLOBAL_MATCHES[index][f] = parseInt(v) || 0; } else if (f === 'is_wo') { GLOBAL_MATCHES[index][f] = (v === true || v === 'true'); } else { GLOBAL_MATCHES[index][f] = v; } 
+                updateBrandingPreview(); 
+            }
+            if (!pendingUpdates[id]) { pendingUpdates[id] = {}; }
+            if (f === 'is_wo') pendingUpdates[id][f] = (v === true || v === 'true'); else if (f.includes('set') || f.includes('point')) pendingUpdates[id][f] = parseInt(v) || 0; else pendingUpdates[id][f] = v;
+            
+            const btnRefresh = document.getElementById('btn-refresh');
+            if(btnRefresh) { btnRefresh.innerText = "⏳ MENYIMPAN..."; btnRefresh.style.background = "#ef6c00"; }
+            clearTimeout(updateTimer); 
+            updateTimer = setTimeout(async () => { 
+                const matchIds = Object.keys(pendingUpdates);
+                if(matchIds.length > 0) { const promises = matchIds.map(matchId => db.from('matches_pro').update(pendingUpdates[matchId]).eq('id', matchId)); await Promise.all(promises); pendingUpdates = {}; }
+                if(btnRefresh) { btnRefresh.innerText = "REFRESH"; btnRefresh.style.background = "#546e7a"; }
+            }, 600);
+        }
+
+        function reorderMatchesSweep() {
+            const rows = document.querySelectorAll('#tbl-body tr'); let newGlobalMatches = []; let updatesToProcess = []; let baseTime = new Date('2025-01-01T00:00:00Z').getTime(); 
+            rows.forEach((row, index) => { const id = row.getAttribute('data-id'); let match = GLOBAL_MATCHES.find(m => m.id === id); if (match) { let newTime = new Date(baseTime + (index * 1000)).toISOString(); if (match.created_at !== newTime) { match.created_at = newTime; updatesToProcess.push({ id: id, created_at: newTime }); } newGlobalMatches.push(match); } });
+            GLOBAL_MATCHES = newGlobalMatches; updateBrandingPreview();
+            const btnRefresh = document.getElementById('btn-refresh'); if(btnRefresh && updatesToProcess.length > 0) { btnRefresh.innerText = "⏳ MENYIMPAN POSISI..."; btnRefresh.style.background = "#ef6c00"; }
+            clearTimeout(dragSyncTimeout); 
+            dragSyncTimeout = setTimeout(async () => { 
+                if(updatesToProcess.length > 0) { const promises = updatesToProcess.map(upd => db.from('matches_pro').update({ created_at: upd.created_at }).eq('id', upd.id)); await Promise.all(promises); }
+                if(btnRefresh) { btnRefresh.innerText = "REFRESH"; btnRefresh.style.background = "#546e7a"; }
+            }, 1000); 
+        }
+
+        async function tog(id) { const index = GLOBAL_MATCHES.findIndex(m => m.id === id); if (index === -1) return; let ns = GLOBAL_MATCHES[index].status === 'LIVE' ? 'PENDING' : 'LIVE'; GLOBAL_MATCHES[index].status = ns; let btn = document.getElementById('btn-status-' + id); if (btn) { btn.innerText = ns === 'LIVE' ? 'STOP' : 'LIVE'; btn.style.background = ns === 'LIVE' ? '#e91e63' : '#90a4ae'; } updateBrandingPreview(); await db.from('matches_pro').update({status: ns}).eq('id', id); }
+        async function fin(id) { if(!confirm('Tandai Selesai?')) return; const index = GLOBAL_MATCHES.findIndex(m => m.id === id); if (index === -1) return; GLOBAL_MATCHES[index].status = 'FINISHED'; let btn = document.getElementById('btn-status-' + id); if (btn) { btn.innerText = 'DONE'; btn.style.background = '#43a047'; } updateBrandingPreview(); await db.from('matches_pro').update({status: 'FINISHED'}).eq('id', id); }
+        async function del(id) { if(!confirm('Hapus Match?')) return; GLOBAL_MATCHES = GLOBAL_MATCHES.filter(m => m.id !== id); let row = document.querySelector(`tr[data-id="${id}"]`); if (row) row.remove(); updateBrandingPreview(); await db.from('matches_pro').delete().eq('id', id); }
+        
+        // 💡 FUNGSI TAMBAH MASSAL (BULK ADD)
+        async function submitMatch() { 
+            const get = (id) => document.getElementById(id).value || "-"; 
+            const qty = parseInt(document.getElementById('i-qty').value) || 1;
+            
+            const newMatches = [];
+            for(let i=0; i<qty; i++) {
+                newMatches.push({ 
+                    tournament_id: ACTIVE_ID, match_no: get('i-no'), pin: get('i-pin'), 
+                    date: get('i-date'), time: get('i-time'), category: get('i-cat'), 
+                    round: get('i-round'), court_name: get('i-court'), referee_name: get('i-ref'), 
+                    team_a: get('i-ta'), team_b: get('i-tb'), status: 'PENDING', 
+                    set1_a:0, set1_b:0, set2_a:0, set2_b:0, set3_a:0, set3_b:0, 
+                    set4_a:0, set4_b:0, set5_a:0, set5_b:0, points_a:"0", points_b:"0" 
+                });
+            }
+            
+            document.getElementById('modal-match').style.display='none'; 
+            
+            const btnRefresh = document.getElementById('btn-refresh');
+            btnRefresh.innerText = "⏳ MENAMBAH..."; 
+            btnRefresh.style.background = "#ef6c00";
+            
+            await db.from('matches_pro').insert(newMatches); 
+            
+            btnRefresh.innerText = "REFRESH"; 
+            btnRefresh.style.background = "#546e7a";
+            loadMatches(); 
+        }
+
+        function loadSettings(d) {
+            const set = (id, v) => { if(document.getElementById(id)) document.getElementById(id).value = v || ''; };
+            set('s-name', d.event_name); set('s-sub', d.event_subtitle); set('s-tag', d.tag_text);
+            set('s-logo', d.logo_url); set('s-card-preset', d.card_preset);
+            set('s-col-h1', d.color_primary); set('s-col-h2', d.color_gradient_end); set('s-col-bg', d.color_bg); set('s-neon', d.color_neon);
+            document.getElementById('s-col-title').value = d.text_color_title || '#ffffff'; document.getElementById('s-col-sub').value = d.text_color_sub || '#ffeb3b'; document.getElementById('s-col-tag').value = d.text_color_tag || '#ffffff';
+            document.getElementById('s-hide-text').checked = (d.hide_text === 'true');
+            document.getElementById('s-title-size').value = d.title_size || '1'; document.getElementById('s-sub-size').value = d.sub_size || '1'; document.getElementById('s-logo-size').value = d.logo_size || '1'; document.getElementById('s-logo-opacity').value = d.logo_opacity || '1'; document.getElementById('s-logo-x').value = d.logo_x || '0'; document.getElementById('s-logo-y').value = d.logo_y || '0';
+            document.getElementById('rich-editor').innerHTML = d.rules_text || "";
+            
+            let rawLogoMode = d.logo_mode || 'watermark|||GD';
+            let lmParts = rawLogoMode.split('|||');
+            document.getElementById('s-logo-mode').value = lmParts[0];
+            if(document.getElementById('s-standings-format')) document.getElementById('s-standings-format').value = lmParts[1] || 'GD';
+
+            updateBrandingPreview();
+        }
+
+        function applyTheme(h1, h2, bg, neon, st) {
+            document.getElementById('s-col-h1').value = h1; document.getElementById('s-col-h2').value = h2; document.getElementById('s-col-bg').value = bg; document.getElementById('s-neon').value = neon;
+            if(st) document.getElementById('s-card-preset').value = st; updateBrandingPreview();
+        }
+
+        function updateBrandingPreview() {
+            clearTimeout(previewTimeout);
+            previewTimeout = setTimeout(() => {
+                const h1 = document.getElementById('s-col-h1').value; const h2 = document.getElementById('s-col-h2').value; const bg = document.getElementById('s-col-bg').value; const neon = document.getElementById('s-neon').value; const style = document.getElementById('s-card-preset').value;
+                const title = document.getElementById('s-name').value || "JUDUL TURNAMEN"; const sub = document.getElementById('s-sub').value || "Sub Judul"; const logo = document.getElementById('s-logo').value; const rules = document.getElementById('rich-editor').innerHTML || "-";
+                const colTitle = document.getElementById('s-col-title').value; const colSub = document.getElementById('s-col-sub').value; const colTag = document.getElementById('s-col-tag').value;
+                const logoMode = document.getElementById('s-logo-mode').value; const hideText = document.getElementById('s-hide-text').checked;
+                const titleSize = document.getElementById('s-title-size').value; const subSize = document.getElementById('s-sub-size').value; const logoSize = document.getElementById('s-logo-size').value; const logoOpacity = document.getElementById('s-logo-opacity').value; const logoX = document.getElementById('s-logo-x').value + 'px'; const logoY = document.getElementById('s-logo-y').value + 'px';
+
+                const customTag = document.getElementById('s-tag').value.trim();
+                const previewKlasemenFormat = document.getElementById('s-standings-format') ? document.getElementById('s-standings-format').value : 'GD';
+
+                const textStyle = hideText ? 'display:none;' : 'display:block;';
+                const logoClass = (logoMode === 'classic') ? 'logo-classic' : 'logo-watermark';
+                const logoHTML = logo ? `<img src="${logo}" class="header-logo ${logoClass}" style="display:block;">` : '';
+
+                const encodedMatches = encodeURIComponent(JSON.stringify(GLOBAL_MATCHES));
+                const encodedRules = encodeURIComponent(rules || "");
+
+                const htmlString = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+                    <style>
+                        :root { --primary-start: ${h1}; --primary-end: ${h2}; --live-neon: ${neon}; --bg-color: ${bg}; --text-color: #333; --title-color: ${colTitle}; --sub-color: ${colSub}; --tag-color: ${colTag}; --card-radius: 15px; --font-main: 'Montserrat', sans-serif; --logo-size: ${logoSize}; --logo-opacity: ${logoOpacity}; --logo-x: ${logoX}; --logo-y: ${logoY}; --title-size: ${titleSize}; --sub-size: ${subSize}; }
+                        body { font-family: var(--font-main); background-color: var(--bg-color); margin: 0; padding-bottom: 80px; color: var(--text-color); scrollbar-width: none; }
+                        body::-webkit-scrollbar { display: none; }
+                        
+                        .header-wrapper { display:flex; flex-direction:column; align-items:center; justify-content:center; background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); padding: 25px 15px 30px 15px; text-align: center; color: white; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); position:relative; overflow:hidden; min-height:100px; margin-bottom:10px; }
+                        .logo-watermark { position: absolute; top: 50%; left: 50%; width: 120px; height: auto; transform: translate(calc(-50% + var(--logo-x)), calc(-50% + var(--logo-y))) scale(var(--logo-size)); opacity: var(--logo-opacity); z-index: 1; pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); object-fit: contain;}
+                        .logo-classic { position: relative; width: 100px; height: auto; margin: 0 auto 10px auto; transform: translate(var(--logo-x), var(--logo-y)) scale(var(--logo-size)); opacity: var(--logo-opacity); z-index: 5; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); object-fit: contain;}
+                        .header-content { position: relative; z-index: 5; width: 100%; pointer-events: none; ${textStyle} }
+                        .header-title { margin: 0; font-size: calc(26px * var(--title-size)); font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--title-color); text-shadow: 0 2px 5px rgba(0,0,0,0.4); line-height: 1.1;} 
+                        .header-sub { font-size: calc(14px * var(--sub-size)); margin-top: 5px; font-weight: 600; color: var(--sub-color); letter-spacing: 0.5px; text-shadow: 0 1px 3px rgba(0,0,0,0.4); } 
+                        
+                        .header-badge { padding: 5px 15px; border-radius: 20px; background: rgba(255,255,255,0.2); font-size: 12px; font-weight: 700; display: inline-block; margin-top: 10px; color: var(--tag-color); border: 1px solid rgba(255,255,255,0.1); text-shadow: 0 1px 3px rgba(0,0,0,0.3); letter-spacing: 0.5px;}
+
+                        .cat-scroll-wrapper { width: 100%; overflow-x: auto; white-space: nowrap; padding: 5px 12px 10px 12px; margin-bottom: 5px;}
+                        .cat-pill { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: rgba(0,0,0,0.05); border-radius: 20px; font-size: 11px; font-weight: 700; margin-right: 8px; border: 1px solid rgba(0,0,0,0.1); cursor:pointer; transition:0.3s;}
+                        .cat-pill.active { background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); color: white; border: none; transform:scale(1.05);}
+                        
+                        .container { padding: 0 12px; width:100%; box-sizing:border-box; }
+                        .hidden { display: none !important; }
+                        .match-card { margin-bottom: 12px; padding: 12px 15px; border-radius: var(--card-radius); box-shadow: 0 3px 12px rgba(0,0,0,0.06); position: relative; border: 1px solid #eee; }
+                        
+                        @keyframes pulse-live-card { 0% { box-shadow: 0 0 5px var(--live-neon); transform: scale(1); border-color: transparent; } 100% { box-shadow: 0 0 20px var(--live-neon); transform: scale(1.02); border-color: var(--live-neon); } }
+                        .match-card.is-live { border: 2px solid var(--live-neon); animation: pulse-live-card 1.5s infinite alternate ease-in-out; }
+                        
+                        .meta-text { font-size: 10px; font-weight: 800; text-transform: uppercase; opacity: 0.9; }
+                        .court-badge { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+                        .team { flex: 1; font-size: 13px; font-weight:800; line-height: 1.4; }
+                        
+                        .score-pill { background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); color: white; padding: 8px 15px; border-radius: 12px; font-size: 16px; font-weight: 800; min-width: 60px; max-width: 60%; flex-shrink: 0; text-align: center; margin: 0 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height:1.2;}
+                        .score-pill.empty { background: white; color: #ccc; border: 1px dashed #ccc; box-shadow: none; font-size: 14px; }
+                        .live-tag { color: #fff; background: var(--primary-start); font-weight: 800; font-size: 9px; display: flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 10px; }
+                        
+                        @keyframes blinker-live { 0% { opacity: 0.2; box-shadow: none; } 100% { opacity: 1; box-shadow: 0 0 8px var(--live-neon); } }
+                        .dot-live { display: inline-block; width: 6px; height: 6px; background-color: var(--live-neon) !important; border-radius: 50%; animation: blinker-live 0.8s infinite alternate; }
+                        
+                        .neon-dot { display: inline-block; width: 6px; height: 6px; background-color: var(--live-neon); border-radius: 50%; box-shadow: 0 0 6px var(--live-neon); margin: 0 6px; vertical-align:middle;}
+
+                        .theme-classic-white { background: white; color: #333; } .theme-classic-white .meta-text { color: #C2185B; } .theme-classic-white .court-badge { background: #f5f5f5; color: #666; border: 1px solid #ddd; }
+                        .theme-midnight-blue { background: #0d1b2a; color: #e0e1dd; border: 1px solid #1b263b; } .theme-midnight-blue .meta-text { color: #4CC9F0; } .theme-midnight-blue .court-badge { background: #1b263b; color: #4CC9F0; }
+                        .theme-royal-gold { background: #fffcf5; color: #5d4037; border: 1px solid #daa520; } .theme-royal-gold .meta-text { color: #b8860b;} .theme-royal-gold .court-badge { background: linear-gradient(to bottom, #fff8dc, #f0e68c); color: #5d4037; border: 1px solid #daa520; }
+                        .theme-vampire-red { background: #1a0000; color: #ffcccc; border: 1px solid #4d0000; } .theme-vampire-red .meta-text { color: #FF5252; } .theme-vampire-red .court-badge { background: #4d0000; color: white; }
+                        .theme-ocean-breeze { background: #E1F5FE; color: #01579B; border: 1px solid #81d4fa; } .theme-ocean-breeze .meta-text { color: #0288d1; } .theme-ocean-breeze .court-badge { background: #0288D1; color: white; }
+                        .theme-neon-cyber { background: #050505; border: 1px solid #0ff; color: #0ff; } .theme-neon-cyber .meta-text { color: #fff;} .theme-neon-cyber .court-badge { background: #002222; color: #fff; border: 1px solid #0ff; }
+                        .theme-emerald-city { background: #e8f5e9; color: #1b5e20; border: 1px solid #c8e6c9; } .theme-emerald-city .meta-text { color: #2e7d32; } .theme-emerald-city .court-badge { background: #4caf50; color: white; }
+                        .theme-sunset-glow { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; } .theme-sunset-glow .meta-text { color: #f57c00; } .theme-sunset-glow .court-badge { background: #ff9800; color: white; }
+                        .theme-monochrome { background: #fafafa; color: #000; border: 2px solid #000; border-radius:0; } .theme-monochrome .court-badge { background: #000; color: #fff; border-radius:0; }
+                        .theme-lavender { background: #f3e5f5; color: #4a148c; border: 1px solid #e1bee7; } .theme-lavender .court-badge { background: #ab47bc; color: white; }
+                        .theme-crimson { background: #ffebee; color: #b71c1c; border: 1px solid #ffcdd2; } .theme-crimson .court-badge { background: #e53935; color: white; }
+                        .theme-aqua-glass { background: rgba(224,247,250,0.7); backdrop-filter: blur(10px); color: #006064; } .theme-aqua-glass .court-badge { background: #00bcd4; color: white; }
+                        .theme-forest-dark { background: #1b5e20; color: #e8f5e9; } .theme-forest-dark .court-badge { background: #4caf50; color: white; }
+                        .theme-rose-gold { background: #fce4ec; color: #880e4f; } .theme-rose-gold .court-badge { background: #f06292; color: white; }
+                        .theme-matrix-code { background: black; color: #00ff00; font-family: 'Courier Prime', monospace; } .theme-matrix-code .court-badge { border: 1px solid #00ff00; color: #00ff00; background: transparent; }
+                        .theme-obsidian { background: #0f0f0f; color: #f5f5f5; border: 1px solid #333; } .theme-obsidian .meta-text { color: #ffeb3b; } .theme-obsidian .court-badge { background: #222; color: #ffeb3b; }
+                        .theme-pearl { background: #fdfdfd; color: #444; border: 1px solid #e0e0e0; } .theme-pearl .meta-text { color: #880e4f; } .theme-pearl .court-badge { background: #eee; color: #880e4f; }
+                        .theme-ruby { background: #ffebee; color: #b71c1c; border: 1px solid #ff8a80; } .theme-ruby .court-badge { background: #b71c1c; color: white; }
+                        .theme-sapphire { background: #e3f2fd; color: #0d47a1; border: 1px solid #82b1ff; } .theme-sapphire .court-badge { background: #0d47a1; color: white; }
+                        .theme-amethyst { background: #f3e5f5; color: #4a148c; border: 1px solid #ea80fc; } .theme-amethyst .court-badge { background: #4a148c; color: white; }
+                        .theme-topaz { background: #fffde7; color: #e65100; border: 1px solid #ffd180; } .theme-topaz .court-badge { background: #e65100; color: white; }
+                        .theme-amber { background: #fff8e1; color: #f57f17; border: 1px solid #ffe57f; } .theme-amber .court-badge { background: #f57f17; color: white; }
+                        .theme-quartz { background: #fce4ec; color: #c2185b; border: 1px solid #ff80ab; } .theme-quartz .court-badge { background: #c2185b; color: white; }
+                        .theme-jade { background: #e8f5e9; color: #1b5e20; border: 1px solid #b9f6ca; } .theme-jade .court-badge { background: #1b5e20; color: white; }
+                        .theme-onyx { background: #212121; color: #fafafa; border: 1px solid #424242; } .theme-onyx .meta-text { color: #ff5252; } .theme-onyx .court-badge { background: #424242; color: #ff5252; }
+                        .theme-coral { background: #fbe9e7; color: #bf360c; border: 1px solid #ff9e80; } .theme-coral .court-badge { background: #bf360c; color: white; }
+                        .theme-turquoise { background: #e0f2f1; color: #004d40; border: 1px solid #a7ffeb; } .theme-turquoise .court-badge { background: #004d40; color: white; }
+                        .theme-malachite { background: #11270b; color: #a5d6a7; border: 1px solid #2e7d32; } .theme-malachite .meta-text { color: #69f0ae; } .theme-malachite .court-badge { background: #2e7d32; color: white; }
+                        .theme-opal { background: linear-gradient(120deg, #fdfbfb, #ebedee); color: #37474f; border: 1px solid #cfd8dc; } .theme-opal .court-badge { background: #b0bec5; color: #263238; }
+                        .theme-moonstone { background: #eceff1; color: #263238; border: 1px solid #b0bec5; } .theme-moonstone .court-badge { background: #78909c; color: white; }
+                        .theme-sunstone { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; } .theme-sunstone .court-badge { background: #e65100; color: white; }
+                        .theme-garnet { background: #3e2723; color: #ffccbc; border: 1px solid #5d4037; } .theme-garnet .meta-text { color: #ff5722; } .theme-garnet .court-badge { background: #5d4037; color: #ff5722; }
+                        .theme-peridot { background: #f1f8e9; color: #33691e; border: 1px solid #ccff90; } .theme-peridot .court-badge { background: #33691e; color: white; }
+                        .theme-citrine { background: #fff9c4; color: #f57f17; border: 1px solid #ffff8d; } .theme-citrine .court-badge { background: #f57f17; color: white; }
+                        .theme-spinel { background: #f8bbd0; color: #880e4f; border: 1px solid #ff80ab; } .theme-spinel .court-badge { background: #880e4f; color: white; }
+                        .theme-zircon { background: #e1f5fe; color: #01579b; border: 1px solid #80d8ff; } .theme-zircon .court-badge { background: #01579b; color: white; }
+                        .theme-tourmaline { background: linear-gradient(135deg, #f3e5f5, #e8f5e9); color: #333; border: 1px solid #ce93d8; } .theme-tourmaline .court-badge { background: #ab47bc; color: white; }
+                        .theme-beryl { background: #e0f7fa; color: #006064; border: 1px solid #84ffff; } .theme-beryl .court-badge { background: #006064; color: white; }
+                        .theme-alexandrite { background: #311b92; color: #b388ff; border: 1px solid #512da8; } .theme-alexandrite .meta-text { color: #ea80fc; } .theme-alexandrite .court-badge { background: #512da8; color: white; }
+                        .theme-tanzanite { background: #ede7f6; color: #4527a0; border: 1px solid #b388ff; } .theme-tanzanite .court-badge { background: #4527a0; color: white; }
+                        .theme-bloodstone { background: #1b1b1b; color: #ef9a9a; border: 1px solid #b71c1c; } .theme-bloodstone .court-badge { background: #b71c1c; color: white; }
+                        .theme-iolite { background: #283593; color: #c5cae9; border: 1px solid #3f51b5; } .theme-iolite .meta-text { color: #8c9eff; } .theme-iolite .court-badge { background: #3f51b5; color: white; }
+                        .theme-lapis { background: #1a237e; color: #e8eaf6; border: 1px solid #3949ab; } .theme-lapis .meta-text { color: #ffd740; } .theme-lapis .court-badge { background: #3949ab; color: white; }
+                        .theme-morganite { background: #ffebee; color: #c2185b; border: 1px solid #ff80ab; } .theme-morganite .court-badge { background: #c2185b; color: white; }
+                        .theme-kunzite { background: #fce4ec; color: #880e4f; border: 1px solid #ff4081; } .theme-kunzite .court-badge { background: #880e4f; color: white; }
+                        .theme-tsavorite { background: #e8f5e9; color: #1b5e20; border: 1px solid #00c853; } .theme-tsavorite .court-badge { background: #1b5e20; color: white; }
+                        .theme-rhodolite { background: #880e4f; color: #fce4ec; border: 1px solid #ad1457; } .theme-rhodolite .meta-text { color: #ff80ab; } .theme-rhodolite .court-badge { background: #ad1457; color: white; }
+                        .theme-spessartite { background: #bf360c; color: #fbe9e7; border: 1px solid #d84315; } .theme-spessartite .meta-text { color: #ff9e80; } .theme-spessartite .court-badge { background: #d84315; color: white; }
+                        .theme-demantoid { background: #33691e; color: #f1f8e9; border: 1px solid #558b2f; } .theme-demantoid .meta-text { color: #ccff90; } .theme-demantoid .court-badge { background: #558b2f; color: white; }
+                        .theme-padparadscha { background: #ffccbc; color: #bf360c; border: 1px solid #ff8a65; } .theme-padparadscha .court-badge { background: #bf360c; color: white; }
+
+                        .nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; padding: 12px 0; border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); }
+                        .nav-btn { flex: 1; text-align: center; font-size: 10px; font-weight: 700; color: #ccc; cursor:pointer;}
+                        .nav-btn.active { color: var(--primary-start); }
+                    </style>
+                </head>
+                <body>
+                    <div class="header-wrapper">
+                        ${logoHTML}
+                        <div class="header-content">
+                            <h1 class="header-title">${title}</h1>
+                            <div class="header-sub">${sub}</div>
+                            <div class="header-badge" style="display:${customTag ? 'inline-block' : 'none'};">${customTag}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="cat-scroll-wrapper" id="cat-tabs"></div>
+
+                    <div id="view-jadwal" class="container"><div id="jadwal-content"></div></div>
+                    <div id="view-klasemen" class="container hidden"><div id="klasemen-content"></div></div>
+                    <div id="view-bagan" class="container hidden"><div id="bagan-content"></div></div>
+                    <div id="view-peraturan" class="container hidden"><div class="match-card theme-${style}"><h3 style="margin-top:0; color:var(--primary-start);">Peraturan</h3><div id="preview-rules" style="white-space: pre-wrap; font-size:13px; line-height:1.6; color:inherit;"></div></div></div>
+
+                    <div class="nav"><div class="nav-btn active" onclick="go('jadwal', this)">JADWAL</div><div class="nav-btn" onclick="go('klasemen', this)">KLASEMEN</div><div class="nav-btn" onclick="go('bagan', this)">BAGAN</div><div class="nav-btn" onclick="go('peraturan', this)">ATURAN</div></div>
+                    
+                    <script>
+                        let matches = JSON.parse(decodeURIComponent('${encodedMatches}'));
+                        document.getElementById('preview-rules').innerHTML = decodeURIComponent('${encodedRules}');
+
+                        let cardPreset = '${style}';
+                        let currentCategory = 'SEMUA';
+                        let klasemenFormat = '${previewKlasemenFormat}';
+
+                        function renderTabs() {
+                            let cats = [...new Set(matches.map(m => m.category || 'UMUM'))].filter(c => c);
+                            const tabEl = document.getElementById('cat-tabs');
+                            let html = \`<div class="cat-pill \${currentCategory==='SEMUA'?'active':''}" onclick="setCat('SEMUA')">SEMUA LAGA</div>\`;
+                            cats.forEach(c => {
+                                let hasLive = matches.some(m => (m.category||'UMUM') === c && String(m.status||'').toUpperCase() === 'LIVE');
+                                let dot = hasLive ? '<span class="neon-dot" style="margin:0"></span>' : '';
+                                let act = currentCategory === c ? 'active' : '';
+                                html += \`<div class="cat-pill \${act}" onclick="setCat('\${c}')">\${c} \${dot}</div>\`;
+                            });
+                            tabEl.innerHTML = html;
+                        }
+
+                        function setCat(c) { currentCategory = c; processAndRender(); }
+
+                        function formatTeamName(teamString, serverState, isTeamA) {
+                            const dotHTML = '<span class="neon-dot"></span>';
+                            if(!teamString.includes('/')) {
+                                let isServing = (serverState === (isTeamA ? 'a' : 'b') || serverState === teamString);
+                                let icon = isServing ? dotHTML : '';
+                                return \`<div style="font-weight: 800; line-height: 1.15; \${!isTeamA ? 'text-align:right;' : ''}">\${isTeamA ? icon + teamString : teamString + icon}</div>\`;
+                            }
+                            let players = teamString.split('/').map(x => x.trim());
+                            let isS1 = (serverState === players[0]); let isS2 = (serverState === players[1]);
+                            let ic1 = isS1 ? dotHTML : ''; let ic2 = isS2 ? dotHTML : '';
+                            
+                            if(isTeamA) { 
+                                return \`<div style="display:flex; flex-direction:column; align-items:flex-start; gap:8px;">
+                                            <div style="font-weight: 800; line-height: 1.15;">\${ic1}\${players[0]}</div>
+                                            <div style="font-weight: 800; line-height: 1.15;">\${ic2}\${players[1]}</div>
+                                        </div>\`; 
+                            } else { 
+                                return \`<div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px; text-align:right;">
+                                            <div style="font-weight: 800; line-height: 1.15;">\${players[0]}\${ic1}</div>
+                                            <div style="font-weight: 800; line-height: 1.15;">\${players[1]}\${ic2}</div>
+                                        </div>\`; 
+                            }
+                        }
+
+                        function createCardHTML(m) {
+                            let status = String(m.status||'').trim().toUpperCase();
+                            let isLive = status === 'LIVE'; let isDone = status === 'FINISHED'; let isPending = status === 'PENDING';
+                            let totalA = (parseInt(m.set1_a)||0)+(parseInt(m.set2_a)||0)+(parseInt(m.set3_a)||0)+(parseInt(m.set4_a)||0)+(parseInt(m.set5_a)||0);
+                            let totalB = (parseInt(m.set1_b)||0)+(parseInt(m.set2_b)||0)+(parseInt(m.set3_b)||0)+(parseInt(m.set4_b)||0)+(parseInt(m.set5_b)||0);
+                            
+                            let scoreStr = '';
+                            if (isPending && totalA === 0 && totalB === 0) { scoreStr = 'VS'; } 
+                            else {
+                                let sets = []; let maxSet = isLive ? (m.current_set || 1) : 5;
+                                for(let i=1; i<=5; i++) {
+                                    let sa = parseInt(m[\`set\${i}_a\`]) || 0; let sb = parseInt(m[\`set\${i}_b\`]) || 0; let isCurr = isLive && ((m.current_set || 1) == i);
+                                    if (isCurr || sa > 0 || sb > 0 || (i === 1 && maxSet === 1 && isLive)) {
+                                        if (isCurr) sets.push(\`<span style="color:var(--live-neon); text-shadow:0 0 5px rgba(0,0,0,0.5); font-size:1.1em;">\${sa}-\${sb}</span>\`); 
+                                        else sets.push(\`<span>\${sa}-\${sb}</span>\`);
+                                    }
+                                }
+                                if(sets.length === 0) sets.push('<span>0-0</span>');
+                                scoreStr = \`<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:6px; align-items:center;">\` + sets.join('<span style="opacity:0.3; font-size:0.8em;">•</span>') + \`</div>\`;
+                            }
+                            
+                            let scoreCls = (scoreStr === 'VS') ? 'score-pill empty' : 'score-pill';
+                            let smallPt = isLive ? \`<div style="font-size:12px; margin-top:5px; color:inherit; font-weight:900; letter-spacing:1px; background:rgba(0,0,0,0.15); padding:2px 10px; border-radius:6px;"><span style="color:var(--live-neon)">\${m.points_a||0} - \${m.points_b||0}</span></div>\` : '';
+
+                            let themeClass = 'theme-' + cardPreset;
+                            let metaHTML = \`<span class="meta-text">\${m.category} • \${m.round}</span>\`;
+                            
+                            let timeInfo = '';
+                            if (isLive) { timeInfo = '<div class="live-tag"><div class="dot-live"></div> LIVE</div>'; } 
+                            else if (isDone) { timeInfo = '<div style="font-weight:800; font-size:9px; background:rgba(100,100,100,0.1); padding:2px 8px; border-radius:10px; opacity:0.8;">🏁 FT</div>'; } 
+                            else { timeInfo = \`<span style="font-size:11px; font-weight:600; opacity:0.8;">\${(m.date ? m.date + ' • ' : '') + (m.time || '')}</span>\`; } 
+
+                            let centerHTML = scoreStr === 'VS' ? '<div class="vs-text">VS</div>' : \`<div class="\${scoreCls}">\${scoreStr}\${smallPt}</div>\`;
+                            let teamA_Formatted = formatTeamName(m.team_a, m.server, true);
+                            let teamB_Formatted = formatTeamName(m.team_b, m.server, false);
+
+                            let styleTA = ''; let styleTB = '';
+                            if (isDone) { if (totalA > totalB) { styleTB = 'opacity: 0.3;'; } else if (totalB > totalA) { styleTA = 'opacity: 0.3;'; } else { styleTA = 'opacity: 0.8;'; styleTB = 'opacity: 0.8;'; } }
+                            
+                            return \`<div class="match-card \${themeClass} \${isLive?'is-live':''}" style="\${isDone ? 'opacity: 0.85;' : ''}">
+                                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(0,0,0,0.05); padding-bottom:5px; margin-bottom:8px;">\${metaHTML} <div style="display:flex; gap:10px; align-items:center;">\${timeInfo}</div></div>
+                                <div style="display:flex; align-items:center; justify-content:space-between;">
+                                    <div class="team" style="text-align:left; \${styleTA}">\${teamA_Formatted}</div>
+                                    <div class="\${scoreCls}">\${scoreStr}\${smallPt}</div>
+                                    <div class="team" style="text-align:right; \${styleTB}">\${teamB_Formatted}</div>
+                                </div>
+                                <div style="text-align:center; margin-top:8px;"><span class="court-badge">\${m.court_name}</span></div>
+                            </div>\`;
+                        }
+
+                        function renderKlasemen() {
+                            const el = document.getElementById('klasemen-content'); el.innerHTML = "";
+                            let groups = {};
+                            let filteredMatches = matches.filter(m => currentCategory === 'SEMUA' || (m.category||'UMUM') === currentCategory);
+                            filteredMatches.filter(m => m.round.toLowerCase().includes('grup')).forEach(m => {
+                                let g = (m.category||'UMUM') + ' - ' + m.round;
+                                if(!groups[g]) groups[g]={cat: m.category||'UMUM', round: m.round};
+                                [m.team_a, m.team_b].forEach(t=>{ if(!groups[g][t]) groups[g][t]={mp:0, w:0, l:0, gw:0, gl:0, gd:0}; });
+                                if(String(m.status||'').trim().toUpperCase() === 'FINISHED'){
+                                    let sA=groups[g][m.team_a], sB=groups[g][m.team_b];
+                                    sA.mp++; sB.mp++;
+                                    let tA = (parseInt(m.set1_a)||0)+(parseInt(m.set2_a)||0)+(parseInt(m.set3_a)||0)+(parseInt(m.set4_a)||0)+(parseInt(m.set5_a)||0);
+                                    let tB = (parseInt(m.set1_b)||0)+(parseInt(m.set2_b)||0)+(parseInt(m.set3_b)||0)+(parseInt(m.set4_b)||0)+(parseInt(m.set5_b)||0);
+                                    sA.gw+=tA; sA.gl+=tB; sB.gw+=tB; sB.gl+=tA; sA.gd+=(tA-tB); sB.gd+=(tB-tA);
+                                    if(tA>tB){sA.w++; sB.l++;} else {sB.w++; sA.l++;}
+                                }
+                            });
+                            
+                            Object.keys(groups).sort().forEach(g => {
+                                let isPct = (klasemenFormat === 'PCT');
+                                let headerLabel = isPct ? '%' : 'GD';
+
+                                let rows = Object.keys(groups[g]).filter(k=>k!=='cat'&&k!=='round').map(t=>({name:t, ...groups[g][t]}))
+                                    .map(t => {
+                                        if(isPct) {
+                                            let totalGames = t.gw + t.gl;
+                                            t.pct = totalGames > 0 ? ((t.gw / totalGames) * 100).toFixed(2) : 0;
+                                            t.sortVal = (t.w * 10000) + parseFloat(t.pct); 
+                                            t.displayVal = t.pct + '%';
+                                        } else {
+                                            t.sortVal = (t.w * 10000) + t.gd;
+                                            t.displayVal = t.gd;
+                                        }
+                                        return t;
+                                    })
+                                    .sort((a,b)=> b.sortVal - a.sortVal)
+                                    .map((t,i)=>\`<tr \${i===0?'style="background:rgba(255,255,0,0.1)"':''}><td>\${i+1}</td><td style="text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">\${t.name}</td><td>\${t.mp}</td><td>\${t.w}</td><td>\${t.l}</td><td>\${t.displayVal}</td></tr>\`).join('');
+                                
+                                el.innerHTML += \`<div class="match-card theme-\${cardPreset}" style="padding:0; overflow:hidden;"><div style="padding:10px; font-weight:bold; border-bottom:1px solid rgba(0,0,0,0.1); display:flex; justify-content:space-between;"><span>\${groups[g].cat}</span> <span style="color:var(--primary-start)">\${groups[g].round}</span></div><table style="width:100%; border-collapse:collapse; font-size:11px; text-align:center; table-layout:fixed;"><thead><tr style="background:rgba(0,0,0,0.05);"><th style="width:25px;">#</th><th style="text-align:left; padding:8px; width:auto;">TIM</th><th style="width:30px;">MP</th><th style="width:30px;">W</th><th style="width:30px;">L</th><th style="width:55px;">\${headerLabel}</th></tr></thead><tbody>\${rows}</tbody></table></div>\`;
+                            });
+                        }
+
+                        function renderAll() {
+                            const elJ = document.getElementById('jadwal-content'); elJ.innerHTML = "";
+                            const elB = document.getElementById('bagan-content'); elB.innerHTML = "";
+                            let filteredMatches = matches.filter(m => currentCategory === 'SEMUA' || (m.category||'UMUM') === currentCategory);
+                            filteredMatches.filter(m => m.round.toLowerCase().includes('grup')).forEach(m => elJ.innerHTML += createCardHTML(m));
+                            filteredMatches.filter(m => !m.round.toLowerCase().includes('grup')).forEach(m => elB.innerHTML += createCardHTML(m));
+                            renderKlasemen();
+                        }
+
+                        function go(id, btn) { document.querySelectorAll('.container').forEach(c=>c.classList.add('hidden')); document.getElementById('view-'+id).classList.remove('hidden'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+                        
+                        function processAndRender() { renderTabs(); renderAll(); }
+                        processAndRender();
+                    <\/script>
+                </body>
+                </html>
+                `;
+
+                const frame = document.getElementById('preview-frame');
+                if(frame) frame.srcdoc = htmlString;
+
+            }, 500); 
+        }
+
+        async function saveSettings() {
+            const get = (id) => document.getElementById(id).value;
+            let combinedLogoMode = get('s-logo-mode') + '|||' + document.getElementById('s-standings-format').value;
+
+            const pl = {
+                event_name: get('s-name'), event_subtitle: get('s-sub'), tag_text: get('s-tag'), logo_url: get('s-logo'),
+                text_color_title: get('s-col-title'), text_color_sub: get('s-col-sub'), text_color_tag: get('s-col-tag'),
+                logo_mode: combinedLogoMode, hide_text: document.getElementById('s-hide-text').checked ? 'true' : 'false',
+                title_size: get('s-title-size'), sub_size: get('s-sub-size'), logo_size: get('s-logo-size'), logo_opacity: get('s-logo-opacity'), logo_x: get('s-logo-x'), logo_y: get('s-logo-y'),
+                color_primary: get('s-col-h1'), color_gradient_end: get('s-col-h2'), color_bg: get('s-col-bg'), color_neon: get('s-neon'), card_preset: get('s-card-preset'), rules_text: document.getElementById('rich-editor').innerHTML
+            };
+            const { error } = await db.from('partners').update(pl).eq('tournament_id', ACTIVE_ID);
+            if (error) { alert("GAGAL MENYIMPAN! ❌\nError: " + error.message); } 
+            else { alert("Pengaturan Berhasil Disimpan! ✅"); }
+        }
+
+        function switchTab(t, btn) { document.querySelectorAll('.view-section').forEach(e=>e.classList.remove('active')); document.getElementById('view-'+t).classList.add('active'); document.querySelectorAll('.nav-pill').forEach(e=>e.classList.remove('active')); btn.classList.add('active'); }
+        function openModalMatch() { document.getElementById('modal-match').style.display='flex'; }
+        function showQR() { const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://ryan12918.github.io/pamor-live/client.html?id=${ACTIVE_ID}`; document.getElementById('qr-img').src = url; document.getElementById('qr-text').innerText = ACTIVE_ID; document.getElementById('modal-qr').style.display='flex'; }
+        function filterTable() { const f = document.getElementById('search-box').value.toUpperCase(); const tr = document.getElementById('main-table').getElementsByTagName('tr'); for(let i=2; i<tr.length; i++) { const txt = tr[i].innerText; const inps = tr[i].querySelectorAll('input, textarea'); let valTxt = ""; inps.forEach(inp => valTxt += " " + inp.value); const fullTxt = txt + valTxt; tr[i].style.display = fullTxt.toUpperCase().indexOf(f)>-1 ? "" : "none"; } }
+    </script>
+</body>
+</html>
