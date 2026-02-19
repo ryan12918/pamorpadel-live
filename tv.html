@@ -17,35 +17,43 @@
         
         body { font-family: var(--font-main); background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-color); overflow: hidden; display: flex; flex-direction: column; height: 100vh; user-select: none; }
         
-        /* 💡 HEADER TV DIBUAT SANGAT TIPIS (1 BARIS) AGAR KARTU SKOR LEGA 💡 */
         .header-wrapper { display: flex; flex-direction: row; align-items: center; justify-content: space-between; background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); padding: 1vh 3vw; border-bottom: 3px solid rgba(255,255,255,0.1); box-shadow: 0 5px 15px rgba(0,0,0,0.5); flex-shrink: 0; height: 6vh; }
-        
         .header-content { display: flex; align-items: center; gap: 2vw; }
         .header-title { margin: 0; font-size: calc(1.5vw * var(--title-size)); font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--title-color); text-shadow: 0 4px 10px rgba(0,0,0,0.5); white-space: nowrap; } 
-        .header-sub { display: none; /* 💡 SUB-JUDUL DIHILANGKAN DI TV */ } 
+        .header-sub { display: none; } 
         .header-badge { padding: 0.5vh 1.5vw; border-radius: 30px; background: rgba(255,255,255,0.2); font-size: 1vw; font-weight: 800; color: var(--tag-color); border: 1px solid rgba(255,255,255,0.2); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;}
         
         .logo-classic { width: 4vw; max-height: 5vh; object-fit: contain; transform: translate(var(--logo-x), var(--logo-y)) scale(var(--logo-size)); opacity: var(--logo-opacity); }
         .logo-watermark { position: absolute; top: 50%; left: 50%; width: 10vw; height: auto; transform: translate(calc(-50% + var(--logo-x)), calc(-50% + var(--logo-y))) scale(var(--logo-size)); opacity: var(--logo-opacity); z-index: 1; pointer-events: none; }
 
-        /* 📺 TV GRID SYSTEM (AUTO-SCALE) */
+        /* 📺 TV GRID SYSTEM (REVISI BAPAK: MAKSIMAL 2 KOLOM AGAR LEGA) 📺 */
         #tv-grid { flex: 1; padding: 2vh 2vw; display: grid; gap: 2vw; align-content: center; justify-content: center; width: 100%; box-sizing: border-box; }
+        
         #tv-grid.grid-1 { grid-template-columns: 1fr; grid-template-rows: 1fr; padding: 5vh 10vw;}
         #tv-grid.grid-2 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
-        #tv-grid.grid-3 { grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr; }
-        #tv-grid.grid-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
-        #tv-grid.grid-5, #tv-grid.grid-6 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
-        #tv-grid.grid-many { grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr; }
-
-        /* 💡 PERBAIKAN PADDING & FONT AGAR TIDAK TERPOTONG 💡 */
+        #tv-grid.grid-3, #tv-grid.grid-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+        #tv-grid.grid-5, #tv-grid.grid-6 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
+        
         .match-card { display: flex; flex-direction: column; justify-content: space-between; padding: 1.5vw; border-radius: var(--card-radius); height: 100%; box-sizing: border-box; transition: all 0.5s; position: relative; }
         
-        .meta-text { font-size: 1vw; font-weight: 900; text-transform: uppercase; opacity: 0.9; }
-        .court-badge { padding: 0.5vw 1vw; border-radius: 8px; font-size: 1.2vw; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; display: inline-block; box-shadow: 0 5px 15px rgba(0,0,0,0.2);}
+        /* 💡 SKALA FONT PROPORSIONAL (Sesuai Batas 2 Kolom) 💡 */
+        .grid-1 .team-name { font-size: 4vw; }  .grid-1 .score-pill { font-size: 5vw; } .grid-1 .set-txt { font-size: 3vw; } .grid-1 .court-badge { font-size: 2vw; } .grid-1 .meta-text { font-size: 1.5vw; }
+        .grid-2 .team-name { font-size: 2.5vw; } .grid-2 .score-pill { font-size: 3.5vw; } .grid-2 .set-txt { font-size: 2vw; } .grid-2 .court-badge { font-size: 1.5vw; } .grid-2 .meta-text { font-size: 1.2vw; }
+        .grid-3 .team-name, .grid-4 .team-name { font-size: 2vw; }  .grid-3 .score-pill, .grid-4 .score-pill { font-size: 3vw; }   .grid-3 .set-txt, .grid-4 .set-txt { font-size: 1.8vw; } .grid-3 .court-badge, .grid-4 .court-badge { font-size: 1.2vw; } .grid-3 .meta-text, .grid-4 .meta-text { font-size: 1vw; }
+        .grid-5 .team-name, .grid-6 .team-name { font-size: 1.8vw; } 
+        .grid-5 .score-pill, .grid-6 .score-pill { font-size: 2.5vw; padding: 0.5vw 1vw; } 
+        .grid-5 .set-txt, .grid-6 .set-txt { font-size: 1.5vw; }
+        .grid-5 .court-badge, .grid-6 .court-badge { font-size: 1.2vw; padding: 0.3vw 1vw; }
+        .grid-5 .meta-text, .grid-6 .meta-text { font-size: 1vw; }
+
+        .meta-text { font-weight: 900; text-transform: uppercase; opacity: 0.9; }
+        .court-badge { border-radius: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; display: inline-block; box-shadow: 0 5px 15px rgba(0,0,0,0.2);}
         
-        .team { flex: 1; font-size: 1.6vw; font-weight: 800; line-height: 1.2; display: flex; align-items: center; width: 100%; word-break: break-word; }
+        .team { flex: 1; font-weight: 800; line-height: 1.2; display: flex; flex-direction: column; justify-content: center; width: 30%; overflow: hidden; }
         
-        .score-pill { background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); color: white; padding: 1vw; border-radius: 15px; font-size: 2vw; font-weight: 900; min-width: 10vw; max-width: 40%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin: 0 1.5vw; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; border: 2px solid rgba(255,255,255,0.1);}
+        .player-row { width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 0.5vw; padding: 0.2vh 0;}
+        
+        .score-pill { background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); color: white; border-radius: 15px; font-weight: 900; min-width: 15vw; max-width: 35%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin: 0 1.5vw; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0;}
         
         @keyframes pulse-live-card { 0% { box-shadow: 0 0 5px var(--live-neon); transform: scale(1); border-color: transparent;} 100% { box-shadow: 0 0 20px var(--live-neon); transform: scale(1.02); border-color: var(--live-neon); } }
         .match-card.is-live { border: 3px solid var(--live-neon); animation: pulse-live-card 2s infinite alternate ease-in-out; z-index: 20; }
@@ -54,7 +62,7 @@
         
         @keyframes blinker-live { 0% { opacity: 0.2; } 100% { opacity: 1; box-shadow: 0 0 15px var(--live-neon); } }
         .dot-live { display: inline-block; width: 0.8vw; height: 0.8vw; background-color: var(--live-neon) !important; border-radius: 50%; animation: blinker-live 0.8s infinite alternate; }
-        .neon-dot { display: inline-block; width: 0.8vw; height: 0.8vw; background-color: var(--live-neon); border-radius: 50%; margin: 0 0.5vw; box-shadow: 0 0 10px var(--live-neon); vertical-align: middle; }
+        .neon-dot { flex-shrink: 0; width: 0.8vw; height: 0.8vw; background-color: var(--live-neon); border-radius: 50%; box-shadow: 0 0 10px var(--live-neon); }
 
         /* MENGIMPOR 50 GAYA KARTU DARI CLIENT.HTML */
         .theme-classic-white { background: white; color: #333; } .theme-classic-white .meta-text { color: #C2185B; } .theme-classic-white .court-badge { background: #f5f5f5; color: #666; border: 1px solid #ddd; } 
@@ -110,8 +118,8 @@
 
         .empty-state { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3vw; color: rgba(255,255,255,0.3); font-weight: 900; text-transform: uppercase; letter-spacing: 5px; }
         
-        /* 💡 INFO FULLSCREEN TIPIS DI POJOK BAWAH 💡 */
-        .fs-hint { position: fixed; bottom: 10px; right: 15px; font-size: 0.8vw; color: rgba(255,255,255,0.3); font-weight: 600; pointer-events: none; }
+        .fs-hint { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.7); color: white; padding: 15px 25px; border-radius: 30px; font-size: 1.2vw; font-weight: 800; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 999; transition: 0.3s; }
+        .fs-hint:hover { background: var(--primary-start); border-color: var(--live-neon); transform: scale(1.05); }
     </style>
 </head>
 <body>
@@ -130,16 +138,19 @@
         <div class="empty-state">MEMUAT LIVE SCORE...</div>
     </div>
     
-    <div class="fs-hint">Klik 2x di layar untuk Fullscreen</div>
+    <div class="fs-hint" id="btn-fs" onclick="makeFullScreen()">📺 KLIK UNTUK FULLSCREEN</div>
 
     <script>
-        // 💡 FUNGSI DOUBLE CLICK UNTUK FULLSCREEN OTOMATIS (MENGHILANGKAN TAB BROWSER)
-        document.body.addEventListener('dblclick', () => {
+        function makeFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => console.log("Gagal Fullscreen"));
-            } else {
-                document.exitFullscreen();
+                document.getElementById('btn-fs').style.display = 'none'; 
             }
+        }
+        
+        document.body.addEventListener('dblclick', () => { makeFullScreen(); });
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) document.getElementById('btn-fs').style.display = 'block'; 
         });
 
         const SUPABASE_URL = 'https://gubcvxiupehbdpigrdct.supabase.co';
@@ -209,7 +220,6 @@
             } 
 
             cardPreset = d.card_preset || 'classic-white'; r.setProperty('--card-radius', (d.corner_radius || 15) + 'px');
-
             if(d.bg_image_url) { document.body.style.backgroundImage = `url('${d.bg_image_url}')`; document.body.style.backgroundSize = 'cover'; document.body.style.backgroundAttachment = 'fixed'; } 
             
             document.getElementById('head-title').innerText = d.event_name || "TOURNAMENT";
@@ -227,17 +237,27 @@
         }
 
         function formatTeamName(teamString, serverState, isTeamA) {
-            if(hideServeGlobal) return `<div style="text-align:${isTeamA?'left':'right'}">${teamString}</div>`; 
+            if(hideServeGlobal) return `<div style="display:flex; flex-direction:column; width:100%; gap:0.5vh; text-align:${isTeamA?'left':'right'}; align-items:${isTeamA?'flex-start':'flex-end'};"><span class="player-row team-name">${teamString}</span></div>`; 
+            
             const dotHTML = '<span class="neon-dot"></span>';
             if(!teamString.includes('/')) {
                 let isServing = (serverState === (isTeamA ? 'a' : 'b') || serverState === teamString);
-                return `<div style="text-align:${isTeamA?'left':'right'}">${isTeamA ? (isServing?dotHTML:'') + teamString : teamString + (isServing?dotHTML:'')}</div>`;
+                return `<div style="display:flex; flex-direction:column; width:100%; gap:0.5vh; text-align:${isTeamA?'left':'right'}; align-items:${isTeamA?'flex-start':'flex-end'};"><span class="player-row team-name">${isTeamA ? (isServing?dotHTML:'') + teamString : teamString + (isServing?dotHTML:'')}</span></div>`;
             }
             let players = teamString.split('/').map(x => x.trim());
             let isS1 = (serverState === players[0]); let isS2 = (serverState === players[1]);
             let ic1 = isS1 ? dotHTML : ''; let ic2 = isS2 ? dotHTML : '';
-            if(isTeamA) { return `<div style="display:flex; flex-direction:column; align-items:flex-start; gap:0.5vh;"><div>${ic1}${players[0]}</div><div>${ic2}${players[1]}</div></div>`; } 
-            else { return `<div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.5vh; text-align:right;"><div>${players[0]}${ic1}</div><div>${players[1]}${ic2}</div></div>`; }
+            if(isTeamA) { 
+                return `<div style="display:flex; flex-direction:column; width:100%; gap:0.5vh; align-items:flex-start;">
+                            <span class="player-row team-name">${ic1}${players[0]}</span>
+                            <span class="player-row team-name">${ic2}${players[1]}</span>
+                        </div>`; 
+            } else { 
+                return `<div style="display:flex; flex-direction:column; width:100%; gap:0.5vh; align-items:flex-end; text-align:right; justify-content:flex-end;">
+                            <span class="player-row team-name" style="justify-content:flex-end;">${players[0]}${ic1}</span>
+                            <span class="player-row team-name" style="justify-content:flex-end;">${players[1]}${ic2}</span>
+                        </div>`; 
+            }
         }
 
         function renderTV() {
@@ -270,14 +290,14 @@
                 for(let i=1; i<=5; i++) {
                     let sa = parseInt(m[`set${i}_a`]) || 0; let sb = parseInt(m[`set${i}_b`]) || 0; let isCurr = ((m.current_set || 1) == i);
                     if (isCurr || sa > 0 || sb > 0 || (i === 1 && maxSet === 1)) {
-                        if (isCurr) { sets.push(`<span style="color:var(--live-neon); text-shadow: 0 0 10px rgba(0,0,0,0.8); font-size:1.3em;">${sa}-${sb}</span>`); } 
-                        else { sets.push(`<span>${sa}-${sb}</span>`); }
+                        if (isCurr) { sets.push(`<span class="set-txt" style="color:var(--live-neon); text-shadow: 0 0 10px rgba(0,0,0,0.8);">${sa}-${sb}</span>`); } 
+                        else { sets.push(`<span class="set-txt">${sa}-${sb}</span>`); }
                     }
                 }
-                if(sets.length === 0) sets.push(`<span>0-0</span>`);
-                let scoreStr = `<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:0.8vw; align-items:center;">` + sets.join('<span style="opacity:0.3; font-size:0.8em;">•</span>') + `</div>`;
+                if(sets.length === 0) sets.push(`<span class="set-txt">0-0</span>`);
+                let scoreStr = `<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:0.8vw; align-items:center; line-height:1.2;">` + sets.join('<span style="opacity:0.3; font-size:0.6em;">•</span>') + `</div>`;
                 
-                let smallPt = `<div style="font-size:1.2vw; margin-top:1vh; color:inherit; font-weight:900; letter-spacing:2px; background:rgba(0,0,0,0.2); padding:0.5vh 1.5vw; border-radius:10px;"><span style="color:var(--live-neon)">${m.points_a||0} - ${m.points_b||0}</span></div>`;
+                let smallPt = `<div style="margin-top:1vh; color:inherit; font-weight:900; letter-spacing:2px; background:rgba(0,0,0,0.2); border-radius:10px; display:inline-block;"><span style="color:var(--live-neon)">${m.points_a||0} - ${m.points_b||0}</span></div>`;
 
                 let themeClass = 'theme-' + cardPreset;
                 let metaHTML = `<span class="meta-text">${m.category} • ${m.round}</span>`;
@@ -291,10 +311,10 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid rgba(0,0,0,0.1); padding-bottom:1vh; margin-bottom:1.5vh;">
                         ${metaHTML} ${timeInfo}
                     </div>
-                    <div style="display:flex; align-items:center; justify-content:space-between; flex:1;">
-                        <div class="team" style="justify-content:flex-start;">${teamA_Formatted}</div>
+                    <div style="display:flex; align-items:center; justify-content:space-between; flex:1; gap:1vw;">
+                        <div class="team" style="align-items:flex-start;">${teamA_Formatted}</div>
                         <div class="score-pill">${scoreStr}${smallPt}</div>
-                        <div class="team" style="justify-content:flex-end;">${teamB_Formatted}</div>
+                        <div class="team" style="align-items:flex-end;">${teamB_Formatted}</div>
                     </div>
                     <div style="text-align:center; margin-top:1.5vh;">
                         <span class="court-badge">${m.court_name}</span>
