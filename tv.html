@@ -17,7 +17,7 @@
         
         body { font-family: var(--font-main); background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-color); overflow: hidden; display: flex; flex-direction: column; height: 100vh; user-select: none; box-sizing: border-box;}
         
-        /* 💡 HEADER TV SANGAT TIPIS */
+        /* HEADER TV TIPIS & ELEGAN */
         .header-wrapper { display: flex; flex-direction: row; align-items: center; justify-content: space-between; background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); padding: 1vh 3vw; border-bottom: 3px solid rgba(255,255,255,0.1); box-shadow: 0 5px 15px rgba(0,0,0,0.5); flex-shrink: 0; height: 6vh; }
         .header-content { display: flex; align-items: center; gap: 2vw; flex: 1;}
         .header-title { margin: 0; font-size: calc(1.5vw * var(--title-size)); font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--title-color); text-shadow: 0 4px 10px rgba(0,0,0,0.5); white-space: nowrap; } 
@@ -27,7 +27,7 @@
         .logo-classic { width: 4vw; max-height: 4vh; object-fit: contain; transform: translate(var(--logo-x), var(--logo-y)) scale(var(--logo-size)); opacity: var(--logo-opacity); }
         .logo-watermark { position: absolute; top: 50%; left: 50%; width: 10vw; height: auto; transform: translate(calc(-50% + var(--logo-x)), calc(-50% + var(--logo-y))) scale(var(--logo-size)); opacity: var(--logo-opacity); z-index: 1; pointer-events: none; }
 
-        /* 💡 TOMBOL FULLSCREEN PINDAH KE HEADER KANAN (TRANSPARAN) 💡 */
+        /* TOMBOL FULLSCREEN DI HEADER */
         .header-fs-btn { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.6); padding: 0.5vh 1vw; border-radius: 8px; font-size: 0.8vw; font-weight: 800; cursor: pointer; letter-spacing: 1px; transition: 0.3s; display: flex; align-items: center; gap: 0.5vw; white-space: nowrap;}
         .header-fs-btn:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: #fff; }
 
@@ -39,27 +39,46 @@
         #tv-grid.grid-3, #tv-grid.grid-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
         #tv-grid.grid-5, #tv-grid.grid-6 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
         
-        /* 💡 PENGUNCIAN OVERFLOW PADA KARTU (Anti Terpotong) 💡 */
         .match-card { display: flex; flex-direction: column; justify-content: space-between; padding: 1.5vw; border-radius: var(--card-radius); height: 100%; box-sizing: border-box; transition: all 0.5s; position: relative; min-width: 0; min-height: 0; overflow: hidden;}
         
-        /* SKALA FONT PROPORSIONAL */
-        .grid-1 .team-name { font-size: 3.5vw; }  .grid-1 .score-pill { font-size: 4.5vw; } .grid-1 .set-txt { font-size: 3vw; } .grid-1 .court-badge { font-size: 1.5vw; } .grid-1 .meta-text { font-size: 1.2vw; }
-        .grid-2 .team-name { font-size: 2.2vw; } .grid-2 .score-pill { font-size: 3vw; } .grid-2 .set-txt { font-size: 2vw; } .grid-2 .court-badge { font-size: 1.2vw; } .grid-2 .meta-text { font-size: 1vw; }
-        .grid-3 .team-name, .grid-4 .team-name { font-size: 1.8vw; }  .grid-3 .score-pill, .grid-4 .score-pill { font-size: 2.5vw; }   .grid-3 .set-txt, .grid-4 .set-txt { font-size: 1.5vw; } .grid-3 .court-badge, .grid-4 .court-badge { font-size: 1vw; } .grid-3 .meta-text, .grid-4 .meta-text { font-size: 0.9vw; }
+        /* 💡 KOREKSI TIPOGRAFI: SET BESAR, POIN KECIL 💡 */
+        /* GRID 1 */
+        .grid-1 .team-name { font-size: 3.5vw; }  
+        .grid-1 .set-txt { font-size: 5vw; } /* Skor Set (6-1, dll) Super Besar */
+        .grid-1 .point-txt { font-size: 2.5vw; margin-top: 2vh; padding: 1vh 2vw; } /* Poin 15,30 Mengecil */
+        .grid-1 .court-badge { font-size: 1.5vw; } .grid-1 .meta-text { font-size: 1.2vw; }
+        
+        /* GRID 2 */
+        .grid-2 .team-name { font-size: 2.2vw; } 
+        .grid-2 .set-txt { font-size: 3.5vw; } 
+        .grid-2 .point-txt { font-size: 1.8vw; margin-top: 1.5vh; padding: 0.8vh 1.5vw; } 
+        .grid-2 .court-badge { font-size: 1.2vw; } .grid-2 .meta-text { font-size: 1vw; }
+
+        /* GRID 3 & 4 */
+        .grid-3 .team-name, .grid-4 .team-name { font-size: 1.8vw; }  
+        .grid-3 .set-txt, .grid-4 .set-txt { font-size: 2.5vw; } 
+        .grid-3 .point-txt, .grid-4 .point-txt { font-size: 1.3vw; margin-top: 1vh; padding: 0.5vh 1.2vw; } 
+        .grid-3 .court-badge, .grid-4 .court-badge { font-size: 1vw; } .grid-3 .meta-text, .grid-4 .meta-text { font-size: 0.9vw; }
+
+        /* GRID 5 & 6 */
         .grid-5 .team-name, .grid-6 .team-name { font-size: 1.5vw; } 
-        .grid-5 .score-pill, .grid-6 .score-pill { font-size: 2vw; padding: 0.5vw 1vw; } 
-        .grid-5 .set-txt, .grid-6 .set-txt { font-size: 1.2vw; }
+        .grid-5 .set-txt, .grid-6 .set-txt { font-size: 2vw; } /* Set tetap dominan */
+        .grid-5 .point-txt, .grid-6 .point-txt { font-size: 1vw; margin-top: 0.5vh; padding: 0.3vh 1vw; } /* Poin 15,30 sangat rapi di bawah */
         .grid-5 .court-badge, .grid-6 .court-badge { font-size: 0.9vw; padding: 0.3vw 0.8vw; }
         .grid-5 .meta-text, .grid-6 .meta-text { font-size: 0.8vw; }
 
         .meta-text { font-weight: 900; text-transform: uppercase; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;}
         .court-badge { border-radius: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; display: inline-block; box-shadow: 0 5px 15px rgba(0,0,0,0.2);}
         
-        /* 💡 PENGUNCIAN LEBAR TIM (WAJIB POTONG TEKS PANJANG) 💡 */
-        .team { flex: 1; font-weight: 800; line-height: 1.2; display: flex; flex-direction: column; justify-content: center; width: 35%; overflow: hidden; min-width: 0; }
+        .team { flex: 1; font-weight: 800; line-height: 1.2; display: flex; flex-direction: column; justify-content: center; width: 27.5%; overflow: hidden; min-width: 0; }
+        .player-row { width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 0.5vw; padding: 0.2vh 0;}
         
-        .score-pill { background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); color: white; border-radius: 15px; font-weight: 900; min-width: 15vw; max-width: 30%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin: 0 1vw; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0;}
+        /* WADAH KOTAK SKOR DIPERLEBAR MAX 45% AGAR SET TIDAK BERTUMPUK */
+        .score-pill { background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); color: white; border-radius: 15px; min-width: 15vw; max-width: 45%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin: 0 1vw; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0; padding: 1vh 1vw;}
         
+        .set-txt { font-weight: 900; }
+        .point-txt { font-weight: 900; letter-spacing: 2px; background: rgba(0,0,0,0.2); border-radius: 10px; display: inline-block; color: inherit; text-align: center; }
+
         @keyframes pulse-live-card { 0% { box-shadow: 0 0 5px var(--live-neon); transform: scale(1); border-color: transparent;} 100% { box-shadow: 0 0 20px var(--live-neon); transform: scale(1.02); border-color: var(--live-neon); } }
         .match-card.is-live { border: 3px solid var(--live-neon); animation: pulse-live-card 2s infinite alternate ease-in-out; z-index: 20; }
         
@@ -69,6 +88,7 @@
         .dot-live { display: inline-block; width: 0.8vw; height: 0.8vw; background-color: var(--live-neon) !important; border-radius: 50%; animation: blinker-live 0.8s infinite alternate; }
         .neon-dot { flex-shrink: 0; width: 0.8vw; height: 0.8vw; background-color: var(--live-neon); border-radius: 50%; box-shadow: 0 0 10px var(--live-neon); }
 
+        /* THEMES 50 GAYA KARTU */
         .theme-classic-white { background: white; color: #333; } .theme-classic-white .meta-text { color: #C2185B; } .theme-classic-white .court-badge { background: #f5f5f5; color: #666; border: 1px solid #ddd; } 
         .theme-midnight-blue { background: #0d1b2a; color: #e0e1dd; border: 1px solid #1b263b; } .theme-midnight-blue .meta-text { color: #4CC9F0; } .theme-midnight-blue .court-badge { background: #1b263b; color: #4CC9F0; } 
         .theme-royal-gold { background: #fffcf5; color: #5d4037; border: 1px solid #daa520; } .theme-royal-gold .meta-text { color: #b8860b; } .theme-royal-gold .court-badge { background: linear-gradient(to bottom, #fff8dc, #f0e68c); color: #5d4037; border: 1px solid #daa520; }
@@ -146,7 +166,6 @@
     </div>
 
     <script>
-        // 💡 FUNGSI FULLSCREEN
         function makeFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => console.log("Gagal Fullscreen"));
@@ -154,12 +173,10 @@
             }
         }
         
-        // Listener jika keluar dari fullscreen (tekan ESC / Back)
         document.addEventListener('fullscreenchange', () => {
             if (!document.fullscreenElement) document.getElementById('btn-fs').style.display = 'flex'; 
         });
         
-        // Tetap pasang fungsi double-click sebagai cadangan
         document.body.addEventListener('dblclick', () => { makeFullScreen(); });
 
         const SUPABASE_URL = 'https://gubcvxiupehbdpigrdct.supabase.co';
@@ -245,7 +262,6 @@
             }
         }
 
-        /* 💡 FORMAT NAMA PEMAIN WAJIB 1 BARIS (ELLIPSIS) 💡 */
         function formatTeamName(teamString, serverState, isTeamA) {
             const renderRow = (name, isServ) => {
                 let dot = isServ ? '<span class="neon-dot"></span>' : '';
@@ -307,9 +323,12 @@
                     }
                 }
                 if(sets.length === 0) sets.push(`<span class="set-txt">0-0</span>`);
+                
+                // 💡 PENGGABUNGAN SKOR SET (KINI BERUKURAN BESAR)
                 let scoreStr = `<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:0.8vw; align-items:center; line-height:1.2;">` + sets.join('<span style="opacity:0.3; font-size:0.6em;">•</span>') + `</div>`;
                 
-                let smallPt = `<div style="margin-top:1vh; color:inherit; font-weight:900; letter-spacing:2px; background:rgba(0,0,0,0.2); border-radius:10px; display:inline-block;"><span style="color:var(--live-neon)">${m.points_a||0} - ${m.points_b||0}</span></div>`;
+                // 💡 PEMISAHAN SKOR POIN (KINI BERUKURAN KECIL SEBAGAI BADGE)
+                let smallPt = `<div class="point-txt"><span style="color:var(--live-neon)">${m.points_a||0} - ${m.points_b||0}</span></div>`;
 
                 let themeClass = 'theme-' + cardPreset;
                 let metaHTML = `<span class="meta-text">${m.category} • ${m.round}</span>`;
@@ -325,7 +344,9 @@
                     </div>
                     <div style="display:flex; align-items:center; justify-content:space-between; flex:1; gap:1vw; min-width:0; min-height:0;">
                         <div class="team" style="align-items:flex-start;">${teamA_Formatted}</div>
+                        
                         <div class="score-pill">${scoreStr}${smallPt}</div>
+                        
                         <div class="team" style="align-items:flex-end;">${teamB_Formatted}</div>
                     </div>
                     <div style="text-align:center; margin-top:1.5vh; min-width:0;">
