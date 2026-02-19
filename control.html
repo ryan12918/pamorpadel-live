@@ -24,7 +24,7 @@
         .nav-pill { padding: 8px 20px; border-radius: 4px; border: 1px solid #ddd; background: #f5f5f5; color: #555; cursor: pointer; font-weight: 700; font-size: 11px; margin-right: 5px; }
         .nav-pill.active { background: var(--primary); color: white; border-color: var(--primary); }
         .btn-action { padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; color: white; font-weight: bold; font-size: 10px; display: inline-flex; align-items: center; gap: 5px; transition: 0.3s; }
-        .btn-blue { background: #0277bd; } .btn-grey { background: #546e7a; } .btn-green { background: #2e7d32; } .btn-red { background: #c62828; }
+        .btn-blue { background: #0277bd; } .btn-grey { background: #546e7a; } .btn-green { background: #2e7d32; } .btn-red { background: #c62828; } .btn-purple { background: #6a1b9a; }
 
         .view-container { flex: 1; overflow: hidden; position: relative; background: #eceff1; }
         .view-section { display: none; width: 100%; height: 100%; }
@@ -111,6 +111,7 @@
             <div id="view-matches" class="view-section active">
                 <div class="toolbar">
                     <button class="btn-action btn-blue" onclick="openModalMatch()">+ BARU</button>
+                    <button class="btn-action btn-purple" onclick="openStudioTV()">📺 STUDIO TV</button>
                     <button class="btn-action btn-red" onclick="deleteSelected()">🗑️ HAPUS TERPILIH</button>
                     <button id="btn-refresh" class="btn-action btn-grey" onclick="loadMatches()">REFRESH</button>
                     <input id="search-box" class="form-control" style="width:200px; margin-left:auto;" placeholder="🔍 Cari Tim/Court/Kategori..." onkeyup="filterTable()">
@@ -249,6 +250,19 @@
         </div>
     </div>
 
+    <div id="modal-tv" class="modal">
+        <div class="modal-box" style="width:350px;">
+            <h3 style="margin-top:0; color:#6a1b9a;">📺 STUDIO TV DISPLAY</h3>
+            <p style="font-size:11px; color:#555;">Pilih Court mana saja yang ingin ditampilkan secara bersamaan di 1 layar TV. (Biarkan kosong jika ingin menampilkan SEMUA Court yang sedang Live).</p>
+            <div id="tv-court-list" style="max-height:250px; overflow-y:auto; margin-bottom:15px; background:#f5f5f5; padding:10px; border-radius:6px; border:1px solid #ddd; display:flex; flex-direction:column; gap:8px;">
+                </div>
+            <div style="text-align:right;">
+                <button onclick="document.getElementById('modal-tv').style.display='none'" style="padding:8px 15px; border:none; cursor:pointer;">TUTUP</button>
+                <button onclick="generateTVLink()" class="btn-action btn-purple">🚀 BUKA TV SEKARANG</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-match" class="modal">
         <div class="modal-box">
             <h3 style="margin-top:0;">Match Baru</h3>
@@ -351,7 +365,6 @@
                     let bCls = m.status==='LIVE'?'#e91e63':(m.status==='FINISHED'?'#43a047':'#90a4ae');
                     let bTxt = m.status==='LIVE'?'STOP':(m.status==='FINISHED'?'DONE':'LIVE');
                     
-                    // 💡 INJEKSI CHECKBOX BARU DI KOLOM PERTAMA UNTUK HAPUS MASSAL
                     tb.innerHTML += `<tr data-id="${m.id}">
                         <td><input type="checkbox" class="chk-row" value="${m.id}" style="cursor:pointer;"></td>
                         <td>${inp('match_no', m.match_no)}</td><td>${inp('pin', m.pin, 'inp-pin')}</td><td class="bg-grey">${txt('date', m.date)}</td><td class="bg-grey">${inp('time', m.time)}</td><td class="bg-grey">${txt('court_name', m.court_name)}</td><td class="bg-grey">${txt('category', m.category)}</td><td class="bg-grey">${txt('round', m.round)}</td><td class="bg-grey">${txt('referee_name', m.referee_name)}</td><td class="td-team" style="text-align:right;">${txt('team_a', m.team_a)}</td><td class="bg-set">${num('set1_a', m.set1_a)}</td> <td class="bg-set">${num('set1_b', m.set1_b)}</td><td class="bg-set">${num('set2_a', m.set2_a)}</td> <td class="bg-set">${num('set2_b', m.set2_b)}</td><td class="bg-set">${num('set3_a', m.set3_a)}</td> <td class="bg-set">${num('set3_b', m.set3_b)}</td><td class="bg-set">${num('set4_a', m.set4_a)}</td> <td class="bg-set">${num('set4_b', m.set4_b)}</td><td class="bg-set">${num('set5_a', m.set5_a)}</td> <td class="bg-set">${num('set5_b', m.set5_b)}</td><td class="bg-poin">${num('points_a', m.points_a)}</td><td class="bg-poin">${num('points_b', m.points_b)}</td><td class="td-team" style="text-align:left;">${txt('team_b', m.team_b)}</td><td>${cbox('is_wo', m.is_wo)}</td><td><span id="btn-status-${m.id}" class="badge" style="background:${bCls}" onclick="tog('${m.id}')">${bTxt}</span> <span class="badge" style="background:#2e7d32; margin-left:2px;" onclick="fin('${m.id}')">✅</span></td><td><i class="fas fa-grip-lines drag-handle" style="cursor: grab; color: #546e7a; font-size: 14px; padding: 5px;"></i></td><td><button class="badge" style="background:#c62828; border:none;" onclick="del('${m.id}')">🗑️</button></td>
@@ -362,52 +375,55 @@
             window.matchSortable = new Sortable(document.getElementById('tbl-body'), { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', onEnd: function () { reorderMatchesSweep(); } });
         }
 
-        // 💡 FUNGSI CHECKBOX PILIH SEMUA
-        function toggleCheckAll(el) {
-            const checkboxes = document.querySelectorAll('.chk-row');
-            checkboxes.forEach(cb => cb.checked = el.checked);
-        }
+        function toggleCheckAll(el) { const checkboxes = document.querySelectorAll('.chk-row'); checkboxes.forEach(cb => cb.checked = el.checked); }
 
-        // 💡 FUNGSI HAPUS MASSAL (BULK DELETE)
         async function deleteSelected() {
             const checkboxes = document.querySelectorAll('.chk-row:checked');
             if(checkboxes.length === 0) { alert("Pilih minimal 1 match (centang kotak di sebelah kiri) untuk dihapus!"); return; }
             if(!confirm(`⚠️ PERINGATAN!\nAnda yakin ingin menghapus ${checkboxes.length} match yang dipilih secara permanen?`)) return;
-            
-            const btn = document.querySelector('button[onclick="deleteSelected()"]');
-            const origText = btn.innerText;
-            btn.innerText = "⏳ MENGHAPUS...";
-            
+            const btn = document.querySelector('button[onclick="deleteSelected()"]'); const origText = btn.innerText; btn.innerText = "⏳ MENGHAPUS...";
             const idsToDelete = Array.from(checkboxes).map(cb => cb.value);
-            
             const {error} = await db.from('matches_pro').delete().in('id', idsToDelete);
-            if(error) { 
-                alert("Gagal menghapus: " + error.message); 
-            } else {
-                GLOBAL_MATCHES = GLOBAL_MATCHES.filter(m => !idsToDelete.includes(m.id));
-                document.getElementById('check-all').checked = false;
-                let rowElements = document.querySelectorAll('#tbl-body tr');
-                rowElements.forEach(row => { 
-                    if(idsToDelete.includes(row.getAttribute('data-id'))) row.remove(); 
-                });
+            if(error) { alert("Gagal menghapus: " + error.message); } else {
+                GLOBAL_MATCHES = GLOBAL_MATCHES.filter(m => !idsToDelete.includes(m.id)); document.getElementById('check-all').checked = false;
+                let rowElements = document.querySelectorAll('#tbl-body tr'); rowElements.forEach(row => { if(idsToDelete.includes(row.getAttribute('data-id'))) row.remove(); });
                 updateBrandingPreview();
             }
             btn.innerText = origText;
         }
 
-        // 💡 PERBAIKAN MESIN PENCARI (DEEP SEARCH)
-        function filterTable() { 
-            const f = document.getElementById('search-box').value.toUpperCase(); 
-            const tr = document.getElementById('main-table').getElementsByTagName('tr'); 
-            for(let i=2; i<tr.length; i++) { 
-                let txt = tr[i].innerText; 
-                // Deteksi teks dari dalam kotak input dan textarea juga
-                const inputs = tr[i].querySelectorAll('input, textarea');
-                inputs.forEach(inp => { if(inp.value) txt += ' ' + inp.value; });
-                
-                tr[i].style.display = txt.toUpperCase().indexOf(f) > -1 ? "" : "none"; 
-            } 
+        // 💡 FUNGSI MEMBUKA STUDIO TV
+        function openStudioTV() {
+            let courts = [...new Set(GLOBAL_MATCHES.map(m => m.court_name))].filter(c => c && c.trim() !== "");
+            let html = "";
+            courts.forEach(c => {
+                html += `<label style="display:flex; align-items:center; gap:10px; font-size:14px; font-weight:bold; cursor:pointer;"><input type="checkbox" class="tv-court-cb" value="${c}" style="width:18px; height:18px;"> ${c}</label>`;
+            });
+            if(html === "") html = "<div style='color:red;'>Belum ada data court. Silakan buat match terlebih dahulu.</div>";
+            document.getElementById('tv-court-list').innerHTML = html;
+            document.getElementById('modal-tv').style.display = 'flex';
         }
+
+        // 💡 FUNGSI MENGEKSEKUSI LINK TV
+        function generateTVLink() {
+            const checkboxes = document.querySelectorAll('.tv-court-cb:checked');
+            let selectedCourts = Array.from(checkboxes).map(cb => cb.value);
+            
+            // Rumus canggih mencari lokasi tv.html (GitHub atau Lokal)
+            let currentUrl = window.location.href;
+            let baseUrl = currentUrl.replace('control.html', 'tv.html');
+            if (baseUrl.includes('?')) baseUrl = baseUrl.split('?')[0]; // Bersihkan jika ada parameter sisa
+
+            let finalUrl = baseUrl + '?id=' + ACTIVE_ID;
+            if (selectedCourts.length > 0) {
+                finalUrl += '&courts=' + encodeURIComponent(selectedCourts.join(','));
+            }
+            
+            window.open(finalUrl, '_blank');
+            document.getElementById('modal-tv').style.display = 'none';
+        }
+
+        function filterTable() { const f = document.getElementById('search-box').value.toUpperCase(); const tr = document.getElementById('main-table').getElementsByTagName('tr'); for(let i=2; i<tr.length; i++) { const txt = tr[i].innerText; const inps = tr[i].querySelectorAll('input, textarea'); let valTxt = ""; inps.forEach(inp => valTxt += " " + inp.value); const fullTxt = txt + valTxt; tr[i].style.display = fullTxt.toUpperCase().indexOf(f)>-1 ? "" : "none"; } }
 
         function upd(id, f, v) {
             const index = GLOBAL_MATCHES.findIndex(m => m.id === id);
@@ -444,7 +460,6 @@
         async function fin(id) { if(!confirm('Tandai Selesai?')) return; const index = GLOBAL_MATCHES.findIndex(m => m.id === id); if (index === -1) return; GLOBAL_MATCHES[index].status = 'FINISHED'; let btn = document.getElementById('btn-status-' + id); if (btn) { btn.innerText = 'DONE'; btn.style.background = '#43a047'; } updateBrandingPreview(); await db.from('matches_pro').update({status: 'FINISHED'}).eq('id', id); }
         async function del(id) { if(!confirm('Hapus Match?')) return; GLOBAL_MATCHES = GLOBAL_MATCHES.filter(m => m.id !== id); let row = document.querySelector(`tr[data-id="${id}"]`); if (row) row.remove(); updateBrandingPreview(); await db.from('matches_pro').delete().eq('id', id); }
         
-        // 💡 FUNGSI TAMBAH MASSAL (BULK ADD)
         async function submitMatch() { 
             const get = (id) => document.getElementById(id).value || "-"; 
             const qty = parseInt(document.getElementById('i-qty').value) || 1;
@@ -815,7 +830,7 @@
 
         function switchTab(t, btn) { document.querySelectorAll('.view-section').forEach(e=>e.classList.remove('active')); document.getElementById('view-'+t).classList.add('active'); document.querySelectorAll('.nav-pill').forEach(e=>e.classList.remove('active')); btn.classList.add('active'); }
         function openModalMatch() { document.getElementById('modal-match').style.display='flex'; }
-        function showQR() { const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://ryan12918.github.io/pamor-live/client.html?id=${ACTIVE_ID}`; document.getElementById('qr-img').src = url; document.getElementById('qr-text').innerText = ACTIVE_ID; document.getElementById('modal-qr').style.display='flex'; }
+        function showQR() { const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://ryan12918.github.io/pamorpadel-live/client.html?id=${ACTIVE_ID}`; document.getElementById('qr-img').src = url; document.getElementById('qr-text').innerText = ACTIVE_ID; document.getElementById('modal-qr').style.display='flex'; }
         function filterTable() { const f = document.getElementById('search-box').value.toUpperCase(); const tr = document.getElementById('main-table').getElementsByTagName('tr'); for(let i=2; i<tr.length; i++) { const txt = tr[i].innerText; const inps = tr[i].querySelectorAll('input, textarea'); let valTxt = ""; inps.forEach(inp => valTxt += " " + inp.value); const fullTxt = txt + valTxt; tr[i].style.display = fullTxt.toUpperCase().indexOf(f)>-1 ? "" : "none"; } }
     </script>
 </body>
