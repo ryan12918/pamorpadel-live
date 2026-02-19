@@ -15,56 +15,60 @@
             --logo-size: 1; --logo-opacity: 1; --logo-x: 0px; --logo-y: 0px; --title-size: 1; --sub-size: 1;
         }
         
-        body { font-family: var(--font-main); background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-color); overflow: hidden; display: flex; flex-direction: column; height: 100vh; user-select: none; }
+        body { font-family: var(--font-main); background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-color); overflow: hidden; display: flex; flex-direction: column; height: 100vh; user-select: none; box-sizing: border-box;}
         
+        /* 💡 HEADER TV SANGAT TIPIS */
         .header-wrapper { display: flex; flex-direction: row; align-items: center; justify-content: space-between; background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); padding: 1vh 3vw; border-bottom: 3px solid rgba(255,255,255,0.1); box-shadow: 0 5px 15px rgba(0,0,0,0.5); flex-shrink: 0; height: 6vh; }
-        .header-content { display: flex; align-items: center; gap: 2vw; }
+        .header-content { display: flex; align-items: center; gap: 2vw; flex: 1;}
         .header-title { margin: 0; font-size: calc(1.5vw * var(--title-size)); font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--title-color); text-shadow: 0 4px 10px rgba(0,0,0,0.5); white-space: nowrap; } 
         .header-sub { display: none; } 
         .header-badge { padding: 0.5vh 1.5vw; border-radius: 30px; background: rgba(255,255,255,0.2); font-size: 1vw; font-weight: 800; color: var(--tag-color); border: 1px solid rgba(255,255,255,0.2); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;}
         
-        .logo-classic { width: 4vw; max-height: 5vh; object-fit: contain; transform: translate(var(--logo-x), var(--logo-y)) scale(var(--logo-size)); opacity: var(--logo-opacity); }
+        .logo-classic { width: 4vw; max-height: 4vh; object-fit: contain; transform: translate(var(--logo-x), var(--logo-y)) scale(var(--logo-size)); opacity: var(--logo-opacity); }
         .logo-watermark { position: absolute; top: 50%; left: 50%; width: 10vw; height: auto; transform: translate(calc(-50% + var(--logo-x)), calc(-50% + var(--logo-y))) scale(var(--logo-size)); opacity: var(--logo-opacity); z-index: 1; pointer-events: none; }
 
-        /* 📺 TV GRID SYSTEM (REVISI BAPAK: MAKSIMAL 2 KOLOM AGAR LEGA) 📺 */
-        #tv-grid { flex: 1; padding: 2vh 2vw; display: grid; gap: 2vw; align-content: center; justify-content: center; width: 100%; box-sizing: border-box; }
+        /* 💡 TOMBOL FULLSCREEN PINDAH KE HEADER KANAN (TRANSPARAN) 💡 */
+        .header-fs-btn { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.6); padding: 0.5vh 1vw; border-radius: 8px; font-size: 0.8vw; font-weight: 800; cursor: pointer; letter-spacing: 1px; transition: 0.3s; display: flex; align-items: center; gap: 0.5vw; white-space: nowrap;}
+        .header-fs-btn:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: #fff; }
+
+        /* 📺 TV GRID SYSTEM (MAKSIMAL 2 KOLOM) 📺 */
+        #tv-grid { flex: 1; padding: 2vh 2vw; display: grid; gap: 2vw; align-content: center; width: 100vw; box-sizing: border-box; overflow: hidden; }
         
         #tv-grid.grid-1 { grid-template-columns: 1fr; grid-template-rows: 1fr; padding: 5vh 10vw;}
         #tv-grid.grid-2 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
         #tv-grid.grid-3, #tv-grid.grid-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
         #tv-grid.grid-5, #tv-grid.grid-6 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
         
-        .match-card { display: flex; flex-direction: column; justify-content: space-between; padding: 1.5vw; border-radius: var(--card-radius); height: 100%; box-sizing: border-box; transition: all 0.5s; position: relative; }
+        /* 💡 PENGUNCIAN OVERFLOW PADA KARTU (Anti Terpotong) 💡 */
+        .match-card { display: flex; flex-direction: column; justify-content: space-between; padding: 1.5vw; border-radius: var(--card-radius); height: 100%; box-sizing: border-box; transition: all 0.5s; position: relative; min-width: 0; min-height: 0; overflow: hidden;}
         
-        /* 💡 SKALA FONT PROPORSIONAL (Sesuai Batas 2 Kolom) 💡 */
-        .grid-1 .team-name { font-size: 4vw; }  .grid-1 .score-pill { font-size: 5vw; } .grid-1 .set-txt { font-size: 3vw; } .grid-1 .court-badge { font-size: 2vw; } .grid-1 .meta-text { font-size: 1.5vw; }
-        .grid-2 .team-name { font-size: 2.5vw; } .grid-2 .score-pill { font-size: 3.5vw; } .grid-2 .set-txt { font-size: 2vw; } .grid-2 .court-badge { font-size: 1.5vw; } .grid-2 .meta-text { font-size: 1.2vw; }
-        .grid-3 .team-name, .grid-4 .team-name { font-size: 2vw; }  .grid-3 .score-pill, .grid-4 .score-pill { font-size: 3vw; }   .grid-3 .set-txt, .grid-4 .set-txt { font-size: 1.8vw; } .grid-3 .court-badge, .grid-4 .court-badge { font-size: 1.2vw; } .grid-3 .meta-text, .grid-4 .meta-text { font-size: 1vw; }
-        .grid-5 .team-name, .grid-6 .team-name { font-size: 1.8vw; } 
-        .grid-5 .score-pill, .grid-6 .score-pill { font-size: 2.5vw; padding: 0.5vw 1vw; } 
-        .grid-5 .set-txt, .grid-6 .set-txt { font-size: 1.5vw; }
-        .grid-5 .court-badge, .grid-6 .court-badge { font-size: 1.2vw; padding: 0.3vw 1vw; }
-        .grid-5 .meta-text, .grid-6 .meta-text { font-size: 1vw; }
+        /* SKALA FONT PROPORSIONAL */
+        .grid-1 .team-name { font-size: 3.5vw; }  .grid-1 .score-pill { font-size: 4.5vw; } .grid-1 .set-txt { font-size: 3vw; } .grid-1 .court-badge { font-size: 1.5vw; } .grid-1 .meta-text { font-size: 1.2vw; }
+        .grid-2 .team-name { font-size: 2.2vw; } .grid-2 .score-pill { font-size: 3vw; } .grid-2 .set-txt { font-size: 2vw; } .grid-2 .court-badge { font-size: 1.2vw; } .grid-2 .meta-text { font-size: 1vw; }
+        .grid-3 .team-name, .grid-4 .team-name { font-size: 1.8vw; }  .grid-3 .score-pill, .grid-4 .score-pill { font-size: 2.5vw; }   .grid-3 .set-txt, .grid-4 .set-txt { font-size: 1.5vw; } .grid-3 .court-badge, .grid-4 .court-badge { font-size: 1vw; } .grid-3 .meta-text, .grid-4 .meta-text { font-size: 0.9vw; }
+        .grid-5 .team-name, .grid-6 .team-name { font-size: 1.5vw; } 
+        .grid-5 .score-pill, .grid-6 .score-pill { font-size: 2vw; padding: 0.5vw 1vw; } 
+        .grid-5 .set-txt, .grid-6 .set-txt { font-size: 1.2vw; }
+        .grid-5 .court-badge, .grid-6 .court-badge { font-size: 0.9vw; padding: 0.3vw 0.8vw; }
+        .grid-5 .meta-text, .grid-6 .meta-text { font-size: 0.8vw; }
 
-        .meta-text { font-weight: 900; text-transform: uppercase; opacity: 0.9; }
+        .meta-text { font-weight: 900; text-transform: uppercase; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;}
         .court-badge { border-radius: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; display: inline-block; box-shadow: 0 5px 15px rgba(0,0,0,0.2);}
         
-        .team { flex: 1; font-weight: 800; line-height: 1.2; display: flex; flex-direction: column; justify-content: center; width: 30%; overflow: hidden; }
+        /* 💡 PENGUNCIAN LEBAR TIM (WAJIB POTONG TEKS PANJANG) 💡 */
+        .team { flex: 1; font-weight: 800; line-height: 1.2; display: flex; flex-direction: column; justify-content: center; width: 35%; overflow: hidden; min-width: 0; }
         
-        .player-row { width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 0.5vw; padding: 0.2vh 0;}
-        
-        .score-pill { background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); color: white; border-radius: 15px; font-weight: 900; min-width: 15vw; max-width: 35%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin: 0 1.5vw; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0;}
+        .score-pill { background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); color: white; border-radius: 15px; font-weight: 900; min-width: 15vw; max-width: 30%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin: 0 1vw; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0;}
         
         @keyframes pulse-live-card { 0% { box-shadow: 0 0 5px var(--live-neon); transform: scale(1); border-color: transparent;} 100% { box-shadow: 0 0 20px var(--live-neon); transform: scale(1.02); border-color: var(--live-neon); } }
         .match-card.is-live { border: 3px solid var(--live-neon); animation: pulse-live-card 2s infinite alternate ease-in-out; z-index: 20; }
         
-        .live-tag { color: #fff; background: var(--primary-start); font-weight: 900; font-size: 0.9vw; display: flex; align-items: center; gap: 0.5vw; padding: 0.4vw 0.8vw; border-radius: 8px; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);}
+        .live-tag { color: #fff; background: var(--primary-start); font-weight: 900; font-size: 0.9vw; display: flex; align-items: center; gap: 0.5vw; padding: 0.4vw 0.8vw; border-radius: 8px; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); flex-shrink: 0;}
         
         @keyframes blinker-live { 0% { opacity: 0.2; } 100% { opacity: 1; box-shadow: 0 0 15px var(--live-neon); } }
         .dot-live { display: inline-block; width: 0.8vw; height: 0.8vw; background-color: var(--live-neon) !important; border-radius: 50%; animation: blinker-live 0.8s infinite alternate; }
         .neon-dot { flex-shrink: 0; width: 0.8vw; height: 0.8vw; background-color: var(--live-neon); border-radius: 50%; box-shadow: 0 0 10px var(--live-neon); }
 
-        /* MENGIMPOR 50 GAYA KARTU DARI CLIENT.HTML */
         .theme-classic-white { background: white; color: #333; } .theme-classic-white .meta-text { color: #C2185B; } .theme-classic-white .court-badge { background: #f5f5f5; color: #666; border: 1px solid #ddd; } 
         .theme-midnight-blue { background: #0d1b2a; color: #e0e1dd; border: 1px solid #1b263b; } .theme-midnight-blue .meta-text { color: #4CC9F0; } .theme-midnight-blue .court-badge { background: #1b263b; color: #4CC9F0; } 
         .theme-royal-gold { background: #fffcf5; color: #5d4037; border: 1px solid #daa520; } .theme-royal-gold .meta-text { color: #b8860b; } .theme-royal-gold .court-badge { background: linear-gradient(to bottom, #fff8dc, #f0e68c); color: #5d4037; border: 1px solid #daa520; }
@@ -117,9 +121,6 @@
         .theme-padparadscha { background: #ffccbc; color: #bf360c; border: 1px solid #ff8a65; } .theme-padparadscha .court-badge { background: #bf360c; color: white; }
 
         .empty-state { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3vw; color: rgba(255,255,255,0.3); font-weight: 900; text-transform: uppercase; letter-spacing: 5px; }
-        
-        .fs-hint { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.7); color: white; padding: 15px 25px; border-radius: 30px; font-size: 1.2vw; font-weight: 800; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 999; transition: 0.3s; }
-        .fs-hint:hover { background: var(--primary-start); border-color: var(--live-neon); transform: scale(1.05); }
     </style>
 </head>
 <body>
@@ -129,7 +130,13 @@
             <h1 id="head-title" class="header-title">MEMUAT...</h1>
             <div id="head-tag" class="header-badge" style="display:none;"></div>
         </div>
-        <img id="head-logo" class="header-logo logo-classic" style="display:none;">
+        
+        <div style="display: flex; align-items: center; gap: 2vw;">
+            <button id="btn-fs" class="header-fs-btn" onclick="makeFullScreen()" title="Klik untuk Layar Penuh">
+                <svg viewBox="0 0 24 24" width="1.2vw" height="1.2vw" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg> FULLSCREEN
+            </button>
+            <img id="head-logo" class="header-logo logo-classic" style="display:none;">
+        </div>
     </div>
     
     <img id="head-logo-watermark" class="header-logo logo-watermark" style="display:none;">
@@ -137,10 +144,9 @@
     <div id="tv-grid">
         <div class="empty-state">MEMUAT LIVE SCORE...</div>
     </div>
-    
-    <div class="fs-hint" id="btn-fs" onclick="makeFullScreen()">📺 KLIK UNTUK FULLSCREEN</div>
 
     <script>
+        // 💡 FUNGSI FULLSCREEN
         function makeFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => console.log("Gagal Fullscreen"));
@@ -148,10 +154,13 @@
             }
         }
         
-        document.body.addEventListener('dblclick', () => { makeFullScreen(); });
+        // Listener jika keluar dari fullscreen (tekan ESC / Back)
         document.addEventListener('fullscreenchange', () => {
-            if (!document.fullscreenElement) document.getElementById('btn-fs').style.display = 'block'; 
+            if (!document.fullscreenElement) document.getElementById('btn-fs').style.display = 'flex'; 
         });
+        
+        // Tetap pasang fungsi double-click sebagai cadangan
+        document.body.addEventListener('dblclick', () => { makeFullScreen(); });
 
         const SUPABASE_URL = 'https://gubcvxiupehbdpigrdct.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_k1y6fNI2opEXhwqKMbGYcA__2nD0yT6';
@@ -236,28 +245,31 @@
             }
         }
 
+        /* 💡 FORMAT NAMA PEMAIN WAJIB 1 BARIS (ELLIPSIS) 💡 */
         function formatTeamName(teamString, serverState, isTeamA) {
-            if(hideServeGlobal) return `<div style="display:flex; flex-direction:column; width:100%; gap:0.5vh; text-align:${isTeamA?'left':'right'}; align-items:${isTeamA?'flex-start':'flex-end'};"><span class="player-row team-name">${teamString}</span></div>`; 
-            
-            const dotHTML = '<span class="neon-dot"></span>';
+            const renderRow = (name, isServ) => {
+                let dot = isServ ? '<span class="neon-dot"></span>' : '';
+                let align = isTeamA ? 'left' : 'right';
+                let dir = isTeamA ? 'row' : 'row-reverse';
+                return `<div style="display:flex; flex-direction:${dir}; align-items:center; width:100%; min-width:0; gap:0.5vw;">
+                            ${dot}
+                            <span class="team-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; text-align:${align};">${name}</span>
+                        </div>`;
+            };
+
             if(!teamString.includes('/')) {
-                let isServing = (serverState === (isTeamA ? 'a' : 'b') || serverState === teamString);
-                return `<div style="display:flex; flex-direction:column; width:100%; gap:0.5vh; text-align:${isTeamA?'left':'right'}; align-items:${isTeamA?'flex-start':'flex-end'};"><span class="player-row team-name">${isTeamA ? (isServing?dotHTML:'') + teamString : teamString + (isServing?dotHTML:'')}</span></div>`;
+                let isServing = !hideServeGlobal && (serverState === (isTeamA ? 'a' : 'b') || serverState === teamString);
+                return `<div style="display:flex; flex-direction:column; width:100%; gap:1vh; min-width:0;">${renderRow(teamString, isServing)}</div>`;
             }
+
             let players = teamString.split('/').map(x => x.trim());
-            let isS1 = (serverState === players[0]); let isS2 = (serverState === players[1]);
-            let ic1 = isS1 ? dotHTML : ''; let ic2 = isS2 ? dotHTML : '';
-            if(isTeamA) { 
-                return `<div style="display:flex; flex-direction:column; width:100%; gap:0.5vh; align-items:flex-start;">
-                            <span class="player-row team-name">${ic1}${players[0]}</span>
-                            <span class="player-row team-name">${ic2}${players[1]}</span>
-                        </div>`; 
-            } else { 
-                return `<div style="display:flex; flex-direction:column; width:100%; gap:0.5vh; align-items:flex-end; text-align:right; justify-content:flex-end;">
-                            <span class="player-row team-name" style="justify-content:flex-end;">${players[0]}${ic1}</span>
-                            <span class="player-row team-name" style="justify-content:flex-end;">${players[1]}${ic2}</span>
-                        </div>`; 
-            }
+            let isS1 = !hideServeGlobal && (serverState === players[0]); 
+            let isS2 = !hideServeGlobal && (serverState === players[1]);
+            
+            return `<div style="display:flex; flex-direction:column; width:100%; gap:1vh; min-width:0;">
+                        ${renderRow(players[0], isS1)}
+                        ${renderRow(players[1], isS2)}
+                    </div>`;
         }
 
         function renderTV() {
@@ -308,15 +320,15 @@
 
                 gridEl.innerHTML += `
                 <div class="match-card ${themeClass} is-live">
-                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid rgba(0,0,0,0.1); padding-bottom:1vh; margin-bottom:1.5vh;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid rgba(0,0,0,0.1); padding-bottom:1vh; margin-bottom:1.5vh; min-width:0;">
                         ${metaHTML} ${timeInfo}
                     </div>
-                    <div style="display:flex; align-items:center; justify-content:space-between; flex:1; gap:1vw;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; flex:1; gap:1vw; min-width:0; min-height:0;">
                         <div class="team" style="align-items:flex-start;">${teamA_Formatted}</div>
                         <div class="score-pill">${scoreStr}${smallPt}</div>
                         <div class="team" style="align-items:flex-end;">${teamB_Formatted}</div>
                     </div>
-                    <div style="text-align:center; margin-top:1.5vh;">
+                    <div style="text-align:center; margin-top:1.5vh; min-width:0;">
                         <span class="court-badge">${m.court_name}</span>
                     </div>
                 </div>`;
