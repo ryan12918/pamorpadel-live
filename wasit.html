@@ -172,14 +172,54 @@
         let globalServer = ''; let serveSystem = 'manual'; let hideServe = false;
         let arrPlayersA = []; let arrPlayersB = [];
         let lastServerA = ''; let lastServerB = '';
-        let localMatchData = {}; // Cache data lokal untuk transisi mulus
+        let localMatchData = {};
+
+        // 💡 FUNGSI PENJAGA KONEKSI (ANTI OFFLINE / SKOR LONCAT) 💡
+        async function dbUpdate(payload) {
+            try {
+                const { error } = await db.from('matches_pro').update(payload).eq('id', matchId);
+                if (error) throw error;
+            } catch (err) {
+                alert("⚠️ KONEKSI TERPUTUS ATAU GAGAL MENYIMPAN!\nJangan lanjutkan tekan skor! Periksa internet Anda lalu REFRESH halaman ini agar skor kembali sinkron dengan sistem pusat.");
+                throw err; // Stop eksekusi script selanjutnya
+            }
+        }
 
         let matchSec = 0; let matchTimer = null;
         function toggleMatchTimer() { const btn = document.getElementById('btn-timer-match'); if(matchTimer) { clearInterval(matchTimer); matchTimer = null; btn.innerText = "RESUME"; } else { matchTimer = setInterval(()=>{ matchSec++; document.getElementById('val-timer-match').innerText = formatTime(matchSec); }, 1000); btn.innerText = "PAUSE"; } }
 
         let defaultRestSec = 120; let restSec = 120; let restTimer = null;
-        function setCustomRestTime() { if(restTimer) return; let input = prompt("PENGATURAN WAKTU ISTIRAHAT ⏱️\\nMasukkan waktu dalam satuan detik.\\nContoh:\\n60 = 1 Menit\\n90 = 1.5 Menit\\n120 = 2 Menit", defaultRestSec); if(input !== null) { let parsed = parseInt(input); if(!isNaN(parsed) && parsed > 0) { defaultRestSec = parsed; restSec = defaultRestSec; document.getElementById('val-timer-rest').innerText = formatTime(restSec); } else { alert("Gagal: Masukkan angka yang valid!"); } } }
-        function toggleRestTimer() { const btn = document.getElementById('btn-timer-rest'); if(restTimer) { clearInterval(restTimer); restTimer = null; btn.innerText = "START"; document.getElementById('val-timer-rest').style.color = '#ffb74d'; } else { if(restSec <= 0) restSec = defaultRestSec; document.getElementById('val-timer-rest').style.color = '#ff1744'; restTimer = setInterval(()=>{ restSec--; if(restSec <= 0) { clearInterval(restTimer); restTimer = null; btn.innerText = "START"; document.getElementById('val-timer-rest').innerText="00:00"; alert("⏱️ WAKTU ISTIRAHAT TELAH HABIS!"); return; } document.getElementById('val-timer-rest').innerText = formatTime(restSec); }, 1000); btn.innerText = "STOP"; } }
+        function setCustomRestTime() { if(restTimer) return; let input = prompt("PENGATURAN WAKTU ISTIRAHAT ⏱️\nMasukkan waktu dalam satuan detik.\nContoh:\n60 = 1 Menit\n90 = 1.5 Menit\n120 = 2 Menit", defaultRestSec); if(input !== null) { let parsed = parseInt(input); if(!isNaN(parsed) && parsed > 0) { defaultRestSec = parsed; restSec = defaultRestSec; document.getElementById('val-timer-rest').innerText = formatTime(restSec); } else { alert("Gagal: Masukkan angka yang valid!"); } } }
+        
+        // 💡 PERBAIKAN LOGIKA REST TIME (KEMBALI KE UTUH SAAT STOP) 💡
+        function toggleRestTimer() { 
+            const btn = document.getElementById('btn-timer-rest'); 
+            if(restTimer) { 
+                clearInterval(restTimer); 
+                restTimer = null; 
+                btn.innerText = "START"; 
+                restSec = defaultRestSec; // Langsung reset penuh
+                document.getElementById('val-timer-rest').style.color = '#ffb74d'; 
+                document.getElementById('val-timer-rest').innerText = formatTime(restSec);
+            } else { 
+                if(restSec <= 0) restSec = defaultRestSec; 
+                document.getElementById('val-timer-rest').style.color = '#ff1744'; 
+                restTimer = setInterval(()=>{ 
+                    restSec--; 
+                    if(restSec <= 0) { 
+                        clearInterval(restTimer); restTimer = null; 
+                        btn.innerText = "START"; 
+                        restSec = defaultRestSec; // Reset di background
+                        document.getElementById('val-timer-rest').innerText="00:00"; 
+                        alert("⏱️ WAKTU ISTIRAHAT TELAH HABIS!"); 
+                        return; 
+                    } 
+                    document.getElementById('val-timer-rest').innerText = formatTime(restSec); 
+                }, 1000); 
+                btn.innerText = "STOP"; 
+            } 
+        }
+        
         function formatTime(s) { let m = Math.floor(s/60); let rs = s%60; return (m<10?'0':'')+m+':'+(rs<10?'0':'')+rs; }
 
         function openSettings() { document.getElementById('w-serve-system').value = serveSystem; document.getElementById('w-hide-serve').checked = hideServe; document.getElementById('modal-settings').style.display = 'flex'; }
@@ -190,17 +230,17 @@
             try {
                 const btn = document.querySelector('.btn-login'); btn.innerText = "MEMUAT...";
                 const c = document.getElementById('inp-court').value.trim(); const p = document.getElementById('inp-pin').value.trim();
-                if(!c) { alert("⚠️ Nama Court Tidak Boleh Kosong!\\nContoh: valencia"); btn.innerText = "MASUK"; return; }
+                if(!c) { alert("⚠️ Nama Court Tidak Boleh Kosong!\nContoh: valencia"); btn.innerText = "MASUK"; return; }
                 const { data, error } = await db.from('matches_pro').select('*').ilike('court_name', c).eq('status', 'LIVE');
                 if(error) throw error; 
-                if(!data || data.length === 0) { alert("🚫 AKSES DITOLAK!\\n\\nTidak ada pertandingan yang berstatus 'LIVE' di court " + c.toUpperCase() + "."); btn.innerText = "MASUK"; return; }
+                if(!data || data.length === 0) { alert("🚫 AKSES DITOLAK!\n\nTidak ada pertandingan yang berstatus 'LIVE' di court " + c.toUpperCase() + "."); btn.innerText = "MASUK"; return; }
                 const matchData = data[0];
                 let dbPin = matchData.pin ? String(matchData.pin).trim() : "";
                 if(dbPin !== "" && dbPin !== p) { alert("❌ PIN SALAH!"); btn.innerText = "MASUK"; return; }
                 let sSys = 'manual'; let hServe = false;
                 if (matchData.tournament_id) { tournamentId = matchData.tournament_id; const { data: pData } = await db.from('partners').select('*').eq('tournament_id', tournamentId).maybeSingle(); if(pData) { sSys = pData.serve_system || 'manual'; hServe = (pData.hide_serve === 'true'); } }
                 serveSystem = sSys; hideServe = hServe; matchId = matchData.id; document.getElementById('lbl-court').innerText = matchData.court_name; loadMatch(matchData);
-            } catch (err) { alert("🚨 CRASH SISTEM!\\nPesan Error: " + err.message); document.querySelector('.btn-login').innerText = "MASUK"; }
+            } catch (err) { alert("🚨 CRASH SISTEM!\nPesan Error: " + err.message); document.querySelector('.btn-login').innerText = "MASUK"; }
         }
 
         function loadMatch(m) {
@@ -220,7 +260,7 @@
             let htmlB = ''; arrPlayersB.forEach(p => { let isAct = (globalServer === p || globalServer === 'b') && !hideServe; let actCls = isAct ? 'active' : ''; let clickEv = hideServe ? '' : `onclick="setServer('${p}')"`; let ball = hideServe ? '' : `<span class="ball-icon">🎾</span>`; htmlB += `<div class="player-row ${actCls}" ${clickEv}><span>${p}</span>${ball}</div>`; }); boxB.innerHTML = htmlB;
         }
 
-        async function setServer(playerName) { if(hideServe) return; globalServer = playerName; if (arrPlayersA.includes(globalServer)) lastServerA = globalServer; if (arrPlayersB.includes(globalServer)) lastServerB = globalServer; renderPlayerBoxes(); await db.from('matches_pro').update({ server: playerName }).eq('id', matchId); }
+        async function setServer(playerName) { if(hideServe) return; globalServer = playerName; if (arrPlayersA.includes(globalServer)) lastServerA = globalServer; if (arrPlayersB.includes(globalServer)) lastServerB = globalServer; renderPlayerBoxes(); await dbUpdate({ server: playerName }); }
 
         function toggleMode() { isTieBreak = !isTieBreak; const btn = document.getElementById('btn-mode'); const ind = document.getElementById('ind-mode'); if(isTieBreak) { btn.classList.add('active'); ind.style.background = 'white'; document.body.classList.add('mode-tb'); } else { btn.classList.remove('active'); ind.style.background = '#555'; document.body.classList.remove('mode-tb'); } renderButtons(); }
 
@@ -247,9 +287,9 @@
             if(m.server && !hideServe) { globalServer = m.server; renderPlayerBoxes(); } 
         }
 
-        async function setPt(team, val) { document.getElementById('point-'+team).value = val; let otherTeam = team==='a'?'b':'a'; checkAlerts(val, document.getElementById('point-'+otherTeam).value); await db.from('matches_pro').update({ [`points_${team}`]: val }).eq('id', matchId); }
-        async function addPt(team, delta) { const el = document.getElementById('point-'+team); let now = parseInt(el.value); if(isNaN(now)) now = 0; let next = now + delta; if(next < 0) next = 0; el.value = next; await db.from('matches_pro').update({ [`points_${team}`]: next }).eq('id', matchId); }
-        async function resetPoint() { if(!confirm("Kembalikan Poin ke 0-0?")) return; document.getElementById('point-a').value = '0'; document.getElementById('point-b').value = '0'; checkAlerts('0', '0'); await db.from('matches_pro').update({ points_a: '0', points_b: '0' }).eq('id', matchId); }
+        async function setPt(team, val) { document.getElementById('point-'+team).value = val; let otherTeam = team==='a'?'b':'a'; checkAlerts(val, document.getElementById('point-'+otherTeam).value); await dbUpdate({ [`points_${team}`]: val }); }
+        async function addPt(team, delta) { const el = document.getElementById('point-'+team); let now = parseInt(el.value); if(isNaN(now)) now = 0; let next = now + delta; if(next < 0) next = 0; el.value = next; await dbUpdate({ [`points_${team}`]: next }); }
+        async function resetPoint() { if(!confirm("Kembalikan Poin ke 0-0?")) return; document.getElementById('point-a').value = '0'; document.getElementById('point-b').value = '0'; checkAlerts('0', '0'); await dbUpdate({ points_a: '0', points_b: '0' }); }
 
         async function winGame(team) {
             if(!confirm("Tim ini memenangkan Game?")) return;
@@ -262,18 +302,16 @@
             }
             globalServer = nextServer; if (arrPlayersA.includes(globalServer)) lastServerA = globalServer; if (arrPlayersB.includes(globalServer)) lastServerB = globalServer;
             if(!hideServe) renderPlayerBoxes(); document.getElementById('point-a').value = '0'; document.getElementById('point-b').value = '0'; checkAlerts('0', '0');
-            await db.from('matches_pro').update({ [fieldGame]: val, points_a: '0', points_b: '0', server: nextServer }).eq('id', matchId);
+            await dbUpdate({ [fieldGame]: val, points_a: '0', points_b: '0', server: nextServer });
         }
 
-        async function adjGame(team, delta) { const field = `set${currentSet}_${team}`; const el = document.getElementById('game-'+team); let val = parseInt(el.value) + delta; if(val < 0) val = 0; el.value = val; await db.from('matches_pro').update({ [field]: val }).eq('id', matchId); }
+        async function adjGame(team, delta) { const field = `set${currentSet}_${team}`; const el = document.getElementById('game-'+team); let val = parseInt(el.value) + delta; if(val < 0) val = 0; el.value = val; await dbUpdate({ [field]: val }); }
         
-        // 💡 PERBAIKAN PINDAH SET (RESPONSIF LOKAL + ERROR HANDLING)
         async function changeSet(delta) { 
             const next = currentSet + delta; 
             if(next < 1 || next > 5) return; 
             if(!confirm(`Pindah ke SET ${next}? Poin akan direset 0-0.`)) return; 
             
-            // 1. Update UI Lokal agar instan!
             currentSet = next; 
             document.getElementById('lbl-set').innerText = currentSet;
             document.getElementById('game-a').value = localMatchData[`set${currentSet}_a`] || 0;
@@ -282,13 +320,11 @@
             document.getElementById('point-b').value = '0';
             checkAlerts('0', '0'); 
             
-            // 2. Eksekusi ke Supabase
-            const {error} = await db.from('matches_pro').update({ current_set: next, points_a:'0', points_b:'0' }).eq('id', matchId); 
-            if (error) { alert("🚨 Gagal Pindah Set!\nPastikan Anda SUDAH MEMBUAT kolom 'current_set' (tipe int4) di tabel matches_pro Supabase.\nPesan Error: " + error.message); }
+            await dbUpdate({ current_set: next, points_a:'0', points_b:'0' }); 
         }
 
-        async function tutupMatch() { if(!confirm("Anda yakin Pertandingan ini sudah SELESAI?\\nStatus di Control Panel akan otomatis berubah menjadi FINISHED.")) return; await db.from('matches_pro').update({ status: 'FINISHED' }).eq('id', matchId); alert("Match Berhasil Diselesaikan! Terima kasih."); location.reload(); }
-        async function retireMatch() { if(!confirm("Tandai ada tim yang WALKOVER / RETIRED?\\nIni akan mengakhiri match secara otomatis.")) return; await db.from('matches_pro').update({ status: 'FINISHED', is_wo: true }).eq('id', matchId); alert("Match ditandai WO/Retired."); location.reload(); }
+        async function tutupMatch() { if(!confirm("Anda yakin Pertandingan ini sudah SELESAI?\nStatus di Control Panel akan otomatis berubah menjadi FINISHED.")) return; await dbUpdate({ status: 'FINISHED' }); alert("Match Berhasil Diselesaikan! Terima kasih."); location.reload(); }
+        async function retireMatch() { if(!confirm("Tandai ada tim yang WALKOVER / RETIRED?\nIni akan mengakhiri match secara otomatis.")) return; await dbUpdate({ status: 'FINISHED', is_wo: true }); alert("Match ditandai WO/Retired."); location.reload(); }
 
         function subscribeMatch() { db.channel('room-'+matchId).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'matches_pro', filter: `id=eq.${matchId}` }, (payload) => { const m = payload.new; if(m.status !== 'LIVE') location.reload(); currentSet = m.current_set || 1; renderScores(m); }).subscribe(); }
     </script>

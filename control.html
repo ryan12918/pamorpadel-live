@@ -296,7 +296,7 @@
         const SUPABASE_URL = 'https://gubcvxiupehbdpigrdct.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_k1y6fNI2opEXhwqKMbGYcA__2nD0yT6';
         const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        let ACTIVE_ID = null; let previewTimeout = null; let GLOBAL_MATCHES = []; let pendingUpdates = {}; let updateTimer = null; let dragSyncTimeout = null; 
+        let ACTIVE_ID = null; let previewTimeout = null; window.GLOBAL_MATCHES = []; let pendingUpdates = {}; let updateTimer = null; let dragSyncTimeout = null; 
 
         const PRESETS = [
             {n:"Padel Pro", h1:"#1a237e", h2:"#0d47a1", bg:"#e3f2fd", neon:"#76ff03", st:"classic-white"},
@@ -335,13 +335,13 @@
             } catch (err) { errEl.innerText = "Error Jaringan/Server: " + err.message; errEl.style.display = 'block'; btn.innerText = "MASUK DASHBOARD"; }
         }
 
-        async function loadMatches() { const { data } = await db.from('matches_pro').select('*').eq('tournament_id', ACTIVE_ID).order('created_at', {ascending: true}); GLOBAL_MATCHES = data || []; GLOBAL_MATCHES.sort((a,b) => new Date(a.created_at) - new Date(b.created_at)); renderTableMatches(); updateBrandingPreview(); }
+        async function loadMatches() { const { data } = await db.from('matches_pro').select('*').eq('tournament_id', ACTIVE_ID).order('created_at', {ascending: true}); window.GLOBAL_MATCHES = data || []; window.GLOBAL_MATCHES.sort((a,b) => new Date(a.created_at) - new Date(b.created_at)); renderTableMatches(); updateBrandingPreview(); }
 
         function subscribeControl() {
             db.channel('public:matches_pro_admin')
             .on('postgres_changes', {event:'UPDATE', schema:'public', table:'matches_pro', filter:`tournament_id=eq.${ACTIVE_ID}`}, (payload) => {
-                const newM = payload.new; const index = GLOBAL_MATCHES.findIndex(m => m.id === newM.id);
-                if(index > -1) { GLOBAL_MATCHES[index] = newM; updateRowDOM(newM); updateBrandingPreview(); }
+                const newM = payload.new; const index = window.GLOBAL_MATCHES.findIndex(m => m.id === newM.id);
+                if(index > -1) { window.GLOBAL_MATCHES[index] = newM; updateRowDOM(newM); updateBrandingPreview(); }
             }).on('postgres_changes', {event:'INSERT', schema:'public', table:'matches_pro', filter:`tournament_id=eq.${ACTIVE_ID}`}, () => { loadMatches(); })
             .on('postgres_changes', {event:'DELETE', schema:'public', table:'matches_pro', filter:`tournament_id=eq.${ACTIVE_ID}`}, () => { loadMatches(); }).subscribe();
         }
@@ -356,10 +356,10 @@
 
         function renderTableMatches() {
             const tb = document.getElementById('tbl-body'); tb.innerHTML = "";
-            if(GLOBAL_MATCHES && GLOBAL_MATCHES.length > 0) {
-                GLOBAL_MATCHES.forEach((m) => {
+            if(window.GLOBAL_MATCHES && window.GLOBAL_MATCHES.length > 0) {
+                window.GLOBAL_MATCHES.forEach((m) => {
                     const inp = (f, v, c='') => `<input class="tbl-inp ${c}" data-field="${f}" value="${v||''}" onchange="upd('${m.id}','${f}',this.value)">`;
-                    const num = (f, v) => `<input type="number" class="tbl-inp inp-score" data-field="${f}" value="${v}" oninput="upd('${m.id}','${f}',this.value)">`;
+                    const num = (f, v) => `<input type="text" class="tbl-inp inp-score" data-field="${f}" value="${v}" oninput="upd('${m.id}','${f}',this.value)">`; // type text to intercept typo
                     const txt = (f, v, c='') => `<textarea class="inp-wrap ${c}" data-field="${f}" onchange="upd('${m.id}','${f}',this.value)">${v||''}</textarea>`;
                     const cbox = (f, v) => `<input type="checkbox" data-field="${f}" ${v?'checked':''} onchange="upd('${m.id}','${f}',this.checked)">`;
                     let bCls = m.status==='LIVE'?'#e91e63':(m.status==='FINISHED'?'#43a047':'#90a4ae');
@@ -385,16 +385,15 @@
             const idsToDelete = Array.from(checkboxes).map(cb => cb.value);
             const {error} = await db.from('matches_pro').delete().in('id', idsToDelete);
             if(error) { alert("Gagal menghapus: " + error.message); } else {
-                GLOBAL_MATCHES = GLOBAL_MATCHES.filter(m => !idsToDelete.includes(m.id)); document.getElementById('check-all').checked = false;
+                window.GLOBAL_MATCHES = window.GLOBAL_MATCHES.filter(m => !idsToDelete.includes(m.id)); document.getElementById('check-all').checked = false;
                 let rowElements = document.querySelectorAll('#tbl-body tr'); rowElements.forEach(row => { if(idsToDelete.includes(row.getAttribute('data-id'))) row.remove(); });
                 updateBrandingPreview();
             }
             btn.innerText = origText;
         }
 
-        // 💡 FUNGSI MEMBUKA STUDIO TV
         function openStudioTV() {
-            let courts = [...new Set(GLOBAL_MATCHES.map(m => m.court_name))].filter(c => c && c.trim() !== "");
+            let courts = [...new Set(window.GLOBAL_MATCHES.map(m => m.court_name))].filter(c => c && c.trim() !== "");
             let html = "";
             courts.forEach(c => {
                 html += `<label style="display:flex; align-items:center; gap:10px; font-size:14px; font-weight:bold; cursor:pointer;"><input type="checkbox" class="tv-court-cb" value="${c}" style="width:18px; height:18px;"> ${c}</label>`;
@@ -404,35 +403,51 @@
             document.getElementById('modal-tv').style.display = 'flex';
         }
 
-        // 💡 FUNGSI MENGEKSEKUSI LINK TV
         function generateTVLink() {
             const checkboxes = document.querySelectorAll('.tv-court-cb:checked');
             let selectedCourts = Array.from(checkboxes).map(cb => cb.value);
-            
-            // Rumus canggih mencari lokasi tv.html (GitHub atau Lokal)
             let currentUrl = window.location.href;
             let baseUrl = currentUrl.replace('control.html', 'tv.html');
-            if (baseUrl.includes('?')) baseUrl = baseUrl.split('?')[0]; // Bersihkan jika ada parameter sisa
-
+            if (baseUrl.includes('?')) baseUrl = baseUrl.split('?')[0]; 
             let finalUrl = baseUrl + '?id=' + ACTIVE_ID;
-            if (selectedCourts.length > 0) {
-                finalUrl += '&courts=' + encodeURIComponent(selectedCourts.join(','));
-            }
-            
+            if (selectedCourts.length > 0) { finalUrl += '&courts=' + encodeURIComponent(selectedCourts.join(',')); }
             window.open(finalUrl, '_blank');
             document.getElementById('modal-tv').style.display = 'none';
         }
 
         function filterTable() { const f = document.getElementById('search-box').value.toUpperCase(); const tr = document.getElementById('main-table').getElementsByTagName('tr'); for(let i=2; i<tr.length; i++) { const txt = tr[i].innerText; const inps = tr[i].querySelectorAll('input, textarea'); let valTxt = ""; inps.forEach(inp => valTxt += " " + inp.value); const fullTxt = txt + valTxt; tr[i].style.display = fullTxt.toUpperCase().indexOf(f)>-1 ? "" : "none"; } }
 
+        // 💡 PERBAIKAN VALIDASI TYPO ANGKA 💡
         function upd(id, f, v) {
-            const index = GLOBAL_MATCHES.findIndex(m => m.id === id);
+            const index = window.GLOBAL_MATCHES.findIndex(m => m.id === id);
             if (index > -1) { 
-                if (f.includes('set') || f.includes('point')) { GLOBAL_MATCHES[index][f] = parseInt(v) || 0; } else if (f === 'is_wo') { GLOBAL_MATCHES[index][f] = (v === true || v === 'true'); } else { GLOBAL_MATCHES[index][f] = v; } 
+                if (f.includes('set') || f.includes('point')) { 
+                    let parsed = parseInt(v);
+                    if (isNaN(parsed)) {
+                        // KEMBALIKAN KE NILAI LAMA JIKA INPUT BUKAN ANGKA
+                        parsed = window.GLOBAL_MATCHES[index][f] || 0;
+                        const el = document.querySelector(`tr[data-id="${id}"] input[data-field="${f}"]`);
+                        if(el) el.value = parsed;
+                        return; // Stop update
+                    }
+                    window.GLOBAL_MATCHES[index][f] = parsed; 
+                } else if (f === 'is_wo') { 
+                    window.GLOBAL_MATCHES[index][f] = (v === true || v === 'true'); 
+                } else { 
+                    window.GLOBAL_MATCHES[index][f] = v; 
+                } 
                 updateBrandingPreview(); 
             }
+            
             if (!pendingUpdates[id]) { pendingUpdates[id] = {}; }
-            if (f === 'is_wo') pendingUpdates[id][f] = (v === true || v === 'true'); else if (f.includes('set') || f.includes('point')) pendingUpdates[id][f] = parseInt(v) || 0; else pendingUpdates[id][f] = v;
+            if (f === 'is_wo') {
+                pendingUpdates[id][f] = (v === true || v === 'true'); 
+            } else if (f.includes('set') || f.includes('point')) {
+                let parsed = parseInt(v);
+                if (!isNaN(parsed)) pendingUpdates[id][f] = parsed;
+            } else {
+                pendingUpdates[id][f] = v;
+            }
             
             const btnRefresh = document.getElementById('btn-refresh');
             if(btnRefresh) { btnRefresh.innerText = "⏳ MENYIMPAN..."; btnRefresh.style.background = "#ef6c00"; }
@@ -446,8 +461,8 @@
 
         function reorderMatchesSweep() {
             const rows = document.querySelectorAll('#tbl-body tr'); let newGlobalMatches = []; let updatesToProcess = []; let baseTime = new Date('2025-01-01T00:00:00Z').getTime(); 
-            rows.forEach((row, index) => { const id = row.getAttribute('data-id'); let match = GLOBAL_MATCHES.find(m => m.id === id); if (match) { let newTime = new Date(baseTime + (index * 1000)).toISOString(); if (match.created_at !== newTime) { match.created_at = newTime; updatesToProcess.push({ id: id, created_at: newTime }); } newGlobalMatches.push(match); } });
-            GLOBAL_MATCHES = newGlobalMatches; updateBrandingPreview();
+            rows.forEach((row, index) => { const id = row.getAttribute('data-id'); let match = window.GLOBAL_MATCHES.find(m => m.id === id); if (match) { let newTime = new Date(baseTime + (index * 1000)).toISOString(); if (match.created_at !== newTime) { match.created_at = newTime; updatesToProcess.push({ id: id, created_at: newTime }); } newGlobalMatches.push(match); } });
+            window.GLOBAL_MATCHES = newGlobalMatches; updateBrandingPreview();
             const btnRefresh = document.getElementById('btn-refresh'); if(btnRefresh && updatesToProcess.length > 0) { btnRefresh.innerText = "⏳ MENYIMPAN POSISI..."; btnRefresh.style.background = "#ef6c00"; }
             clearTimeout(dragSyncTimeout); 
             dragSyncTimeout = setTimeout(async () => { 
@@ -456,14 +471,18 @@
             }, 1000); 
         }
 
-        async function tog(id) { const index = GLOBAL_MATCHES.findIndex(m => m.id === id); if (index === -1) return; let ns = GLOBAL_MATCHES[index].status === 'LIVE' ? 'PENDING' : 'LIVE'; GLOBAL_MATCHES[index].status = ns; let btn = document.getElementById('btn-status-' + id); if (btn) { btn.innerText = ns === 'LIVE' ? 'STOP' : 'LIVE'; btn.style.background = ns === 'LIVE' ? '#e91e63' : '#90a4ae'; } updateBrandingPreview(); await db.from('matches_pro').update({status: ns}).eq('id', id); }
-        async function fin(id) { if(!confirm('Tandai Selesai?')) return; const index = GLOBAL_MATCHES.findIndex(m => m.id === id); if (index === -1) return; GLOBAL_MATCHES[index].status = 'FINISHED'; let btn = document.getElementById('btn-status-' + id); if (btn) { btn.innerText = 'DONE'; btn.style.background = '#43a047'; } updateBrandingPreview(); await db.from('matches_pro').update({status: 'FINISHED'}).eq('id', id); }
-        async function del(id) { if(!confirm('Hapus Match?')) return; GLOBAL_MATCHES = GLOBAL_MATCHES.filter(m => m.id !== id); let row = document.querySelector(`tr[data-id="${id}"]`); if (row) row.remove(); updateBrandingPreview(); await db.from('matches_pro').delete().eq('id', id); }
+        async function tog(id) { const index = window.GLOBAL_MATCHES.findIndex(m => m.id === id); if (index === -1) return; let ns = window.GLOBAL_MATCHES[index].status === 'LIVE' ? 'PENDING' : 'LIVE'; window.GLOBAL_MATCHES[index].status = ns; let btn = document.getElementById('btn-status-' + id); if (btn) { btn.innerText = ns === 'LIVE' ? 'STOP' : 'LIVE'; btn.style.background = ns === 'LIVE' ? '#e91e63' : '#90a4ae'; } updateBrandingPreview(); await db.from('matches_pro').update({status: ns}).eq('id', id); }
+        async function fin(id) { if(!confirm('Tandai Selesai?')) return; const index = window.GLOBAL_MATCHES.findIndex(m => m.id === id); if (index === -1) return; window.GLOBAL_MATCHES[index].status = 'FINISHED'; let btn = document.getElementById('btn-status-' + id); if (btn) { btn.innerText = 'DONE'; btn.style.background = '#43a047'; } updateBrandingPreview(); await db.from('matches_pro').update({status: 'FINISHED'}).eq('id', id); }
+        async function del(id) { if(!confirm('Hapus Match?')) return; window.GLOBAL_MATCHES = window.GLOBAL_MATCHES.filter(m => m.id !== id); let row = document.querySelector(`tr[data-id="${id}"]`); if (row) row.remove(); updateBrandingPreview(); await db.from('matches_pro').delete().eq('id', id); }
         
+        // 💡 PERBAIKAN CHUNKING BULK ADD (ANTI-LAG) 💡
         async function submitMatch() { 
             const get = (id) => document.getElementById(id).value || "-"; 
-            const qty = parseInt(document.getElementById('i-qty').value) || 1;
+            const qtyStr = document.getElementById('i-qty').value;
+            const qty = parseInt(qtyStr) || 1;
             
+            if (qty > 100) { alert("Maksimal 100 match sekaligus untuk menjaga kestabilan!"); return; }
+
             const newMatches = [];
             for(let i=0; i<qty; i++) {
                 newMatches.push({ 
@@ -482,7 +501,16 @@
             btnRefresh.innerText = "⏳ MENAMBAH..."; 
             btnRefresh.style.background = "#ef6c00";
             
-            await db.from('matches_pro').insert(newMatches); 
+            try {
+                // Dipecah jadi blok 20 agar server tidak macet
+                for(let i=0; i < newMatches.length; i+=20) {
+                    const chunk = newMatches.slice(i, i+20);
+                    const { error } = await db.from('matches_pro').insert(chunk);
+                    if (error) throw error;
+                }
+            } catch(err) {
+                alert("Terjadi kesalahan sistem: " + err.message);
+            }
             
             btnRefresh.innerText = "REFRESH"; 
             btnRefresh.style.background = "#546e7a";
@@ -512,11 +540,12 @@
             if(st) document.getElementById('s-card-preset').value = st; updateBrandingPreview();
         }
 
+        // 💡 PERBAIKAN SISTEM LIVE PREVIEW (DIRECT PARENT ACCESS) 💡
         function updateBrandingPreview() {
             clearTimeout(previewTimeout);
             previewTimeout = setTimeout(() => {
                 const h1 = document.getElementById('s-col-h1').value; const h2 = document.getElementById('s-col-h2').value; const bg = document.getElementById('s-col-bg').value; const neon = document.getElementById('s-neon').value; const style = document.getElementById('s-card-preset').value;
-                const title = document.getElementById('s-name').value || "JUDUL TURNAMEN"; const sub = document.getElementById('s-sub').value || "Sub Judul"; const logo = document.getElementById('s-logo').value; const rules = document.getElementById('rich-editor').innerHTML || "-";
+                const title = document.getElementById('s-name').value || "JUDUL TURNAMEN"; const sub = document.getElementById('s-sub').value || "Sub Judul"; const logo = document.getElementById('s-logo').value; 
                 const colTitle = document.getElementById('s-col-title').value; const colSub = document.getElementById('s-col-sub').value; const colTag = document.getElementById('s-col-tag').value;
                 const logoMode = document.getElementById('s-logo-mode').value; const hideText = document.getElementById('s-hide-text').checked;
                 const titleSize = document.getElementById('s-title-size').value; const subSize = document.getElementById('s-sub-size').value; const logoSize = document.getElementById('s-logo-size').value; const logoOpacity = document.getElementById('s-logo-opacity').value; const logoX = document.getElementById('s-logo-x').value + 'px'; const logoY = document.getElementById('s-logo-y').value + 'px';
@@ -528,15 +557,13 @@
                 const logoClass = (logoMode === 'classic') ? 'logo-classic' : 'logo-watermark';
                 const logoHTML = logo ? `<img src="${logo}" class="header-logo ${logoClass}" style="display:block;">` : '';
 
-                const encodedMatches = encodeURIComponent(JSON.stringify(GLOBAL_MATCHES));
-                const encodedRules = encodeURIComponent(rules || "");
-
                 const htmlString = `
                 <!DOCTYPE html>
                 <html>
                 <head>
                     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
                     <style>
+                        html, body { overflow-x: hidden; width: 100%; box-sizing: border-box; } * { box-sizing: border-box; }
                         :root { --primary-start: ${h1}; --primary-end: ${h2}; --live-neon: ${neon}; --bg-color: ${bg}; --text-color: #333; --title-color: ${colTitle}; --sub-color: ${colSub}; --tag-color: ${colTag}; --card-radius: 15px; --font-main: 'Montserrat', sans-serif; --logo-size: ${logoSize}; --logo-opacity: ${logoOpacity}; --logo-x: ${logoX}; --logo-y: ${logoY}; --title-size: ${titleSize}; --sub-size: ${subSize}; }
                         body { font-family: var(--font-main); background-color: var(--bg-color); margin: 0; padding-bottom: 80px; color: var(--text-color); scrollbar-width: none; }
                         body::-webkit-scrollbar { display: none; }
@@ -625,7 +652,7 @@
                         .theme-demantoid { background: #33691e; color: #f1f8e9; border: 1px solid #558b2f; } .theme-demantoid .meta-text { color: #ccff90; } .theme-demantoid .court-badge { background: #558b2f; color: white; }
                         .theme-padparadscha { background: #ffccbc; color: #bf360c; border: 1px solid #ff8a65; } .theme-padparadscha .court-badge { background: #bf360c; color: white; }
 
-                        .nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; padding: 12px 0; border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); }
+                        .nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; padding: 12px 0; border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); z-index: 100; }
                         .nav-btn { flex: 1; text-align: center; font-size: 10px; font-weight: 700; color: #ccc; cursor:pointer;}
                         .nav-btn.active { color: var(--primary-start); }
                     </style>
@@ -650,8 +677,15 @@
                     <div class="nav"><div class="nav-btn active" onclick="go('jadwal', this)">JADWAL</div><div class="nav-btn" onclick="go('klasemen', this)">KLASEMEN</div><div class="nav-btn" onclick="go('bagan', this)">BAGAN</div><div class="nav-btn" onclick="go('peraturan', this)">ATURAN</div></div>
                     
                     <script>
-                        let matches = JSON.parse(decodeURIComponent('${encodedMatches}'));
-                        document.getElementById('preview-rules').innerHTML = decodeURIComponent('${encodedRules}');
+                        // 💡 PERBAIKAN FATAL: AMBIL DATA LANGSUNG DARI JENDELA INDUK 💡
+                        let matches = [];
+                        try {
+                            if (window.parent && window.parent.GLOBAL_MATCHES) {
+                                matches = JSON.parse(JSON.stringify(window.parent.GLOBAL_MATCHES));
+                            }
+                            let rEditor = window.parent && window.parent.document.getElementById('rich-editor');
+                            document.getElementById('preview-rules').innerHTML = rEditor ? rEditor.innerHTML : "-";
+                        } catch(e) {}
 
                         let cardPreset = '${style}';
                         let currentCategory = 'SEMUA';
