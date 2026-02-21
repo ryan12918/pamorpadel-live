@@ -418,21 +418,22 @@
 
         function filterTable() { const f = document.getElementById('search-box').value.toUpperCase(); const tr = document.getElementById('main-table').getElementsByTagName('tr'); for(let i=2; i<tr.length; i++) { const txt = tr[i].innerText; const inps = tr[i].querySelectorAll('input, textarea'); let valTxt = ""; inps.forEach(inp => valTxt += " " + inp.value); const fullTxt = txt + valTxt; tr[i].style.display = fullTxt.toUpperCase().indexOf(f)>-1 ? "" : "none"; } }
 
-        // 💡 FUNGSI SAKTI: EXPORT KE EXCEL (.CSV) 💡
+        // 💡 FUNGSI SAKTI: EXPORT KE EXCEL (REVISI FORMAT INDONESIA) 💡
         function exportToExcel() {
             if (!window.GLOBAL_MATCHES || window.GLOBAL_MATCHES.length === 0) {
                 alert("⚠️ Tidak ada data pertandingan untuk diekspor!");
                 return;
             }
 
-            // Header Tabel Excel
-            let csvContent = "NO MATCH,PIN,TANGGAL,JAM,COURT,KATEGORI,BABAK,WASIT,STATUS,WO?,TIM A,TIM B,SET 1 A,SET 1 B,SET 2 A,SET 2 B,SET 3 A,SET 3 B,SET 4 A,SET 4 B,SET 5 A,SET 5 B,POIN A,POIN B\n";
+            // Header Tabel Excel (Menggunakan Titik Koma)
+            let csvContent = "NO MATCH;PIN;TANGGAL;JAM;COURT;KATEGORI;BABAK;WASIT;STATUS;WO?;TIM A;TIM B;SET 1 A;SET 1 B;SET 2 A;SET 2 B;SET 3 A;SET 3 B;SET 4 A;SET 4 B;SET 5 A;SET 5 B;POIN A;POIN B\n";
 
-            // Fungsi anti-rusak untuk teks yang mengandung koma atau enter
+            // Fungsi anti-rusak untuk teks
             const escapeCSV = (str) => {
                 if (str === null || str === undefined) return '""';
                 let stringStr = String(str);
-                if (stringStr.includes('"') || stringStr.includes(',') || stringStr.includes('\n')) {
+                // Cek jika ada titik koma, enter, atau tanda kutip di dalam nama pemain
+                if (stringStr.includes('"') || stringStr.includes(';') || stringStr.includes('\n')) {
                     return '"' + stringStr.replace(/"/g, '""') + '"';
                 }
                 return stringStr;
@@ -449,10 +450,11 @@
                     m.set4_a||0, m.set4_b||0, m.set5_a||0, m.set5_b||0,
                     escapeCSV(m.points_a), escapeCSV(m.points_b)
                 ];
-                csvContent += row.join(",") + "\n";
+                // Gabungkan baris menggunakan Titik Koma (;)
+                csvContent += row.join(";") + "\n";
             });
 
-            // Pembuatan File Excel (CSV utf-8 BOM agar terbaca sempurna di MS Excel)
+            // Pembuatan File Excel
             const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
