@@ -32,7 +32,7 @@
 
         #view-matches { padding: 10px; display: none; flex-direction: column; }
         #view-matches.active { display: flex; }
-        .toolbar { display: flex; gap: 10px; margin-bottom: 10px; background: white; padding: 8px; border-radius: 4px; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .toolbar { display: flex; gap: 10px; margin-bottom: 10px; background: white; padding: 8px; border-radius: 4px; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.1); flex-wrap: wrap;}
         .table-wrap { background: white; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: auto; flex: 1; padding-bottom: 40px; }
         table { border-collapse: collapse; width: 100%; min-width: 1500px; }
         th { background: #263238; color: white; padding: 8px 4px; text-align: center; border-right: 1px solid #37474f; font-size: 10px; text-transform: uppercase; white-space: nowrap; position: sticky; top: 0; z-index: 10; height: 30px; vertical-align: middle; }
@@ -111,6 +111,7 @@
             <div id="view-matches" class="view-section active">
                 <div class="toolbar">
                     <button class="btn-action btn-blue" onclick="openModalMatch()">+ BARU</button>
+                    <button class="btn-action btn-green" onclick="exportToExcel()">📊 REKAP EXCEL</button>
                     <button class="btn-action btn-purple" onclick="openStudioTV()">📺 STUDIO TV</button>
                     <button class="btn-action btn-red" onclick="deleteSelected()">🗑️ HAPUS TERPILIH</button>
                     <button id="btn-refresh" class="btn-action btn-grey" onclick="loadMatches()">REFRESH</button>
@@ -359,7 +360,7 @@
             if(window.GLOBAL_MATCHES && window.GLOBAL_MATCHES.length > 0) {
                 window.GLOBAL_MATCHES.forEach((m) => {
                     const inp = (f, v, c='') => `<input class="tbl-inp ${c}" data-field="${f}" value="${v||''}" onchange="upd('${m.id}','${f}',this.value)">`;
-                    const num = (f, v) => `<input type="text" class="tbl-inp inp-score" data-field="${f}" value="${v}" oninput="upd('${m.id}','${f}',this.value)">`; // type text to intercept typo
+                    const num = (f, v) => `<input type="text" class="tbl-inp inp-score" data-field="${f}" value="${v}" oninput="upd('${m.id}','${f}',this.value)">`; 
                     const txt = (f, v, c='') => `<textarea class="inp-wrap ${c}" data-field="${f}" onchange="upd('${m.id}','${f}',this.value)">${v||''}</textarea>`;
                     const cbox = (f, v) => `<input type="checkbox" data-field="${f}" ${v?'checked':''} onchange="upd('${m.id}','${f}',this.checked)">`;
                     let bCls = m.status==='LIVE'?'#e91e63':(m.status==='FINISHED'?'#43a047':'#90a4ae');
@@ -417,18 +418,67 @@
 
         function filterTable() { const f = document.getElementById('search-box').value.toUpperCase(); const tr = document.getElementById('main-table').getElementsByTagName('tr'); for(let i=2; i<tr.length; i++) { const txt = tr[i].innerText; const inps = tr[i].querySelectorAll('input, textarea'); let valTxt = ""; inps.forEach(inp => valTxt += " " + inp.value); const fullTxt = txt + valTxt; tr[i].style.display = fullTxt.toUpperCase().indexOf(f)>-1 ? "" : "none"; } }
 
-        // 💡 PERBAIKAN VALIDASI TYPO ANGKA 💡
+        // 💡 FUNGSI SAKTI: EXPORT KE EXCEL (.CSV) 💡
+        function exportToExcel() {
+            if (!window.GLOBAL_MATCHES || window.GLOBAL_MATCHES.length === 0) {
+                alert("⚠️ Tidak ada data pertandingan untuk diekspor!");
+                return;
+            }
+
+            // Header Tabel Excel
+            let csvContent = "NO MATCH,PIN,TANGGAL,JAM,COURT,KATEGORI,BABAK,WASIT,STATUS,WO?,TIM A,TIM B,SET 1 A,SET 1 B,SET 2 A,SET 2 B,SET 3 A,SET 3 B,SET 4 A,SET 4 B,SET 5 A,SET 5 B,POIN A,POIN B\n";
+
+            // Fungsi anti-rusak untuk teks yang mengandung koma atau enter
+            const escapeCSV = (str) => {
+                if (str === null || str === undefined) return '""';
+                let stringStr = String(str);
+                if (stringStr.includes('"') || stringStr.includes(',') || stringStr.includes('\n')) {
+                    return '"' + stringStr.replace(/"/g, '""') + '"';
+                }
+                return stringStr;
+            };
+
+            // Looping seluruh baris pertandingan
+            window.GLOBAL_MATCHES.forEach(m => {
+                let row = [
+                    escapeCSV(m.match_no), escapeCSV(m.pin), escapeCSV(m.date), escapeCSV(m.time),
+                    escapeCSV(m.court_name), escapeCSV(m.category), escapeCSV(m.round), escapeCSV(m.referee_name),
+                    escapeCSV(m.status), escapeCSV(m.is_wo ? "YA" : "TIDAK"),
+                    escapeCSV(m.team_a), escapeCSV(m.team_b),
+                    m.set1_a||0, m.set1_b||0, m.set2_a||0, m.set2_b||0, m.set3_a||0, m.set3_b||0,
+                    m.set4_a||0, m.set4_b||0, m.set5_a||0, m.set5_b||0,
+                    escapeCSV(m.points_a), escapeCSV(m.points_b)
+                ];
+                csvContent += row.join(",") + "\n";
+            });
+
+            // Pembuatan File Excel (CSV utf-8 BOM agar terbaca sempurna di MS Excel)
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            
+            // Format Tanggal untuk Nama File
+            let dateObj = new Date();
+            let timestamp = dateObj.getFullYear() + "-" + String(dateObj.getMonth() + 1).padStart(2, '0') + "-" + String(dateObj.getDate()).padStart(2, '0');
+            
+            link.setAttribute("href", url);
+            link.setAttribute("download", `REKAP_${ACTIVE_ID.toUpperCase()}_${timestamp}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         function upd(id, f, v) {
             const index = window.GLOBAL_MATCHES.findIndex(m => m.id === id);
             if (index > -1) { 
                 if (f.includes('set') || f.includes('point')) { 
                     let parsed = parseInt(v);
                     if (isNaN(parsed)) {
-                        // KEMBALIKAN KE NILAI LAMA JIKA INPUT BUKAN ANGKA
                         parsed = window.GLOBAL_MATCHES[index][f] || 0;
                         const el = document.querySelector(`tr[data-id="${id}"] input[data-field="${f}"]`);
                         if(el) el.value = parsed;
-                        return; // Stop update
+                        return; 
                     }
                     window.GLOBAL_MATCHES[index][f] = parsed; 
                 } else if (f === 'is_wo') { 
@@ -475,7 +525,6 @@
         async function fin(id) { if(!confirm('Tandai Selesai?')) return; const index = window.GLOBAL_MATCHES.findIndex(m => m.id === id); if (index === -1) return; window.GLOBAL_MATCHES[index].status = 'FINISHED'; let btn = document.getElementById('btn-status-' + id); if (btn) { btn.innerText = 'DONE'; btn.style.background = '#43a047'; } updateBrandingPreview(); await db.from('matches_pro').update({status: 'FINISHED'}).eq('id', id); }
         async function del(id) { if(!confirm('Hapus Match?')) return; window.GLOBAL_MATCHES = window.GLOBAL_MATCHES.filter(m => m.id !== id); let row = document.querySelector(`tr[data-id="${id}"]`); if (row) row.remove(); updateBrandingPreview(); await db.from('matches_pro').delete().eq('id', id); }
         
-        // 💡 PERBAIKAN CHUNKING BULK ADD (ANTI-LAG) 💡
         async function submitMatch() { 
             const get = (id) => document.getElementById(id).value || "-"; 
             const qtyStr = document.getElementById('i-qty').value;
@@ -502,7 +551,6 @@
             btnRefresh.style.background = "#ef6c00";
             
             try {
-                // Dipecah jadi blok 20 agar server tidak macet
                 for(let i=0; i < newMatches.length; i+=20) {
                     const chunk = newMatches.slice(i, i+20);
                     const { error } = await db.from('matches_pro').insert(chunk);
@@ -540,7 +588,6 @@
             if(st) document.getElementById('s-card-preset').value = st; updateBrandingPreview();
         }
 
-        // 💡 PERBAIKAN SISTEM LIVE PREVIEW (DIRECT PARENT ACCESS) 💡
         function updateBrandingPreview() {
             clearTimeout(previewTimeout);
             previewTimeout = setTimeout(() => {
@@ -677,7 +724,6 @@
                     <div class="nav"><div class="nav-btn active" onclick="go('jadwal', this)">JADWAL</div><div class="nav-btn" onclick="go('klasemen', this)">KLASEMEN</div><div class="nav-btn" onclick="go('bagan', this)">BAGAN</div><div class="nav-btn" onclick="go('peraturan', this)">ATURAN</div></div>
                     
                     <script>
-                        // 💡 PERBAIKAN FATAL: AMBIL DATA LANGSUNG DARI JENDELA INDUK 💡
                         let matches = [];
                         try {
                             if (window.parent && window.parent.GLOBAL_MATCHES) {
