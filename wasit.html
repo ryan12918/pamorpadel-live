@@ -70,8 +70,16 @@
 
     <div id="view-login" class="login-box">
         <h3>WASIT PRO V10.6</h3>
-        <input id="inp-court" class="inp-login" placeholder="Nama Court">
-        <input id="inp-pin" type="tel" class="inp-login" placeholder="PIN (Kosongi jika tidak ada)">
+        
+        <div style="text-align:left; font-size:11px; color:#aaa; margin-bottom:2px; padding-left:5px;">Tournament ID:</div>
+        <input id="inp-tid" class="inp-login" placeholder="Misal: ctc2026">
+        
+        <div style="text-align:left; font-size:11px; color:#aaa; margin-top:10px; margin-bottom:2px; padding-left:5px;">Nama Court:</div>
+        <input id="inp-court" class="inp-login" placeholder="Misal: Valencia">
+        
+        <div style="text-align:left; font-size:11px; color:#aaa; margin-top:10px; margin-bottom:2px; padding-left:5px;">PIN Match (Opsional):</div>
+        <input id="inp-pin" type="tel" class="inp-login" placeholder="******">
+        
         <button onclick="login()" class="btn-login">MASUK</button>
     </div>
 
@@ -174,14 +182,13 @@
         let lastServerA = ''; let lastServerB = '';
         let localMatchData = {};
 
-        // 💡 FUNGSI PENJAGA KONEKSI (ANTI OFFLINE / SKOR LONCAT) 💡
         async function dbUpdate(payload) {
             try {
                 const { error } = await db.from('matches_pro').update(payload).eq('id', matchId);
                 if (error) throw error;
             } catch (err) {
                 alert("⚠️ KONEKSI TERPUTUS ATAU GAGAL MENYIMPAN!\nJangan lanjutkan tekan skor! Periksa internet Anda lalu REFRESH halaman ini agar skor kembali sinkron dengan sistem pusat.");
-                throw err; // Stop eksekusi script selanjutnya
+                throw err;
             }
         }
 
@@ -191,14 +198,13 @@
         let defaultRestSec = 120; let restSec = 120; let restTimer = null;
         function setCustomRestTime() { if(restTimer) return; let input = prompt("PENGATURAN WAKTU ISTIRAHAT ⏱️\nMasukkan waktu dalam satuan detik.\nContoh:\n60 = 1 Menit\n90 = 1.5 Menit\n120 = 2 Menit", defaultRestSec); if(input !== null) { let parsed = parseInt(input); if(!isNaN(parsed) && parsed > 0) { defaultRestSec = parsed; restSec = defaultRestSec; document.getElementById('val-timer-rest').innerText = formatTime(restSec); } else { alert("Gagal: Masukkan angka yang valid!"); } } }
         
-        // 💡 PERBAIKAN LOGIKA REST TIME (KEMBALI KE UTUH SAAT STOP) 💡
         function toggleRestTimer() { 
             const btn = document.getElementById('btn-timer-rest'); 
             if(restTimer) { 
                 clearInterval(restTimer); 
                 restTimer = null; 
                 btn.innerText = "START"; 
-                restSec = defaultRestSec; // Langsung reset penuh
+                restSec = defaultRestSec; 
                 document.getElementById('val-timer-rest').style.color = '#ffb74d'; 
                 document.getElementById('val-timer-rest').innerText = formatTime(restSec);
             } else { 
@@ -209,7 +215,7 @@
                     if(restSec <= 0) { 
                         clearInterval(restTimer); restTimer = null; 
                         btn.innerText = "START"; 
-                        restSec = defaultRestSec; // Reset di background
+                        restSec = defaultRestSec; 
                         document.getElementById('val-timer-rest').innerText="00:00"; 
                         alert("⏱️ WAKTU ISTIRAHAT TELAH HABIS!"); 
                         return; 
@@ -229,16 +235,36 @@
         async function login() {
             try {
                 const btn = document.querySelector('.btn-login'); btn.innerText = "MEMUAT...";
-                const c = document.getElementById('inp-court').value.trim(); const p = document.getElementById('inp-pin').value.trim();
+                
+                // 💡 PENGAMBILAN DATA TOURNAMENT ID DARI INPUT 💡
+                const tid = document.getElementById('inp-tid').value.trim();
+                const c = document.getElementById('inp-court').value.trim(); 
+                const p = document.getElementById('inp-pin').value.trim();
+                
+                if(!tid) { alert("⚠️ Tournament ID Tidak Boleh Kosong!\nHubungi panitia jika Anda tidak tahu ID-nya."); btn.innerText = "MASUK"; return; }
                 if(!c) { alert("⚠️ Nama Court Tidak Boleh Kosong!\nContoh: valencia"); btn.innerText = "MASUK"; return; }
-                const { data, error } = await db.from('matches_pro').select('*').ilike('court_name', c).eq('status', 'LIVE');
+                
+                // 💡 PENCARIAN DIAMANKAN: HARUS MATCH DENGAN TOURNAMENT ID 💡
+                const { data, error } = await db.from('matches_pro')
+                                        .select('*')
+                                        .eq('tournament_id', tid) // <-- Filter Mutlak
+                                        .ilike('court_name', c)
+                                        .eq('status', 'LIVE');
+                                        
                 if(error) throw error; 
-                if(!data || data.length === 0) { alert("🚫 AKSES DITOLAK!\n\nTidak ada pertandingan yang berstatus 'LIVE' di court " + c.toUpperCase() + "."); btn.innerText = "MASUK"; return; }
+                if(!data || data.length === 0) { alert(`🚫 AKSES DITOLAK!\n\nTidak ada pertandingan LIVE di court ${c.toUpperCase()} untuk turnamen ID: ${tid}.`); btn.innerText = "MASUK"; return; }
+                
                 const matchData = data[0];
                 let dbPin = matchData.pin ? String(matchData.pin).trim() : "";
                 if(dbPin !== "" && dbPin !== p) { alert("❌ PIN SALAH!"); btn.innerText = "MASUK"; return; }
+                
                 let sSys = 'manual'; let hServe = false;
-                if (matchData.tournament_id) { tournamentId = matchData.tournament_id; const { data: pData } = await db.from('partners').select('*').eq('tournament_id', tournamentId).maybeSingle(); if(pData) { sSys = pData.serve_system || 'manual'; hServe = (pData.hide_serve === 'true'); } }
+                if (matchData.tournament_id) { 
+                    tournamentId = matchData.tournament_id; 
+                    const { data: pData } = await db.from('partners').select('*').eq('tournament_id', tournamentId).maybeSingle(); 
+                    if(pData) { sSys = pData.serve_system || 'manual'; hServe = (pData.hide_serve === 'true'); } 
+                }
+                
                 serveSystem = sSys; hideServe = hServe; matchId = matchData.id; document.getElementById('lbl-court').innerText = matchData.court_name; loadMatch(matchData);
             } catch (err) { alert("🚨 CRASH SISTEM!\nPesan Error: " + err.message); document.querySelector('.btn-login').innerText = "MASUK"; }
         }
