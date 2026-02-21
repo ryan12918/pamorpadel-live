@@ -12,7 +12,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
     <style>
-        /* 💡 KUNCI LAYAR AGAR TIDAK GOYANG KANAN-KIRI 💡 */
         html, body { overflow-x: hidden; width: 100%; max-width: 100vw; }
         * { box-sizing: border-box; }
 
@@ -157,7 +156,9 @@
         <div id="jadwal-content"></div>
     </div>
     <div id="view-klasemen" class="container hidden"><div id="klasemen-content"></div></div>
-    <div id="view-bagan" class="container hidden"><div id="bagan-content"></div></div>
+    
+    <div id="view-bagan" class="container hidden" style="max-width: 100vw; padding: 0;"><div id="bagan-content"></div></div>
+    
     <div id="view-peraturan" class="container hidden"><div class="match-card theme-classic-white"><h3 style="margin-top:0; color:var(--primary-start);">Peraturan</h3><div id="rules-text" style="white-space: pre-wrap; font-size:13px; line-height:1.6; color:#444;"></div></div></div>
 
     <div class="nav">
@@ -326,7 +327,6 @@
             let styleTA = ''; let styleTB = '';
             if (isDone) { if (totalA > totalB) { styleTB = 'opacity: 0.3;'; } else if (totalB > totalA) { styleTA = 'opacity: 0.3;'; } else { styleTA = 'opacity: 0.8;'; styleTB = 'opacity: 0.8;'; } }
             
-            // 💡 TOMBOL SHARE DIHAPUS 💡
             return `<div class="match-card ${themeClass} ${isLive?'is-live':''}" style="${isDone ? 'opacity: 0.85;' : ''}">
                 <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(0,0,0,0.05); padding-bottom:5px; margin-bottom:8px;">${metaHTML} <div style="display:flex; gap:10px; align-items:center;">${timeInfo}</div></div>
                 <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
@@ -378,17 +378,100 @@
                     .sort((a,b)=> b.sortVal - a.sortVal)
                     .map((t,i)=>`<tr ${i===0?'style="background:rgba(255,255,0,0.1)"':''}><td>${i+1}</td><td style="text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.name}</td><td>${t.mp}</td><td>${t.w}</td><td>${t.l}</td><td>${t.displayVal}</td></tr>`).join('');
                 
-                el.innerHTML += `<div class="match-card theme-${cardPreset}" style="padding:0; overflow:hidden;"><div style="padding:10px; font-weight:bold; border-bottom:1px solid rgba(0,0,0,0.1); display:flex; justify-content:space-between;"><span>${groups[g].cat}</span> <span style="color:var(--primary-start)">${groups[g].round}</span></div><table style="width:100%; border-collapse:collapse; font-size:11px; text-align:center; table-layout:fixed;"><thead><tr style="background:rgba(0,0,0,0.05);"><th style="width:25px;">#</th><th style="text-align:left; padding:8px; width:auto;">TIM</th><th style="width:30px;">MP</th><th style="width:30px;">W</th><th style="width:30px;">L</th><th style="width:55px;">${headerLabel}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+                el.innerHTML += `<div class="match-card theme-${cardPreset}" style="padding:0; overflow:hidden; max-width:500px; margin-left:auto; margin-right:auto;"><div style="padding:10px; font-weight:bold; border-bottom:1px solid rgba(0,0,0,0.1); display:flex; justify-content:space-between;"><span>${groups[g].cat}</span> <span style="color:var(--primary-start)">${groups[g].round}</span></div><table style="width:100%; border-collapse:collapse; font-size:11px; text-align:center; table-layout:fixed;"><thead><tr style="background:rgba(0,0,0,0.05);"><th style="width:25px;">#</th><th style="text-align:left; padding:8px; width:auto;">TIM</th><th style="width:30px;">MP</th><th style="width:30px;">W</th><th style="width:30px;">L</th><th style="width:55px;">${headerLabel}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
             });
+        }
+
+        // 💡 FUNGSI BARU: RENDER BAGAN (BRACKET TREE) 💡
+        function renderBaganTree(baganMatches) {
+            const elB = document.getElementById('bagan-content');
+            if(baganMatches.length === 0) { elB.innerHTML = "<div style='text-align:center; padding:20px; opacity:0.5; font-weight:bold; width:100vw;'>BELUM ADA DATA BAGAN / GUGUR</div>"; return; }
+
+            // Logika Pembobotan Round (Agar berurutan 16 -> 8 -> SF -> Final)
+            let getWt = (r) => {
+                let s = String(r).toLowerCase();
+                if(s.includes('grand final') || (s.includes('final') && !s.includes('semi') && !s.includes('quarter') && !s.includes('perempat'))) return 100;
+                if(s.includes('juara 3') || s.includes('third')) return 90;
+                if(s.includes('semi') || s.includes('sf')) return 80;
+                if(s.includes('quarter') || s.includes('perempat') || s.includes('qf') || s.includes('8')) return 70;
+                if(s.includes('16')) return 60;
+                if(s.includes('32')) return 50;
+                return 10;
+            };
+
+            let rounds = {};
+            baganMatches.forEach(m => {
+                let r = (m.round || 'Knockout').toUpperCase();
+                if(!rounds[r]) rounds[r] = [];
+                rounds[r].push(m);
+            });
+
+            let sortedRounds = Object.keys(rounds).sort((a,b) => getWt(a) - getWt(b));
+
+            // Kontainer Utama Bagan (Scroll Menyamping)
+            let html = `<div style="display:flex; overflow-x:auto; padding:10px 15px 40px 15px; gap:35px; align-items:stretch; scrollbar-width:none;">`;
+            
+            sortedRounds.forEach((rName, i) => {
+                let isLast = i === sortedRounds.length - 1;
+                html += `<div style="display:flex; flex-direction:column; justify-content:space-around; min-width:220px; max-width:220px; gap:20px;">`;
+                
+                // Judul Round (Misal: QUARTER FINAL)
+                html += `<div style="text-align:center; font-weight:900; font-size:12px; color:var(--primary-start); border-bottom:3px solid var(--live-neon); padding-bottom:5px;">${rName}</div>`;
+                
+                html += `<div style="display:flex; flex-direction:column; justify-content:space-around; flex:1; gap:20px;">`;
+                rounds[rName].forEach(m => {
+                    let isLive = String(m.status).toUpperCase() === 'LIVE';
+                    let isDone = String(m.status).toUpperCase() === 'FINISHED';
+                    let tA = (parseInt(m.set1_a)||0)+(parseInt(m.set2_a)||0)+(parseInt(m.set3_a)||0)+(parseInt(m.set4_a)||0)+(parseInt(m.set5_a)||0);
+                    let tB = (parseInt(m.set1_b)||0)+(parseInt(m.set2_b)||0)+(parseInt(m.set3_b)||0)+(parseInt(m.set4_b)||0)+(parseInt(m.set5_b)||0);
+                    let wA = isDone && tA > tB; let wB = isDone && tB > tA;
+                    
+                    let sA = isDone || isLive ? tA : '-'; let sB = isDone || isLive ? tB : '-';
+                    if(isLive) { sA = `<span style="color:var(--live-neon)">${tA}</span>`; sB = `<span style="color:var(--live-neon)">${tB}</span>`; }
+                    
+                    // Singkat Nama Panjang
+                    let fn = (n) => {
+                        if(!n) return 'TBD';
+                        if(!n.includes('/')) return n;
+                        let p = n.split('/');
+                        return p[0].trim().split(' ')[0] + ' / ' + (p[1]?p[1].trim().split(' ')[0]:'');
+                    };
+                    let nA = fn(m.team_a); let nB = fn(m.team_b);
+                    
+                    let liveB = isLive ? `<div style="position:absolute; top:-8px; right:5px; background:var(--live-neon); color:#000; font-size:9px; font-weight:900; padding:2px 6px; border-radius:4px; box-shadow:0 2px 5px rgba(0,0,0,0.3); z-index:5; animation:pulse-dot 1s infinite alternate;">LIVE</div>` : '';
+                    let tCls = 'theme-' + cardPreset;
+                    
+                    html += `
+                    <div style="position:relative; display:flex; align-items:center; width:100%;">
+                        <div class="match-card ${tCls}" style="width:100%; padding:0; margin:0; border-radius:8px; position:relative; box-shadow:0 4px 10px rgba(0,0,0,0.1); border:1px solid rgba(0,0,0,0.05); ${isLive ? 'border:2px solid var(--live-neon);' : ''}">
+                            ${liveB}
+                            <div style="display:flex; justify-content:space-between; padding:10px 12px; border-bottom:1px solid rgba(0,0,0,0.05); background:rgba(0,0,0,0.02);">
+                                <div style="font-size:11px; font-weight:${wA?'900':'600'}; opacity:${wA||!isDone?'1':'0.5'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:80%;">${nA}</div>
+                                <div style="font-size:13px; font-weight:900;">${sA}</div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; padding:10px 12px;">
+                                <div style="font-size:11px; font-weight:${wB?'900':'600'}; opacity:${wB||!isDone?'1':'0.5'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:80%;">${nB}</div>
+                                <div style="font-size:13px; font-weight:900;">${sB}</div>
+                            </div>
+                        </div>
+                        ${!isLast ? `<div style="position:absolute; right:-35px; top:50%; width:35px; height:2px; background:var(--primary-start); opacity:0.3; z-index:-1;"></div>` : ''}
+                    </div>`;
+                });
+                html += `</div></div>`;
+            });
+            
+            html += `</div>`;
+            elB.innerHTML = html;
         }
 
         function renderAll() {
             const elJ = document.getElementById('jadwal-content'); elJ.innerHTML = "";
-            const elB = document.getElementById('bagan-content'); elB.innerHTML = "";
             let filteredMatches = matches.filter(m => currentCategory === 'SEMUA' || (m.category||'UMUM') === currentCategory);
             
             filteredMatches.filter(m => m.round.toLowerCase().includes('grup')).forEach(m => elJ.innerHTML += createCardHTML(m));
-            filteredMatches.filter(m => !m.round.toLowerCase().includes('grup')).forEach(m => elB.innerHTML += createCardHTML(m));
+            
+            // Render Bagan dengan Tampilan Pohon
+            renderBaganTree(filteredMatches.filter(m => !m.round.toLowerCase().includes('grup')));
             renderKlasemen();
         }
 

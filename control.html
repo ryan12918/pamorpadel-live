@@ -418,28 +418,23 @@
 
         function filterTable() { const f = document.getElementById('search-box').value.toUpperCase(); const tr = document.getElementById('main-table').getElementsByTagName('tr'); for(let i=2; i<tr.length; i++) { const txt = tr[i].innerText; const inps = tr[i].querySelectorAll('input, textarea'); let valTxt = ""; inps.forEach(inp => valTxt += " " + inp.value); const fullTxt = txt + valTxt; tr[i].style.display = fullTxt.toUpperCase().indexOf(f)>-1 ? "" : "none"; } }
 
-        // 💡 FUNGSI SAKTI: EXPORT KE EXCEL (REVISI FORMAT INDONESIA) 💡
         function exportToExcel() {
             if (!window.GLOBAL_MATCHES || window.GLOBAL_MATCHES.length === 0) {
                 alert("⚠️ Tidak ada data pertandingan untuk diekspor!");
                 return;
             }
 
-            // Header Tabel Excel (Menggunakan Titik Koma)
             let csvContent = "NO MATCH;PIN;TANGGAL;JAM;COURT;KATEGORI;BABAK;WASIT;STATUS;WO?;TIM A;TIM B;SET 1 A;SET 1 B;SET 2 A;SET 2 B;SET 3 A;SET 3 B;SET 4 A;SET 4 B;SET 5 A;SET 5 B;POIN A;POIN B\n";
 
-            // Fungsi anti-rusak untuk teks
             const escapeCSV = (str) => {
                 if (str === null || str === undefined) return '""';
                 let stringStr = String(str);
-                // Cek jika ada titik koma, enter, atau tanda kutip di dalam nama pemain
                 if (stringStr.includes('"') || stringStr.includes(';') || stringStr.includes('\n')) {
                     return '"' + stringStr.replace(/"/g, '""') + '"';
                 }
                 return stringStr;
             };
 
-            // Looping seluruh baris pertandingan
             window.GLOBAL_MATCHES.forEach(m => {
                 let row = [
                     escapeCSV(m.match_no), escapeCSV(m.pin), escapeCSV(m.date), escapeCSV(m.time),
@@ -450,16 +445,13 @@
                     m.set4_a||0, m.set4_b||0, m.set5_a||0, m.set5_b||0,
                     escapeCSV(m.points_a), escapeCSV(m.points_b)
                 ];
-                // Gabungkan baris menggunakan Titik Koma (;)
                 csvContent += row.join(";") + "\n";
             });
 
-            // Pembuatan File Excel
             const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
             
-            // Format Tanggal untuk Nama File
             let dateObj = new Date();
             let timestamp = dateObj.getFullYear() + "-" + String(dateObj.getMonth() + 1).padStart(2, '0') + "-" + String(dateObj.getDate()).padStart(2, '0');
             
@@ -606,7 +598,7 @@
                 const logoClass = (logoMode === 'classic') ? 'logo-classic' : 'logo-watermark';
                 const logoHTML = logo ? `<img src="${logo}" class="header-logo ${logoClass}" style="display:block;">` : '';
 
-                const htmlString = `
+                let htmlString = `
                 <!DOCTYPE html>
                 <html>
                 <head>
@@ -720,7 +712,7 @@
 
                     <div id="view-jadwal" class="container"><div id="jadwal-content"></div></div>
                     <div id="view-klasemen" class="container hidden"><div id="klasemen-content"></div></div>
-                    <div id="view-bagan" class="container hidden"><div id="bagan-content"></div></div>
+                    <div id="view-bagan" class="container hidden" style="max-width:100vw; padding:0;"><div id="bagan-content"></div></div>
                     <div id="view-peraturan" class="container hidden"><div class="match-card theme-${style}"><h3 style="margin-top:0; color:var(--primary-start);">Peraturan</h3><div id="preview-rules" style="white-space: pre-wrap; font-size:13px; line-height:1.6; color:inherit;"></div></div></div>
 
                     <div class="nav"><div class="nav-btn active" onclick="go('jadwal', this)">JADWAL</div><div class="nav-btn" onclick="go('klasemen', this)">KLASEMEN</div><div class="nav-btn" onclick="go('bagan', this)">BAGAN</div><div class="nav-btn" onclick="go('peraturan', this)">ATURAN</div></div>
@@ -742,12 +734,12 @@
                         function renderTabs() {
                             let cats = [...new Set(matches.map(m => m.category || 'UMUM'))].filter(c => c);
                             const tabEl = document.getElementById('cat-tabs');
-                            let html = \`<div class="cat-pill \${currentCategory==='SEMUA'?'active':''}" onclick="setCat('SEMUA')">SEMUA LAGA</div>\`;
+                            let html = '<div class="cat-pill ' + (currentCategory==='SEMUA'?'active':'') + '" onclick="setCat(\\'SEMUA\\')">SEMUA LAGA</div>';
                             cats.forEach(c => {
                                 let hasLive = matches.some(m => (m.category||'UMUM') === c && String(m.status||'').toUpperCase() === 'LIVE');
                                 let dot = hasLive ? '<span class="neon-dot" style="margin:0"></span>' : '';
                                 let act = currentCategory === c ? 'active' : '';
-                                html += \`<div class="cat-pill \${act}" onclick="setCat('\${c}')">\${c} \${dot}</div>\`;
+                                html += '<div class="cat-pill ' + act + '" onclick="setCat(\\'' + c + '\\')">' + c + ' ' + dot + '</div>';
                             });
                             tabEl.innerHTML = html;
                         }
@@ -759,22 +751,22 @@
                             if(!teamString.includes('/')) {
                                 let isServing = (serverState === (isTeamA ? 'a' : 'b') || serverState === teamString);
                                 let icon = isServing ? dotHTML : '';
-                                return \`<div style="font-weight: 800; line-height: 1.15; \${!isTeamA ? 'text-align:right;' : ''}">\${isTeamA ? icon + teamString : teamString + icon}</div>\`;
+                                return '<div style="font-weight: 800; line-height: 1.15; ' + (!isTeamA ? 'text-align:right;' : '') + '">' + (isTeamA ? icon + teamString : teamString + icon) + '</div>';
                             }
                             let players = teamString.split('/').map(x => x.trim());
                             let isS1 = (serverState === players[0]); let isS2 = (serverState === players[1]);
                             let ic1 = isS1 ? dotHTML : ''; let ic2 = isS2 ? dotHTML : '';
                             
                             if(isTeamA) { 
-                                return \`<div style="display:flex; flex-direction:column; align-items:flex-start; gap:8px;">
-                                            <div style="font-weight: 800; line-height: 1.15;">\${ic1}\${players[0]}</div>
-                                            <div style="font-weight: 800; line-height: 1.15;">\${ic2}\${players[1]}</div>
-                                        </div>\`; 
+                                return '<div style="display:flex; flex-direction:column; align-items:flex-start; gap:8px;">' +
+                                            '<div style="font-weight: 800; line-height: 1.15;">' + ic1 + players[0] + '</div>' +
+                                            '<div style="font-weight: 800; line-height: 1.15;">' + ic2 + players[1] + '</div>' +
+                                        '</div>'; 
                             } else { 
-                                return \`<div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px; text-align:right;">
-                                            <div style="font-weight: 800; line-height: 1.15;">\${players[0]}\${ic1}</div>
-                                            <div style="font-weight: 800; line-height: 1.15;">\${players[1]}\${ic2}</div>
-                                        </div>\`; 
+                                return '<div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px; text-align:right;">' +
+                                            '<div style="font-weight: 800; line-height: 1.15;">' + players[0] + ic1 + '</div>' +
+                                            '<div style="font-weight: 800; line-height: 1.15;">' + players[1] + ic2 + '</div>' +
+                                        '</div>'; 
                             }
                         }
 
@@ -789,43 +781,43 @@
                             else {
                                 let sets = []; let maxSet = isLive ? (m.current_set || 1) : 5;
                                 for(let i=1; i<=5; i++) {
-                                    let sa = parseInt(m[\`set\${i}_a\`]) || 0; let sb = parseInt(m[\`set\${i}_b\`]) || 0; let isCurr = isLive && ((m.current_set || 1) == i);
+                                    let sa = parseInt(m['set'+i+'_a']) || 0; let sb = parseInt(m['set'+i+'_b']) || 0; let isCurr = isLive && ((m.current_set || 1) == i);
                                     if (isCurr || sa > 0 || sb > 0 || (i === 1 && maxSet === 1 && isLive)) {
-                                        if (isCurr) sets.push(\`<span style="color:var(--live-neon); text-shadow:0 0 5px rgba(0,0,0,0.5); font-size:1.1em;">\${sa}-\${sb}</span>\`); 
-                                        else sets.push(\`<span>\${sa}-\${sb}</span>\`);
+                                        if (isCurr) sets.push('<span style="color:var(--live-neon); text-shadow:0 0 5px rgba(0,0,0,0.5); font-size:1.1em;">' + sa + '-' + sb + '</span>'); 
+                                        else sets.push('<span>' + sa + '-' + sb + '</span>');
                                     }
                                 }
                                 if(sets.length === 0) sets.push('<span>0-0</span>');
-                                scoreStr = \`<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:6px; align-items:center;">\` + sets.join('<span style="opacity:0.3; font-size:0.8em;">•</span>') + \`</div>\`;
+                                scoreStr = '<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:6px; align-items:center;">' + sets.join('<span style="opacity:0.3; font-size:0.8em;">•</span>') + '</div>';
                             }
                             
                             let scoreCls = (scoreStr === 'VS') ? 'score-pill empty' : 'score-pill';
-                            let smallPt = isLive ? \`<div style="font-size:12px; margin-top:5px; color:inherit; font-weight:900; letter-spacing:1px; background:rgba(0,0,0,0.15); padding:2px 10px; border-radius:6px;"><span style="color:var(--live-neon)">\${m.points_a||0} - \${m.points_b||0}</span></div>\` : '';
+                            let smallPt = isLive ? '<div style="font-size:12px; margin-top:5px; color:inherit; font-weight:900; letter-spacing:1px; background:rgba(0,0,0,0.15); padding:2px 10px; border-radius:6px;"><span style="color:var(--live-neon)">' + (m.points_a||0) + ' - ' + (m.points_b||0) + '</span></div>' : '';
 
                             let themeClass = 'theme-' + cardPreset;
-                            let metaHTML = \`<span class="meta-text">\${m.category} • \${m.round}</span>\`;
+                            let metaHTML = '<span class="meta-text">' + m.category + ' • ' + m.round + '</span>';
                             
                             let timeInfo = '';
                             if (isLive) { timeInfo = '<div class="live-tag"><div class="dot-live"></div> LIVE</div>'; } 
                             else if (isDone) { timeInfo = '<div style="font-weight:800; font-size:9px; background:rgba(100,100,100,0.1); padding:2px 8px; border-radius:10px; opacity:0.8;">🏁 FT</div>'; } 
-                            else { timeInfo = \`<span style="font-size:11px; font-weight:600; opacity:0.8;">\${(m.date ? m.date + ' • ' : '') + (m.time || '')}</span>\`; } 
+                            else { timeInfo = '<span style="font-size:11px; font-weight:600; opacity:0.8;">' + ((m.date ? m.date + ' • ' : '') + (m.time || '')) + '</span>'; } 
 
-                            let centerHTML = scoreStr === 'VS' ? '<div class="vs-text">VS</div>' : \`<div class="\${scoreCls}">\${scoreStr}\${smallPt}</div>\`;
+                            let centerHTML = scoreStr === 'VS' ? '<div class="vs-text">VS</div>' : '<div class="' + scoreCls + '">' + scoreStr + smallPt + '</div>';
                             let teamA_Formatted = formatTeamName(m.team_a, m.server, true);
                             let teamB_Formatted = formatTeamName(m.team_b, m.server, false);
 
                             let styleTA = ''; let styleTB = '';
                             if (isDone) { if (totalA > totalB) { styleTB = 'opacity: 0.3;'; } else if (totalB > totalA) { styleTA = 'opacity: 0.3;'; } else { styleTA = 'opacity: 0.8;'; styleTB = 'opacity: 0.8;'; } }
                             
-                            return \`<div class="match-card \${themeClass} \${isLive?'is-live':''}" style="\${isDone ? 'opacity: 0.85;' : ''}">
-                                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(0,0,0,0.05); padding-bottom:5px; margin-bottom:8px;">\${metaHTML} <div style="display:flex; gap:10px; align-items:center;">\${timeInfo}</div></div>
-                                <div style="display:flex; align-items:center; justify-content:space-between;">
-                                    <div class="team" style="text-align:left; \${styleTA}">\${teamA_Formatted}</div>
-                                    <div class="\${scoreCls}">\${scoreStr}\${smallPt}</div>
-                                    <div class="team" style="text-align:right; \${styleTB}">\${teamB_Formatted}</div>
-                                </div>
-                                <div style="text-align:center; margin-top:8px;"><span class="court-badge">\${m.court_name}</span></div>
-                            </div>\`;
+                            return '<div class="match-card ' + themeClass + ' ' + (isLive?'is-live':'') + '" style="' + (isDone ? 'opacity: 0.85;' : '') + '">' +
+                                '<div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(0,0,0,0.05); padding-bottom:5px; margin-bottom:8px;">' + metaHTML + ' <div style="display:flex; gap:10px; align-items:center;">' + timeInfo + '</div></div>' +
+                                '<div style="display:flex; align-items:center; justify-content:space-between;">' +
+                                    '<div class="team" style="text-align:left; ' + styleTA + '">' + teamA_Formatted + '</div>' +
+                                    centerHTML +
+                                    '<div class="team" style="text-align:right; ' + styleTB + '">' + teamB_Formatted + '</div>' +
+                                '</div>' +
+                                '<div style="text-align:center; margin-top:8px;"><span class="court-badge">' + m.court_name + '</span></div>' +
+                            '</div>';
                         }
 
                         function renderKlasemen() {
@@ -864,18 +856,93 @@
                                         return t;
                                     })
                                     .sort((a,b)=> b.sortVal - a.sortVal)
-                                    .map((t,i)=>\`<tr \${i===0?'style="background:rgba(255,255,0,0.1)"':''}><td>\${i+1}</td><td style="text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">\${t.name}</td><td>\${t.mp}</td><td>\${t.w}</td><td>\${t.l}</td><td>\${t.displayVal}</td></tr>\`).join('');
+                                    .map((t,i)=>'<tr ' + (i===0?'style="background:rgba(255,255,0,0.1)"':'') + '><td>' + (i+1) + '</td><td style="text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + t.name + '</td><td>' + t.mp + '</td><td>' + t.w + '</td><td>' + t.l + '</td><td>' + t.displayVal + '</td></tr>').join('');
                                 
-                                el.innerHTML += \`<div class="match-card theme-\${cardPreset}" style="padding:0; overflow:hidden;"><div style="padding:10px; font-weight:bold; border-bottom:1px solid rgba(0,0,0,0.1); display:flex; justify-content:space-between;"><span>\${groups[g].cat}</span> <span style="color:var(--primary-start)">\${groups[g].round}</span></div><table style="width:100%; border-collapse:collapse; font-size:11px; text-align:center; table-layout:fixed;"><thead><tr style="background:rgba(0,0,0,0.05);"><th style="width:25px;">#</th><th style="text-align:left; padding:8px; width:auto;">TIM</th><th style="width:30px;">MP</th><th style="width:30px;">W</th><th style="width:30px;">L</th><th style="width:55px;">\${headerLabel}</th></tr></thead><tbody>\${rows}</tbody></table></div>\`;
+                                el.innerHTML += '<div class="match-card theme-' + cardPreset + '" style="padding:0; overflow:hidden; max-width:500px; margin-left:auto; margin-right:auto;"><div style="padding:10px; font-weight:bold; border-bottom:1px solid rgba(0,0,0,0.1); display:flex; justify-content:space-between;"><span>' + groups[g].cat + '</span> <span style="color:var(--primary-start)">' + groups[g].round + '</span></div><table style="width:100%; border-collapse:collapse; font-size:11px; text-align:center; table-layout:fixed;"><thead><tr style="background:rgba(0,0,0,0.05);"><th style="width:25px;">#</th><th style="text-align:left; padding:8px; width:auto;">TIM</th><th style="width:30px;">MP</th><th style="width:30px;">W</th><th style="width:30px;">L</th><th style="width:55px;">' + headerLabel + '</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
                             });
+                        }
+
+                        function renderBaganTree(baganMatches) {
+                            const elB = document.getElementById('bagan-content');
+                            if(baganMatches.length === 0) { elB.innerHTML = "<div style='text-align:center; padding:20px; opacity:0.5; font-weight:bold; width:100vw;'>BELUM ADA DATA BAGAN / GUGUR</div>"; return; }
+
+                            let getWt = (r) => {
+                                let s = String(r).toLowerCase();
+                                if(s.includes('grand final') || (s.includes('final') && !s.includes('semi') && !s.includes('quarter') && !s.includes('perempat'))) return 100;
+                                if(s.includes('juara 3') || s.includes('third')) return 90;
+                                if(s.includes('semi') || s.includes('sf')) return 80;
+                                if(s.includes('quarter') || s.includes('perempat') || s.includes('qf') || s.includes('8')) return 70;
+                                if(s.includes('16')) return 60;
+                                if(s.includes('32')) return 50;
+                                return 10;
+                            };
+
+                            let rounds = {};
+                            baganMatches.forEach(m => {
+                                let r = (m.round || 'Knockout').toUpperCase();
+                                if(!rounds[r]) rounds[r] = [];
+                                rounds[r].push(m);
+                            });
+
+                            let sortedRounds = Object.keys(rounds).sort((a,b) => getWt(a) - getWt(b));
+
+                            let htmlStr = '<div style="display:flex; overflow-x:auto; padding:10px 15px 40px 15px; gap:35px; align-items:stretch; scrollbar-width:none;">';
+                            
+                            sortedRounds.forEach((rName, i) => {
+                                let isLast = i === sortedRounds.length - 1;
+                                htmlStr += '<div style="display:flex; flex-direction:column; justify-content:space-around; min-width:220px; max-width:220px; gap:20px;">';
+                                htmlStr += '<div style="text-align:center; font-weight:900; font-size:12px; color:var(--primary-start); border-bottom:3px solid var(--live-neon); padding-bottom:5px;">' + rName + '</div>';
+                                htmlStr += '<div style="display:flex; flex-direction:column; justify-content:space-around; flex:1; gap:20px;">';
+                                
+                                rounds[rName].forEach(m => {
+                                    let isLive = String(m.status).toUpperCase() === 'LIVE';
+                                    let isDone = String(m.status).toUpperCase() === 'FINISHED';
+                                    let tA = (parseInt(m.set1_a)||0)+(parseInt(m.set2_a)||0)+(parseInt(m.set3_a)||0)+(parseInt(m.set4_a)||0)+(parseInt(m.set5_a)||0);
+                                    let tB = (parseInt(m.set1_b)||0)+(parseInt(m.set2_b)||0)+(parseInt(m.set3_b)||0)+(parseInt(m.set4_b)||0)+(parseInt(m.set5_b)||0);
+                                    let wA = isDone && tA > tB; let wB = isDone && tB > tA;
+                                    
+                                    let sA = isDone || isLive ? tA : '-'; let sB = isDone || isLive ? tB : '-';
+                                    if(isLive) { sA = '<span style="color:var(--live-neon)">' + tA + '</span>'; sB = '<span style="color:var(--live-neon)">' + tB + '</span>'; }
+                                    
+                                    let fn = (n) => {
+                                        if(!n) return 'TBD';
+                                        if(!n.includes('/')) return n;
+                                        let p = n.split('/');
+                                        return p[0].trim().split(' ')[0] + ' / ' + (p[1]?p[1].trim().split(' ')[0]:'');
+                                    };
+                                    let nA = fn(m.team_a); let nB = fn(m.team_b);
+                                    
+                                    let liveB = isLive ? '<div style="position:absolute; top:-8px; right:5px; background:var(--live-neon); color:#000; font-size:9px; font-weight:900; padding:2px 6px; border-radius:4px; box-shadow:0 2px 5px rgba(0,0,0,0.3); z-index:5; animation:pulse-dot 1s infinite alternate;">LIVE</div>' : '';
+                                    let tCls = 'theme-' + cardPreset;
+                                    
+                                    htmlStr += '<div style="position:relative; display:flex; align-items:center; width:100%;">' +
+                                        '<div class="match-card ' + tCls + '" style="width:100%; padding:0; margin:0; border-radius:8px; position:relative; box-shadow:0 4px 10px rgba(0,0,0,0.1); border:1px solid rgba(0,0,0,0.05); ' + (isLive ? 'border:2px solid var(--live-neon);' : '') + '">' +
+                                            liveB +
+                                            '<div style="display:flex; justify-content:space-between; padding:10px 12px; border-bottom:1px solid rgba(0,0,0,0.05); background:rgba(0,0,0,0.02);">' +
+                                                '<div style="font-size:11px; font-weight:' + (wA?'900':'600') + '; opacity:' + (wA||!isDone?'1':'0.5') + '; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:80%;">' + nA + '</div>' +
+                                                '<div style="font-size:13px; font-weight:900;">' + sA + '</div>' +
+                                            '</div>' +
+                                            '<div style="display:flex; justify-content:space-between; padding:10px 12px;">' +
+                                                '<div style="font-size:11px; font-weight:' + (wB?'900':'600') + '; opacity:' + (wB||!isDone?'1':'0.5') + '; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:80%;">' + nB + '</div>' +
+                                                '<div style="font-size:13px; font-weight:900;">' + sB + '</div>' +
+                                            '</div>' +
+                                        '</div>' +
+                                        (!isLast ? '<div style="position:absolute; right:-35px; top:50%; width:35px; height:2px; background:var(--primary-start); opacity:0.3; z-index:-1;"></div>' : '') +
+                                    '</div>';
+                                });
+                                htmlStr += '</div></div>';
+                            });
+                            
+                            htmlStr += '</div>';
+                            elB.innerHTML = htmlStr;
                         }
 
                         function renderAll() {
                             const elJ = document.getElementById('jadwal-content'); elJ.innerHTML = "";
-                            const elB = document.getElementById('bagan-content'); elB.innerHTML = "";
                             let filteredMatches = matches.filter(m => currentCategory === 'SEMUA' || (m.category||'UMUM') === currentCategory);
+                            
                             filteredMatches.filter(m => m.round.toLowerCase().includes('grup')).forEach(m => elJ.innerHTML += createCardHTML(m));
-                            filteredMatches.filter(m => !m.round.toLowerCase().includes('grup')).forEach(m => elB.innerHTML += createCardHTML(m));
+                            renderBaganTree(filteredMatches.filter(m => !m.round.toLowerCase().includes('grup')));
                             renderKlasemen();
                         }
 
@@ -912,7 +979,7 @@
 
         function switchTab(t, btn) { document.querySelectorAll('.view-section').forEach(e=>e.classList.remove('active')); document.getElementById('view-'+t).classList.add('active'); document.querySelectorAll('.nav-pill').forEach(e=>e.classList.remove('active')); btn.classList.add('active'); }
         function openModalMatch() { document.getElementById('modal-match').style.display='flex'; }
-        function showQR() { const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://ryan12918.github.io/pamorpadel-live/client.html?id=${ACTIVE_ID}`; document.getElementById('qr-img').src = url; document.getElementById('qr-text').innerText = ACTIVE_ID; document.getElementById('modal-qr').style.display='flex'; }
+        function showQR() { const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://ryan12918.github.io/pamorpadel-live/index.html?id=${ACTIVE_ID}`; document.getElementById('qr-img').src = url; document.getElementById('qr-text').innerText = ACTIVE_ID; document.getElementById('modal-qr').style.display='flex'; }
         function filterTable() { const f = document.getElementById('search-box').value.toUpperCase(); const tr = document.getElementById('main-table').getElementsByTagName('tr'); for(let i=2; i<tr.length; i++) { const txt = tr[i].innerText; const inps = tr[i].querySelectorAll('input, textarea'); let valTxt = ""; inps.forEach(inp => valTxt += " " + inp.value); const fullTxt = txt + valTxt; tr[i].style.display = fullTxt.toUpperCase().indexOf(f)>-1 ? "" : "none"; } }
     </script>
 </body>
