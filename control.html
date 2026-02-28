@@ -79,11 +79,29 @@
         .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:999; }
         .modal-box { background: white; padding: 20px; border-radius: 6px; width: 600px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         .grid-modal { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        #rich-editor { border: 1px solid #ccc; min-height: 120px; padding: 8px; border-radius: 4px; overflow-y:auto; font-size:11px; }
-        .editor-btn { cursor:pointer; padding:2px 6px; border:1px solid #ccc; background:#eee; font-weight:bold; font-size:10px; }
         
         .studio-card { background: #f0f4c3; padding: 15px; border-radius: 8px; border: 1px solid #cddc39; margin-top: 10px; }
         .tv-card { background: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #90caf9; margin-top: 10px; }
+
+        /* EDITOR PREMIUM CSS */
+        .editor-container { border: 1px solid #ccc; border-radius: 6px; overflow: hidden; background: #fff; margin-bottom: 10px; }
+        .editor-toolbar { display: flex; flex-wrap: wrap; gap: 4px; background: #f4f6f8; padding: 8px; border-bottom: 1px solid #ccc; align-items: center; }
+        .editor-btn { background: white; border: 1px solid #ddd; padding: 6px 10px; cursor: pointer; border-radius: 4px; color: #444; font-size: 12px; transition: 0.2s; display: flex; align-items: center; justify-content: center;}
+        .editor-btn:hover { background: #e3f2fd; border-color: #2196f3; color: #1976d2; }
+        .editor-select { padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px; cursor: pointer; outline: none; }
+        .editor-divider { width: 1px; height: 20px; background: #ccc; margin: 0 4px; }
+        .editor-color-btn { width: 28px; height: 28px; padding: 0; border: 1px solid #ddd; cursor: pointer; border-radius: 4px; }
+        .editor-color-btn::-webkit-color-swatch-wrapper { padding: 0; }
+        .editor-color-btn::-webkit-color-swatch { border: none; border-radius: 3px; }
+        
+        /* PENGUNCI SPASI RULES */
+        #rich-editor { min-height: 250px; padding: 15px; font-size: 13px; line-height: 1.4; color: #333; overflow-y: auto; background: #fff; font-family: 'Segoe UI', sans-serif; }
+        #rich-editor:focus { outline: none; }
+        #rich-editor p, #rich-editor div { margin: 0 0 6px 0; }
+        #rich-editor ul, #rich-editor ol { margin: 4px 0 8px 25px; padding: 0; }
+        #rich-editor li { margin-bottom: 4px; }
+        #rich-editor h1, #rich-editor h2, #rich-editor h3 { margin: 15px 0 8px 0; font-weight: 800; line-height: 1.2; }
+        #rich-editor hr { margin: 15px 0; border: 0; border-top: 1px solid #ddd; }
     </style>
 </head>
 <body>
@@ -224,14 +242,35 @@
                         </div>
                     </div>
 
-                    <div class="section-title">5. ATURAN</div>
-                    <div style="margin-bottom:5px;">
-                        <button class="editor-btn" onclick="document.execCommand('bold')"><b>B</b></button>
-                        <button class="editor-btn" onclick="document.execCommand('italic')"><i>I</i></button>
-                        <button class="editor-btn" onclick="document.execCommand('underline')"><u>U</u></button>
-                        <button class="editor-btn" onclick="document.execCommand('insertUnorderedList')">• List</button>
+                    <div class="section-title">5. ATURAN & REGULASI TURNAMEN</div>
+                    <div class="editor-container">
+                        <div class="editor-toolbar">
+                            <select class="editor-select" onchange="document.execCommand('formatBlock', false, this.value); updateBrandingPreview(); this.selectedIndex=0;">
+                                <option value="" disabled selected>Format Teks</option>
+                                <option value="p">Normal (Paragraf)</option>
+                                <option value="H1">Judul Besar (H1)</option>
+                                <option value="H2">Judul Sedang (H2)</option>
+                                <option value="H3">Judul Kecil (H3)</option>
+                            </select>
+                            <div class="editor-divider"></div>
+                            <button class="editor-btn" onclick="document.execCommand('bold', false, null); updateBrandingPreview();" title="Tebal"><i class="fas fa-bold"></i></button>
+                            <button class="editor-btn" onclick="document.execCommand('italic', false, null); updateBrandingPreview();" title="Miring"><i class="fas fa-italic"></i></button>
+                            <button class="editor-btn" onclick="document.execCommand('underline', false, null); updateBrandingPreview();" title="Garis Bawah"><i class="fas fa-underline"></i></button>
+                            <button class="editor-btn" onclick="document.execCommand('strikeThrough', false, null); updateBrandingPreview();" title="Coret"><i class="fas fa-strikethrough"></i></button>
+                            <div class="editor-divider"></div>
+                            <button class="editor-btn" onclick="document.execCommand('justifyLeft', false, null); updateBrandingPreview();" title="Rata Kiri"><i class="fas fa-align-left"></i></button>
+                            <button class="editor-btn" onclick="document.execCommand('justifyCenter', false, null); updateBrandingPreview();" title="Rata Tengah"><i class="fas fa-align-center"></i></button>
+                            <button class="editor-btn" onclick="document.execCommand('justifyRight', false, null); updateBrandingPreview();" title="Rata Kanan"><i class="fas fa-align-right"></i></button>
+                            <button class="editor-btn" onclick="document.execCommand('justifyFull', false, null); updateBrandingPreview();" title="Rata Kiri Kanan"><i class="fas fa-align-justify"></i></button>
+                            <div class="editor-divider"></div>
+                            <button class="editor-btn" onclick="document.execCommand('insertUnorderedList', false, null); updateBrandingPreview();" title="Daftar Titik"><i class="fas fa-list-ul"></i></button>
+                            <button class="editor-btn" onclick="document.execCommand('insertOrderedList', false, null); updateBrandingPreview();" title="Daftar Angka"><i class="fas fa-list-ol"></i></button>
+                            <button class="editor-btn" onclick="document.execCommand('insertHorizontalRule', false, null); updateBrandingPreview();" title="Garis Pembatas"><i class="fas fa-minus"></i></button>
+                            <div class="editor-divider"></div>
+                            <input type="color" class="editor-color-btn" onchange="document.execCommand('foreColor', false, this.value); updateBrandingPreview();" title="Warna Teks">
+                        </div>
+                        <div id="rich-editor" contenteditable="true" onkeyup="updateBrandingPreview()" onblur="updateBrandingPreview()"></div>
                     </div>
-                    <div id="rich-editor" contenteditable="true" onkeyup="updateBrandingPreview()"></div>
                     
                     <div style="margin-top:20px; text-align:right;">
                         <button class="btn-action btn-grey" onclick="showQR()">📱 LIHAT QR</button>
@@ -658,6 +697,7 @@
                 const logoClass = (logoMode === 'classic') ? 'logo-classic' : 'logo-watermark';
                 const logoHTML = logo ? `<img src="${logo}" class="header-logo ${logoClass}" style="display:block;">` : '';
 
+                // 💡 PENGUNCI SPASI RULES UNTUK PREVIEW 💡
                 const htmlString = `
                 <!DOCTYPE html>
                 <html>
@@ -753,9 +793,16 @@
                         .theme-demantoid { background: #33691e; color: #f1f8e9; border: 1px solid #558b2f; } .theme-demantoid .meta-text { color: #ccff90; } .theme-demantoid .court-badge { background: #558b2f; color: white; }
                         .theme-padparadscha { background: #ffccbc; color: #bf360c; border: 1px solid #ff8a65; } .theme-padparadscha .court-badge { background: #bf360c; color: white; }
 
-                        .nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; padding: 12px 0; border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); z-index: 100; }
-                        .nav-btn { flex: 1; text-align: center; font-size: 10px; font-weight: 700; color: #ccc; cursor:pointer;}
-                        .nav-btn.active { color: var(--primary-start); }
+                        .nav { position: fixed; bottom: 0; width: 100%; background: white; border-top-left-radius: 20px; border-top-right-radius: 20px; display: flex; padding: 12px 0; z-index: 100; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); }
+                        .nav-btn { flex: 1; text-align: center; font-size: 10px; color: #ccc; font-weight: 600; cursor:pointer; }
+                        .nav-btn.active { color: var(--primary-start); font-weight: 800; }
+                        
+                        #preview-rules { font-size:13px; line-height:1.4; color:inherit; }
+                        #preview-rules p, #preview-rules div { margin: 0 0 6px 0; }
+                        #preview-rules ul, #preview-rules ol { margin: 4px 0 8px 25px; padding: 0; }
+                        #preview-rules li { margin-bottom: 4px; }
+                        #preview-rules h1, #preview-rules h2, #preview-rules h3 { margin: 15px 0 8px 0; font-weight: 800; line-height: 1.2; }
+                        #preview-rules hr { margin: 15px 0; border: 0; border-top: 1px solid #ddd; }
                     </style>
                 </head>
                 <body>
@@ -773,7 +820,12 @@
                     <div id="view-jadwal" class="container"><div id="jadwal-content"></div></div>
                     <div id="view-klasemen" class="container hidden"><div id="klasemen-content"></div></div>
                     <div id="view-bagan" class="container hidden"><div id="bagan-content"></div></div>
-                    <div id="view-peraturan" class="container hidden"><div class="match-card theme-${style}"><h3 style="margin-top:0; color:var(--primary-start);">Peraturan</h3><div id="preview-rules" style="white-space: pre-wrap; font-size:13px; line-height:1.6; color:inherit;"></div></div></div>
+                    <div id="view-peraturan" class="container hidden">
+                        <div class="match-card theme-${style}">
+                            <h3 style="margin-top:0; margin-bottom:10px; color:var(--primary-start); font-weight:900; border-bottom:2px solid rgba(0,0,0,0.1); padding-bottom:10px;">PERATURAN</h3>
+                            <div id="preview-rules"></div>
+                        </div>
+                    </div>
 
                     <div class="nav"><div class="nav-btn active" onclick="go('jadwal', this)">JADWAL</div><div class="nav-btn" onclick="go('klasemen', this)">KLASEMEN</div><div class="nav-btn" onclick="go('bagan', this)">BAGAN</div><div class="nav-btn" onclick="go('peraturan', this)">ATURAN</div></div>
                     
@@ -881,7 +933,21 @@
                         }
 
                         function renderKlasemen() {
-                            const el = document.getElementById('klasemen-content'); el.innerHTML = "";
+                            const el = document.getElementById('klasemen-content'); 
+                            el.innerHTML = "";
+                            let isPct = (klasemenFormat === 'PCT');
+                            let legendText = isPct ? '%: Persentase (Game Percentage)' : 'GD: Selisih Game (Game Difference)';
+                            
+                            el.innerHTML = \`
+                            <div class="match-card theme-\${cardPreset}" style="padding: 12px; margin-bottom: 15px; text-align: center; line-height: 1.6; font-size: 10px; font-weight: 600;">
+                                <span style="font-weight: 900; opacity: 0.8; font-size: 12px; text-transform: uppercase;">KETERANGAN TABEL</span><br>
+                                <div style="opacity: 0.7; margin-top: 4px;">
+                                    MP: Main (Matches Played) &bull; W: Menang (Win) &bull; L: Kalah (Lose)<br>
+                                    GW: Game Menang (Game Won) &bull; GL: Game Kalah (Game Lost)<br>
+                                    \${legendText}
+                                </div>
+                            </div>\`;
+
                             let groups = {};
                             let filteredMatches = matches.filter(m => currentCategory === 'SEMUA' || (m.category||'UMUM') === currentCategory);
                             filteredMatches.filter(m => m.round.toLowerCase().includes('grup')).forEach(m => {
@@ -899,7 +965,6 @@
                             });
                             
                             Object.keys(groups).sort().forEach(g => {
-                                let isPct = (klasemenFormat === 'PCT');
                                 let headerLabel = isPct ? '%' : 'GD';
 
                                 let rows = Object.keys(groups[g]).filter(k=>k!=='cat'&&k!=='round').map(t=>({name:t, ...groups[g][t]}))
@@ -916,9 +981,9 @@
                                         return t;
                                     })
                                     .sort((a,b)=> b.sortVal - a.sortVal)
-                                    .map((t,i)=>\`<tr \${i===0?'style="background:rgba(255,255,0,0.1)"':''}><td>\${i+1}</td><td style="text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">\${t.name}</td><td>\${t.mp}</td><td>\${t.w}</td><td>\${t.l}</td><td>\${t.displayVal}</td></tr>\`).join('');
+                                    .map((t,i)=>\`<tr \${i===0 ? 'style="background:rgba(128,128,128,0.15); font-weight:bold;"' : 'style="border-top:1px solid rgba(128,128,128,0.1);"'}><td style="padding:8px 0;">\${i+1}</td><td style="text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">\${t.name}</td><td>\${t.mp}</td><td>\${t.w}</td><td>\${t.l}</td><td>\${t.gw}</td><td>\${t.gl}</td><td>\${t.displayVal}</td></tr>\`).join('');
                                 
-                                el.innerHTML += \`<div class="match-card theme-\${cardPreset}" style="padding:0; overflow:hidden;"><div style="padding:10px; font-weight:bold; border-bottom:1px solid rgba(0,0,0,0.1); display:flex; justify-content:space-between;"><span>\${groups[g].cat}</span> <span style="color:var(--primary-start)">\${groups[g].round}</span></div><table style="width:100%; border-collapse:collapse; font-size:11px; text-align:center; table-layout:fixed;"><thead><tr style="background:rgba(0,0,0,0.05);"><th style="width:25px;">#</th><th style="text-align:left; padding:8px; width:auto;">TIM</th><th style="width:30px;">MP</th><th style="width:30px;">W</th><th style="width:30px;">L</th><th style="width:55px;">\${headerLabel}</th></tr></thead><tbody>\${rows}</tbody></table></div>\`;
+                                el.innerHTML += \`<div class="match-card theme-\${cardPreset}" style="padding:0; overflow:hidden; margin-bottom:15px;"><div style="padding:12px 15px; font-weight:900; border-bottom:1px solid rgba(128,128,128,0.2); display:flex; justify-content:space-between; text-transform:uppercase; font-size:12px;"><span>\${groups[g].cat}</span> <span style="opacity:0.7;">\${groups[g].round}</span></div><table style="width:100%; border-collapse:collapse; font-size:11px; text-align:center; table-layout:fixed;"><thead><tr style="background:rgba(128,128,128,0.1);"><th style="width:25px; padding:8px 0;">#</th><th style="text-align:left; padding:8px; width:auto;">TIM</th><th style="width:25px;">MP</th><th style="width:25px;">W</th><th style="width:25px;">L</th><th style="width:25px;">GW</th><th style="width:25px;">GL</th><th style="width:45px;">\${headerLabel}</th></tr></thead><tbody>\${rows}</tbody></table></div>\`;
                             });
                         }
 
@@ -931,7 +996,7 @@
                             renderKlasemen();
                         }
 
-                        function go(id, btn) { document.querySelectorAll('.container').forEach(c=>c.classList.add('hidden')); document.getElementById('view-'+id).classList.remove('hidden'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+                        function go(id, btn) { document.querySelectorAll('.container').forEach(c=>c.classList.add('hidden')); document.getElementById('view-'+id).classList.remove('hidden'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); window.scrollTo(0,0); }
                         
                         function processAndRender() { renderTabs(); renderAll(); }
                         processAndRender();
@@ -999,7 +1064,7 @@
                 const frame = document.getElementById('preview-frame-tv');
                 if(!frame) return;
 
-                // 💡 LOGIKA CANVAS BEBAS (ABSOLUTE 100% SAMA DENGAN TV) 💡
+                // LOGIKA CANVAS BEBAS
                 let tBase = (tvLogo && tvLogoPos === 'kiri') ? 12 : 3;
                 let sBase = tBase + 28;
                 let tagBase = sBase + 20;
@@ -1172,6 +1237,7 @@
             
             const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
             
+            // Satukan semua pengaturan lanjutan (posisi, warna, dll) ke dalam 1 payload JSON
             const tvStyleObj = {
                 cT: getVal('tv-col-title'), sT: getVal('tv-s-title'), xT: getVal('tv-x-title'), yT: getVal('tv-y-title'),
                 cS: getVal('tv-col-sub'), sS: getVal('tv-s-sub'), xS: getVal('tv-x-sub'), yS: getVal('tv-y-sub'),

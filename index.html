@@ -12,7 +12,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
     <style>
-        /* 💡 KUNCI LAYAR AGAR TIDAK GOYANG KANAN-KIRI 💡 */
         html, body { overflow-x: hidden; width: 100%; max-width: 100vw; }
         * { box-sizing: border-box; }
 
@@ -67,8 +66,16 @@
         .nav { position: fixed; bottom: 0; width: 100%; background: white; border-top-left-radius: 20px; border-top-right-radius: 20px; display: flex; padding: 12px 0; z-index: 100; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); }
         .nav-btn { flex: 1; text-align: center; font-size: 10px; color: #ccc; font-weight: 600; cursor:pointer; }
         .nav-btn.active { color: var(--primary-start); font-weight: 800; }
+
+        /* PENGUNCI SPASI RULES */
+        #rules-text { font-size: 13px; line-height: 1.4; color: inherit; font-family: 'Segoe UI', sans-serif; }
+        #rules-text p, #rules-text div { margin: 0 0 6px 0; }
+        #rules-text ul, #rules-text ol { margin: 4px 0 8px 25px; padding: 0; }
+        #rules-text li { margin-bottom: 4px; }
+        #rules-text h1, #rules-text h2, #rules-text h3 { margin: 15px 0 8px 0; font-weight: 800; line-height: 1.2; }
+        #rules-text hr { margin: 15px 0; border: 0; border-top: 1px solid rgba(128,128,128,0.3); }
         
-        /* THEMES */
+        /* THEMES - AUTO ADAPTIVE COLORS */
         .theme-classic-white { background: white; color: #333; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #eee; } .theme-classic-white .meta-text { color: #C2185B; } .theme-classic-white .court-badge { background: #f5f5f5; color: #666; border: 1px solid #ddd; } 
         .theme-midnight-blue { background: #0d1b2a; color: #e0e1dd; border: 1px solid #1b263b; } .theme-midnight-blue .meta-text { color: #4CC9F0; } .theme-midnight-blue .court-badge { background: #1b263b; color: #4CC9F0; } 
         .theme-royal-gold { background: #fffcf5; color: #5d4037; border: 1px solid #daa520; } .theme-royal-gold .meta-text { color: #b8860b; } .theme-royal-gold .court-badge { background: linear-gradient(to bottom, #fff8dc, #f0e68c); color: #5d4037; border: 1px solid #daa520; }
@@ -156,9 +163,17 @@
         </div>
         <div id="jadwal-content"></div>
     </div>
+    
     <div id="view-klasemen" class="container hidden"><div id="klasemen-content"></div></div>
+    
     <div id="view-bagan" class="container hidden"><div id="bagan-content"></div></div>
-    <div id="view-peraturan" class="container hidden"><div class="match-card theme-classic-white"><h3 style="margin-top:0; color:var(--primary-start);">Peraturan</h3><div id="rules-text" style="white-space: pre-wrap; font-size:13px; line-height:1.6; color:#444;"></div></div></div>
+    
+    <div id="view-peraturan" class="container hidden">
+        <div class="match-card theme-classic-white">
+            <h3 style="margin-top:0; margin-bottom:10px; color:var(--primary-start); font-weight:900; border-bottom:2px solid rgba(0,0,0,0.1); padding-bottom:10px;">PERATURAN</h3>
+            <div id="rules-text"></div>
+        </div>
+    </div>
 
     <div class="nav">
         <a class="nav-btn active" onclick="go('jadwal', this)">JADWAL</a>
@@ -326,7 +341,6 @@
             let styleTA = ''; let styleTB = '';
             if (isDone) { if (totalA > totalB) { styleTB = 'opacity: 0.3;'; } else if (totalB > totalA) { styleTA = 'opacity: 0.3;'; } else { styleTA = 'opacity: 0.8;'; styleTB = 'opacity: 0.8;'; } }
             
-            // 💡 TOMBOL SHARE DIHAPUS 💡
             return `<div class="match-card ${themeClass} ${isLive?'is-live':''}" style="${isDone ? 'opacity: 0.85;' : ''}">
                 <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(0,0,0,0.05); padding-bottom:5px; margin-bottom:8px;">${metaHTML} <div style="display:flex; gap:10px; align-items:center;">${timeInfo}</div></div>
                 <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
@@ -339,7 +353,22 @@
         }
 
         function renderKlasemen() {
-            const el = document.getElementById('klasemen-content'); el.innerHTML = "";
+            const el = document.getElementById('klasemen-content'); 
+            el.innerHTML = "";
+            
+            let isPct = (window.klasemenFormat === 'PCT');
+            let legendText = isPct ? '%: Persentase (Game Percentage)' : 'GD: Selisih Game (Game Difference)';
+            
+            el.innerHTML = `
+            <div class="match-card theme-${cardPreset}" style="padding: 12px; margin-bottom: 15px; text-align: center; line-height: 1.6; font-size: 10px; font-weight: 600;">
+                <span style="font-weight: 900; opacity: 0.8; font-size: 12px; text-transform: uppercase;">KETERANGAN TABEL</span><br>
+                <div style="opacity: 0.7; margin-top: 4px;">
+                    MP: Main (Matches Played) &bull; W: Menang (Win) &bull; L: Kalah (Lose)<br>
+                    GW: Game Menang (Game Won) &bull; GL: Game Kalah (Game Lost)<br>
+                    ${legendText}
+                </div>
+            </div>`;
+
             let groups = {};
             let filteredMatches = matches.filter(m => currentCategory === 'SEMUA' || (m.category||'UMUM') === currentCategory);
             
@@ -359,7 +388,6 @@
             });
 
             Object.keys(groups).sort().forEach(g => {
-                let isPct = (window.klasemenFormat === 'PCT');
                 let headerLabel = isPct ? '%' : 'GD';
 
                 let rows = Object.keys(groups[g]).filter(k=>k!=='cat'&&k!=='round').map(t=>({name:t, ...groups[g][t]}))
@@ -376,9 +404,9 @@
                         return t;
                     })
                     .sort((a,b)=> b.sortVal - a.sortVal)
-                    .map((t,i)=>`<tr ${i===0?'style="background:rgba(255,255,0,0.1)"':''}><td>${i+1}</td><td style="text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.name}</td><td>${t.mp}</td><td>${t.w}</td><td>${t.l}</td><td>${t.displayVal}</td></tr>`).join('');
+                    .map((t,i)=>`<tr ${i===0 ? 'style="background:rgba(128,128,128,0.15); font-weight:bold;"' : 'style="border-top:1px solid rgba(128,128,128,0.1);"'}><td style="padding:8px 0;">${i+1}</td><td style="text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.name}</td><td>${t.mp}</td><td>${t.w}</td><td>${t.l}</td><td>${t.gw}</td><td>${t.gl}</td><td>${t.displayVal}</td></tr>`).join('');
                 
-                el.innerHTML += `<div class="match-card theme-${cardPreset}" style="padding:0; overflow:hidden;"><div style="padding:10px; font-weight:bold; border-bottom:1px solid rgba(0,0,0,0.1); display:flex; justify-content:space-between;"><span>${groups[g].cat}</span> <span style="color:var(--primary-start)">${groups[g].round}</span></div><table style="width:100%; border-collapse:collapse; font-size:11px; text-align:center; table-layout:fixed;"><thead><tr style="background:rgba(0,0,0,0.05);"><th style="width:25px;">#</th><th style="text-align:left; padding:8px; width:auto;">TIM</th><th style="width:30px;">MP</th><th style="width:30px;">W</th><th style="width:30px;">L</th><th style="width:55px;">${headerLabel}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+                el.innerHTML += `<div class="match-card theme-${cardPreset}" style="padding:0; overflow:hidden; margin-bottom:15px;"><div style="padding:12px 15px; font-weight:900; border-bottom:1px solid rgba(128,128,128,0.2); display:flex; justify-content:space-between; text-transform:uppercase; font-size:12px;"><span>${groups[g].cat}</span> <span style="opacity:0.7;">${groups[g].round}</span></div><table style="width:100%; border-collapse:collapse; font-size:11px; text-align:center; table-layout:fixed;"><thead><tr style="background:rgba(128,128,128,0.1);"><th style="width:25px; padding:8px 0;">#</th><th style="text-align:left; padding:8px; width:auto;">TIM</th><th style="width:25px;">MP</th><th style="width:25px;">W</th><th style="width:25px;">L</th><th style="width:25px;">GW</th><th style="width:25px;">GL</th><th style="width:45px;">${headerLabel}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
             });
         }
 
@@ -398,7 +426,7 @@
             db.channel('public:matches_pro').on('postgres_changes', {event:'*', schema:'public', table:'matches_pro', filter:`tournament_id=eq.${TOURNAMENT_ID}`}, ()=>triggerFetch()).subscribe();
             db.channel('public:partners').on('postgres_changes', {event:'UPDATE', schema:'public', table:'partners', filter:`tournament_id=eq.${TOURNAMENT_ID}`}, (p)=>applyTheme(p.new)).subscribe();
         }
-        function go(id, btn) { document.querySelectorAll('.container').forEach(c=>c.classList.add('hidden')); document.getElementById('view-'+id).classList.remove('hidden'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+        function go(id, btn) { document.querySelectorAll('.container').forEach(c=>c.classList.add('hidden')); document.getElementById('view-'+id).classList.remove('hidden'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); window.scrollTo(0,0); }
         init();
     </script>
 </body>
