@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="color-scheme" content="dark">
-    <title>WASIT PRO V12.0 (AUTO-RESUME)</title>
+    <title>WASIT PRO V13.0 (ANTI DINOSAURUS)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     
@@ -78,7 +78,7 @@
     <div id="conn-indicator" class="hidden">🟢 ONLINE</div>
 
     <div id="view-login" class="login-box">
-        <h3>WASIT PRO V12.0</h3>
+        <h3>WASIT PRO V13.0</h3>
         
         <div style="text-align:left; font-size:11px; color:#aaa; margin-bottom:2px; padding-left:5px;">Tournament ID:</div>
         <input id="inp-tid" class="inp-login" placeholder="Misal: pamorpadel">
@@ -195,6 +195,37 @@
     </div>
 
     <script>
+        if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+            const swCode = `
+                const CACHE_NAME = 'wasit-pro-v13';
+                self.addEventListener('install', event => { self.skipWaiting(); });
+                self.addEventListener('activate', event => { event.waitUntil(self.clients.claim()); });
+                self.addEventListener('fetch', event => {
+                    if (event.request.method !== 'GET') return;
+                    event.respondWith(
+                        fetch(event.request)
+                            .then(response => {
+                                const resClone = response.clone();
+                                caches.open(CACHE_NAME).then(cache => { cache.put(event.request, resClone); });
+                                return response;
+                            })
+                            .catch(() => {
+                                return caches.match(event.request);
+                            })
+                    );
+                });
+            `;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl).then(registration => {
+                console.log('🛡️ Service Worker aktif! Tahan banting terhadap refresh offline.');
+            }).catch(err => console.log('SW Gagal:', err));
+        } else if (location.protocol === 'file:') {
+            console.log('⚠️ Untuk mengetes Fitur Anti-Dinosaurus (Refresh Offline), Anda harus meng-upload file ini ke Hosting/GitHub Pages.');
+        }
+    </script>
+
+    <script>
         const SUPABASE_URL = 'https://gubcvxiupehbdpigrdct.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_k1y6fNI2opEXhwqKMbGYcA__2nD0yT6';
         const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -207,20 +238,19 @@
         let localMatchData = {};
         let syncInterval = null;
 
-        // 💡 CEK AUTO-RESUME SAAT PERTAMA KALI HALAMAN DIBUKA 💡
+        // CEK AUTO-RESUME SAAT PERTAMA KALI HALAMAN DIBUKA
         document.addEventListener('DOMContentLoaded', () => {
             const activeSession = localStorage.getItem('wasit_active_session');
             if (activeSession) {
                 try {
                     const parsedSession = JSON.parse(activeSession);
-                    // Langsung bypass login dan muat data!
                     document.getElementById('btn-login-main').innerText = "MEMULIHKAN SESI...";
                     matchId = parsedSession.id;
                     tournamentId = parsedSession.tournament_id;
                     serveSystem = parsedSession.serveSystem || 'manual';
                     hideServe = parsedSession.hideServe || false;
                     document.getElementById('lbl-court').innerText = parsedSession.court_name;
-                    loadMatch(parsedSession); // Muat tampilannya!
+                    loadMatch(parsedSession); 
                 } catch(e) {
                     console.error("Gagal memulihkan sesi aktif.");
                 }
@@ -247,14 +277,14 @@
             };
 
             if(matchId) {
-                // Simpan update skor ke memori internal (Brankas HP)
+                // Simpan update skor ke memori internal
                 localStorage.setItem('wasit_backup_' + matchId, JSON.stringify(fullState));
                 
-                // 💡 UPDATE BRANKAS SESI (AUTO-RESUME) 💡
+                // Update Brankas Sesi
                 let currentSession = localStorage.getItem('wasit_active_session');
                 if (currentSession) {
                     let parsedSession = JSON.parse(currentSession);
-                    Object.assign(parsedSession, fullState); // Merge data baru ke sesi
+                    Object.assign(parsedSession, fullState); 
                     localStorage.setItem('wasit_active_session', JSON.stringify(parsedSession));
                 }
             }
@@ -344,7 +374,6 @@
                 serveSystem = sSys; hideServe = hServe; matchId = matchData.id; 
                 document.getElementById('lbl-court').innerText = matchData.court_name; 
                 
-                // 💡 SIMPAN PROFIL SESI BARU KE MEMORI HP 💡
                 matchData.serveSystem = serveSystem;
                 matchData.hideServe = hideServe;
                 localStorage.setItem('wasit_active_session', JSON.stringify(matchData));
@@ -359,7 +388,6 @@
             
             localMatchData = m;
 
-            // CEK APAKAH ADA BACKUP SKOR DI MEMORI HP
             let backup = localStorage.getItem('wasit_backup_' + m.id);
             if(backup) {
                 try {
@@ -371,7 +399,6 @@
                         startAutoSync({ status: 'FINISHED', is_wo: parsed.is_wo });
                         return; 
                     } else {
-                        // Jangan beri alert jika ini auto-resume biasa (biar mulus)
                         if(!localStorage.getItem('wasit_active_session')) {
                             alert("⚠️ MEMUAT DATA PEMULIHAN (BACKUP)!\n\nSistem menemukan data ketikan terakhir Anda.");
                         }
@@ -396,7 +423,6 @@
             renderScores(localMatchData); 
             renderButtons(); 
 
-            // Pancing koneksi dan sinkronisasi
             dbUpdate({});
         }
 
@@ -468,7 +494,6 @@
             await dbUpdate({}); 
         }
 
-        // --- MANAJEMEN PENYELESAIAN MATCH & LOGOUT (MENGHAPUS SESI) ---
         async function tutupMatch() { 
             if(!confirm("Anda yakin Pertandingan ini sudah SELESAI?\nStatus di Control Panel akan otomatis berubah menjadi FINISHED.")) return; 
             
@@ -476,7 +501,6 @@
             let success = await dbUpdate(payload); 
             
             if(success) {
-                // Hapus sesi aman karena online sukses
                 localStorage.removeItem('wasit_active_session');
                 localStorage.removeItem('wasit_backup_' + matchId);
                 alert("Match Berhasil Diselesaikan! Terima kasih."); 
@@ -520,7 +544,6 @@
                     txt.innerText = "BERHASIL TERKIRIM! ✅";
                     txt.style.color = "#76ff03";
                     
-                    // Sinyal kembali, data terkirim, HAPUS SESI!
                     localStorage.removeItem('wasit_active_session');
                     localStorage.removeItem('wasit_backup_' + matchId);
                     
@@ -549,7 +572,6 @@
             } else {
                 if(!confirm("Apakah Anda yakin ingin Logout/Ganti Court?")) return;
             }
-            // Hapus semua kunci sesi!
             localStorage.removeItem('wasit_active_session');
             localStorage.removeItem('wasit_backup_' + matchId);
             location.reload();
