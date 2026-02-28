@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="color-scheme" content="dark">
-    <title>WASIT PRO V14.0 (ANTI FREEZE)</title>
+    <title>WASIT PRO V16.0 (STABIL MUTLAK)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     
@@ -13,8 +13,9 @@
         body.mode-tb { background: #2c0b0b; }
         .hidden { display: none !important; }
 
-        /* INDIKATOR KONEKSI PINTAR */
-        #conn-indicator { position: fixed; top: 10px; right: 10px; font-size: 10px; font-weight: 900; background: rgba(0,0,0,0.8); padding: 6px 12px; border-radius: 20px; border: 1px solid #444; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.3s; }
+        /* INDIKATOR KONEKSI PINTAR (BISA DIKLIK SAAT OFFLINE) */
+        #conn-indicator { position: fixed; top: 10px; right: 10px; font-size: 10px; font-weight: 900; background: rgba(0,0,0,0.8); padding: 6px 12px; border-radius: 20px; border: 1px solid #444; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.3s; cursor: pointer; }
+        #conn-indicator:active { transform: scale(0.95); }
 
         .login-box { background: #1e1e1e; padding: 25px; border-radius: 12px; width: 100%; max-width: 320px; text-align: center; border: 1px solid #333; margin-top: 10vh; }
         .inp-login { width: 100%; padding: 12px; margin: 8px 0; background: #2c2c2c; border: 1px solid #444; color: white; border-radius: 6px; text-align: center; font-size: 16px; box-sizing: border-box; }
@@ -69,16 +70,15 @@
         .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:9999; padding: 15px; box-sizing: border-box; }
         .modal-box { background: #1e1e1e; padding: 20px; border-radius: 8px; width: 100%; max-width: 400px; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-        /* LAYAR TRANSISI OFFLINE SYNC (LAYAR HIJAU) */
         #sync-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #004d40; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
-    <div id="conn-indicator" class="hidden">🟢 ONLINE</div>
+    <div id="conn-indicator" class="hidden" onclick="checkConnection()">🟢 ONLINE</div>
 
     <div id="view-login" class="login-box">
-        <h3>WASIT PRO V14.0</h3>
+        <h3>WASIT PRO V16.0</h3>
         
         <div style="text-align:left; font-size:11px; color:#aaa; margin-bottom:2px; padding-left:5px;">Tournament ID:</div>
         <input id="inp-tid" class="inp-login" placeholder="Misal: pamorpadel">
@@ -182,59 +182,33 @@
     <div id="sync-screen" class="hidden">
         <h1 style="color:white; margin-bottom:10px; font-size:28px;">✅ MATCH SELESAI</h1>
         <h2 style="color:#a5d6a7; margin-top:0;">DATA TERSIMPAN DI HP</h2>
-        <p style="color:#e0e0e0; font-size:14px; margin-bottom:30px; max-width:80%; line-height:1.5;">Sistem sedang mencoba mengirim data skor akhir ke pusat. Mohon <b>JANGAN TUTUP</b> halaman ini sampai indikator berhasil.</p>
+        <p style="color:#e0e0e0; font-size:14px; margin-bottom:30px; max-width:80%; line-height:1.5;">Sistem sedang mencoba mengirim data skor akhir ke pusat.</p>
         
-        <div style="padding:20px; background:rgba(0,0,0,0.4); border-radius:12px; margin-bottom:30px; font-size:16px; font-weight:bold; color:white; border: 1px solid rgba(255,255,255,0.2);">
+        <div style="padding:20px; background:rgba(0,0,0,0.4); border-radius:12px; margin-bottom:30px; font-size:16px; font-weight:bold; color:white; border: 1px solid rgba(255,255,255,0.2); width:100%; max-width:300px;">
             Status Sinkronisasi:<br>
             <span id="sync-status-text" style="color:#ffeb3b; font-size:20px; display:inline-block; margin-top:10px;">Menunggu Koneksi... ⏳</span>
         </div>
+        
+        <button onclick="checkConnectionAndSync()" style="background:#0277bd; color:white; border:none; padding:15px 20px; border-radius:8px; font-weight:bold; font-size:13px; cursor:pointer; margin-bottom:10px; width:100%; max-width:300px; box-shadow: 0 5px 10px rgba(0,0,0,0.3);">
+            🔄 REFRESH KONEKSI (Jika Sinyal Ada)
+        </button>
 
-        <button onclick="forceCloseSync()" style="background:#b71c1c; color:white; border:1px solid #ff5252; padding:15px 20px; border-radius:8px; font-weight:bold; font-size:13px; cursor:pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
-            TUTUP PAKSA (Lapor Manual ke Operator)
+        <button onclick="forceCloseSync()" style="background:#b71c1c; color:white; border:1px solid #ff5252; padding:15px 20px; border-radius:8px; font-weight:bold; font-size:13px; cursor:pointer; width:100%; max-width:300px; box-shadow: 0 5px 10px rgba(0,0,0,0.5);">
+            TUTUP PAKSA (Lapor Manual)
         </button>
     </div>
-
-    <script>
-        if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-            const swCode = `
-                const CACHE_NAME = 'wasit-pro-v14';
-                self.addEventListener('install', event => { self.skipWaiting(); });
-                self.addEventListener('activate', event => { event.waitUntil(self.clients.claim()); });
-                self.addEventListener('fetch', event => {
-                    if (event.request.method !== 'GET') return;
-                    event.respondWith(
-                        fetch(event.request)
-                            .then(response => {
-                                const resClone = response.clone();
-                                caches.open(CACHE_NAME).then(cache => { cache.put(event.request, resClone); });
-                                return response;
-                            })
-                            .catch(() => {
-                                return caches.match(event.request);
-                            })
-                    );
-                });
-            `;
-            const blob = new Blob([swCode], { type: 'application/javascript' });
-            const swUrl = URL.createObjectURL(blob);
-            navigator.serviceWorker.register(swUrl).then(registration => {
-                console.log('🛡️ Service Worker aktif! Tahan banting terhadap refresh offline.');
-            }).catch(err => console.log('SW Gagal:', err));
-        } else if (location.protocol === 'file:') {
-            console.log('⚠️ Untuk mengetes Fitur Anti-Dinosaurus (Refresh Offline), Anda harus meng-upload file ini ke Hosting/GitHub Pages.');
-        }
-    </script>
 
     <script>
         const SUPABASE_URL = 'https://gubcvxiupehbdpigrdct.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_k1y6fNI2opEXhwqKMbGYcA__2nD0yT6';
         
         let db = null;
-        // 💡 SABUK PENGAMAN INIT DATABASE 💡
-        if (typeof window.supabase !== 'undefined') {
-            db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        } else {
-            console.warn("⚠️ Supabase CDN gagal dimuat. Berjalan dalam mode Offline Mutlak!");
+        try {
+            if (typeof window.supabase !== 'undefined') {
+                db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            }
+        } catch (e) {
+            console.warn("Supabase tidak bisa dimuat. Aplikasi berjalan sepenuhnya offline.");
         }
 
         let matchId = null; let tournamentId = null; 
@@ -245,7 +219,7 @@
         let localMatchData = {};
         let syncInterval = null;
 
-        // 💡 CEK AUTO-RESUME SAAT PERTAMA KALI HALAMAN DIBUKA 💡
+        // CEK AUTO-RESUME SAAT PERTAMA KALI HALAMAN DIBUKA
         document.addEventListener('DOMContentLoaded', () => {
             const activeSession = localStorage.getItem('wasit_active_session');
             if (activeSession) {
@@ -264,12 +238,41 @@
             }
         });
 
+        function checkConnection() {
+            // Fungsi manual untuk refresh halaman hanya ketika diminta
+            if (navigator.onLine) {
+                location.reload();
+            } else {
+                alert("Koneksi internet masih belum terdeteksi.");
+            }
+        }
+
+        function checkConnectionAndSync() {
+            if (navigator.onLine) {
+                location.reload();
+            } else {
+                document.getElementById('sync-status-text').innerText = "Sinyal masih belum stabil... 🔴";
+            }
+        }
+
         function updateInd(status) {
             const ind = document.getElementById('conn-indicator');
             ind.classList.remove('hidden');
-            if(status === 'online') { ind.innerHTML = "🟢 TERSINKRON"; ind.style.color = "#a5d6a7"; ind.style.borderColor = "#4caf50"; }
-            else if(status === 'saving') { ind.innerHTML = "🟡 MENYIMPAN..."; ind.style.color = "#fff59d"; ind.style.borderColor = "#ffeb3b"; }
-            else if(status === 'offline') { ind.innerHTML = "🔴 OFFLINE (Tersimpan di HP)"; ind.style.color = "#ff8a80"; ind.style.borderColor = "#ff5252"; }
+            if(status === 'online') { 
+                ind.innerHTML = "🟢 TERSINKRON"; 
+                ind.style.color = "#a5d6a7"; 
+                ind.style.borderColor = "#4caf50"; 
+            }
+            else if(status === 'saving') { 
+                ind.innerHTML = "🟡 MENYIMPAN..."; 
+                ind.style.color = "#fff59d"; 
+                ind.style.borderColor = "#ffeb3b"; 
+            }
+            else if(status === 'offline') { 
+                ind.innerHTML = "🔴 OFFLINE (Ketuk utk Reconnect)"; 
+                ind.style.color = "#ff8a80"; 
+                ind.style.borderColor = "#ff5252"; 
+            }
         }
 
         async function dbUpdate(payload) {
@@ -283,11 +286,9 @@
                 ...payload
             };
 
+            // SIMPAN KE MEMORI HP TERLEBIH DAHULU (PENTING AGAR TIDAK BEKU)
             if(matchId) {
-                // Simpan update skor ke memori internal
                 localStorage.setItem('wasit_backup_' + matchId, JSON.stringify(fullState));
-                
-                // Update Brankas Sesi
                 let currentSession = localStorage.getItem('wasit_active_session');
                 if (currentSession) {
                     let parsedSession = JSON.parse(currentSession);
@@ -296,19 +297,15 @@
                 }
             }
 
+            // JIKA DATABASE GAGAL DIMUAT (KARENA OFFLINE), KITA HANYA UPDATE INDIKATOR & BERHENTI, JANGAN RELOAD.
+            if (!db || !navigator.onLine) {
+                updateInd('offline');
+                return false; 
+            }
+
             updateInd('saving');
 
             try {
-                if (!navigator.onLine) throw new Error("Tidak ada internet");
-                
-                // 💡 AUTO-RELOAD PENYELAMAT 💡
-                // Jika internet menyala tapi script database (db) masih null (karena sisa refresh offline tadi)
-                if (!db) {
-                    updateInd('saving');
-                    setTimeout(() => { location.reload(); }, 1000); // Reload paksa untuk sedot script database baru
-                    return false;
-                }
-
                 const { error } = await db.from('matches_pro').update(fullState).eq('id', matchId);
                 if (error) throw error;
                 
@@ -359,14 +356,12 @@
         function openSettings() { document.getElementById('w-serve-system').value = serveSystem; document.getElementById('w-hide-serve').checked = hideServe; document.getElementById('modal-settings').style.display = 'flex'; }
         function closeSettings() { document.getElementById('modal-settings').style.display = 'none'; }
         
-        // 💡 AMANKAN FUNGSI SETTINGS AGAR TIDAK CRASH SAAT OFFLINE 💡
         async function saveSettings() { 
             const btn = document.getElementById('btn-save-settings'); btn.innerText = "MENYIMPAN..."; 
             let newSys = document.getElementById('w-serve-system').value; let newHide = document.getElementById('w-hide-serve').checked; 
             
             serveSystem = newSys; hideServe = newHide; renderPlayerBoxes(); closeSettings(); btn.innerText = "SIMPAN"; 
             
-            // Simpan ke sesi juga
             let currentSession = localStorage.getItem('wasit_active_session');
             if (currentSession) {
                 let parsedSession = JSON.parse(currentSession);
@@ -432,7 +427,7 @@
             if(backup) {
                 try {
                     let parsed = JSON.parse(backup);
-                    Object.assign(localMatchData, parsed);
+                    Object.assign(localMatchData, parsed); // Menggabungkan data dari memori
                     
                     if(parsed.status === 'FINISHED') {
                         showSyncScreen();
@@ -460,6 +455,8 @@
             if (arrPlayersB.includes(globalServer)) lastServerB = globalServer;
             
             renderPlayerBoxes(); 
+            
+            // RENDER DOM DENGAN DATA MEMORI AGAR TIDAK KEMBALI KE 0-0
             renderScores(localMatchData); 
             renderButtons(); 
 
