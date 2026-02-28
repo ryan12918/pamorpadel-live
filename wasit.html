@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="color-scheme" content="dark">
-    <title>WASIT PRO V13.0 (ANTI DINOSAURUS)</title>
+    <title>WASIT PRO V14.0 (ANTI FREEZE)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     
@@ -78,7 +78,7 @@
     <div id="conn-indicator" class="hidden">🟢 ONLINE</div>
 
     <div id="view-login" class="login-box">
-        <h3>WASIT PRO V13.0</h3>
+        <h3>WASIT PRO V14.0</h3>
         
         <div style="text-align:left; font-size:11px; color:#aaa; margin-bottom:2px; padding-left:5px;">Tournament ID:</div>
         <input id="inp-tid" class="inp-login" placeholder="Misal: pamorpadel">
@@ -197,7 +197,7 @@
     <script>
         if ('serviceWorker' in navigator && location.protocol !== 'file:') {
             const swCode = `
-                const CACHE_NAME = 'wasit-pro-v13';
+                const CACHE_NAME = 'wasit-pro-v14';
                 self.addEventListener('install', event => { self.skipWaiting(); });
                 self.addEventListener('activate', event => { event.waitUntil(self.clients.claim()); });
                 self.addEventListener('fetch', event => {
@@ -228,7 +228,14 @@
     <script>
         const SUPABASE_URL = 'https://gubcvxiupehbdpigrdct.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_k1y6fNI2opEXhwqKMbGYcA__2nD0yT6';
-        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        let db = null;
+        // 💡 SABUK PENGAMAN INIT DATABASE 💡
+        if (typeof window.supabase !== 'undefined') {
+            db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } else {
+            console.warn("⚠️ Supabase CDN gagal dimuat. Berjalan dalam mode Offline Mutlak!");
+        }
 
         let matchId = null; let tournamentId = null; 
         let currentSet = 1; let isTieBreak = false;
@@ -238,7 +245,7 @@
         let localMatchData = {};
         let syncInterval = null;
 
-        // CEK AUTO-RESUME SAAT PERTAMA KALI HALAMAN DIBUKA
+        // 💡 CEK AUTO-RESUME SAAT PERTAMA KALI HALAMAN DIBUKA 💡
         document.addEventListener('DOMContentLoaded', () => {
             const activeSession = localStorage.getItem('wasit_active_session');
             if (activeSession) {
@@ -293,6 +300,14 @@
 
             try {
                 if (!navigator.onLine) throw new Error("Tidak ada internet");
+                
+                // 💡 AUTO-RELOAD PENYELAMAT 💡
+                // Jika internet menyala tapi script database (db) masih null (karena sisa refresh offline tadi)
+                if (!db) {
+                    updateInd('saving');
+                    setTimeout(() => { location.reload(); }, 1000); // Reload paksa untuk sedot script database baru
+                    return false;
+                }
 
                 const { error } = await db.from('matches_pro').update(fullState).eq('id', matchId);
                 if (error) throw error;
@@ -343,22 +358,47 @@
 
         function openSettings() { document.getElementById('w-serve-system').value = serveSystem; document.getElementById('w-hide-serve').checked = hideServe; document.getElementById('modal-settings').style.display = 'flex'; }
         function closeSettings() { document.getElementById('modal-settings').style.display = 'none'; }
-        async function saveSettings() { const btn = document.getElementById('btn-save-settings'); btn.innerText = "MENYIMPAN..."; let newSys = document.getElementById('w-serve-system').value; let newHide = document.getElementById('w-hide-serve').checked; if (tournamentId) { await db.from('partners').update({ serve_system: newSys, hide_serve: newHide ? 'true' : 'false' }).eq('tournament_id', tournamentId); } serveSystem = newSys; hideServe = newHide; renderPlayerBoxes(); closeSettings(); btn.innerText = "SIMPAN"; alert("✅ Pengaturan Berhasil Diterapkan!"); }
+        
+        // 💡 AMANKAN FUNGSI SETTINGS AGAR TIDAK CRASH SAAT OFFLINE 💡
+        async function saveSettings() { 
+            const btn = document.getElementById('btn-save-settings'); btn.innerText = "MENYIMPAN..."; 
+            let newSys = document.getElementById('w-serve-system').value; let newHide = document.getElementById('w-hide-serve').checked; 
+            
+            serveSystem = newSys; hideServe = newHide; renderPlayerBoxes(); closeSettings(); btn.innerText = "SIMPAN"; 
+            
+            // Simpan ke sesi juga
+            let currentSession = localStorage.getItem('wasit_active_session');
+            if (currentSession) {
+                let parsedSession = JSON.parse(currentSession);
+                parsedSession.serveSystem = serveSystem;
+                parsedSession.hideServe = hideServe;
+                localStorage.setItem('wasit_active_session', JSON.stringify(parsedSession));
+            }
+
+            if (tournamentId && db && navigator.onLine) { 
+                await db.from('partners').update({ serve_system: newSys, hide_serve: newHide ? 'true' : 'false' }).eq('tournament_id', tournamentId); 
+            }
+            alert("✅ Pengaturan Berhasil Diterapkan!"); 
+        }
 
         async function login() {
+            if(!db) {
+                alert("⚠️ KONEKSI TERPUTUS ATAU SCRIPT DIBLOKIR!\nSistem Database gagal dimuat. Pastikan internet Anda aktif lalu Refresh halaman ini untuk bisa Masuk.");
+                return;
+            }
             try {
                 const btn = document.getElementById('btn-login-main'); btn.innerText = "MEMUAT...";
                 const tid = document.getElementById('inp-tid').value.trim();
                 const c = document.getElementById('inp-court').value.trim(); 
                 const p = document.getElementById('inp-pin').value.trim();
                 
-                if(!tid) { alert("⚠️ Tournament ID Tidak Boleh Kosong!\nHubungi panitia jika Anda tidak tahu ID-nya."); btn.innerText = "MASUK"; return; }
-                if(!c) { alert("⚠️ Nama Court Tidak Boleh Kosong!\nContoh: valencia"); btn.innerText = "MASUK"; return; }
+                if(!tid) { alert("⚠️ Tournament ID Tidak Boleh Kosong!"); btn.innerText = "MASUK"; return; }
+                if(!c) { alert("⚠️ Nama Court Tidak Boleh Kosong!"); btn.innerText = "MASUK"; return; }
                 
                 const { data, error } = await db.from('matches_pro').select('*').eq('tournament_id', tid).ilike('court_name', c).eq('status', 'LIVE');
                                         
                 if(error) throw error; 
-                if(!data || data.length === 0) { alert(`🚫 AKSES DITOLAK!\n\nTidak ada pertandingan LIVE di court ${c.toUpperCase()} untuk turnamen ID: ${tid}.`); btn.innerText = "MASUK"; return; }
+                if(!data || data.length === 0) { alert(`🚫 AKSES DITOLAK!\nTidak ada pertandingan LIVE di court ${c.toUpperCase()}.`); btn.innerText = "MASUK"; return; }
                 
                 const matchData = data[0];
                 let dbPin = matchData.pin ? String(matchData.pin).trim() : "";
