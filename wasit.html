@@ -4,16 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="color-scheme" content="dark">
-    <title>WASIT PRO V16.0 (STABIL MUTLAK)</title>
+    <title>WASIT PRO V17.0 (KUNCI LAYAR & ANTI BEKU)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     
     <style>
-        body { background: #121212; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; user-select: none; transition: 0.3s; }
+        /* MENGUNCI PULL-TO-REFRESH DI HP */
+        html { overscroll-behavior-y: none; }
+        body { background: #121212; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; user-select: none; transition: 0.3s; overscroll-behavior-y: none; touch-action: pan-x pan-y; }
+        
         body.mode-tb { background: #2c0b0b; }
         .hidden { display: none !important; }
 
-        /* INDIKATOR KONEKSI PINTAR (BISA DIKLIK SAAT OFFLINE) */
+        /* INDIKATOR KONEKSI PINTAR */
         #conn-indicator { position: fixed; top: 10px; right: 10px; font-size: 10px; font-weight: 900; background: rgba(0,0,0,0.8); padding: 6px 12px; border-radius: 20px; border: 1px solid #444; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.3s; cursor: pointer; }
         #conn-indicator:active { transform: scale(0.95); }
 
@@ -75,10 +78,10 @@
 </head>
 <body>
 
-    <div id="conn-indicator" class="hidden" onclick="checkConnection()">🟢 ONLINE</div>
+    <div id="conn-indicator" class="hidden" onclick="checkConnectionAndSync()">🟢 ONLINE</div>
 
     <div id="view-login" class="login-box">
-        <h3>WASIT PRO V16.0</h3>
+        <h3>WASIT PRO V17.0</h3>
         
         <div style="text-align:left; font-size:11px; color:#aaa; margin-bottom:2px; padding-left:5px;">Tournament ID:</div>
         <input id="inp-tid" class="inp-login" placeholder="Misal: pamorpadel">
@@ -238,20 +241,11 @@
             }
         });
 
-        function checkConnection() {
-            // Fungsi manual untuk refresh halaman hanya ketika diminta
-            if (navigator.onLine) {
-                location.reload();
-            } else {
-                alert("Koneksi internet masih belum terdeteksi.");
-            }
-        }
-
         function checkConnectionAndSync() {
             if (navigator.onLine) {
                 location.reload();
             } else {
-                document.getElementById('sync-status-text').innerText = "Sinyal masih belum stabil... 🔴";
+                alert("Koneksi internet masih belum terdeteksi. Silakan periksa sinyal Anda.");
             }
         }
 
@@ -275,6 +269,7 @@
             }
         }
 
+        // 💡 FUNGSI INI SEKARANG BERJALAN DI LATAR BELAKANG (FIRE AND FORGET) 💡
         async function dbUpdate(payload) {
             let fullState = {
                 points_a: document.getElementById('point-a').value,
@@ -286,7 +281,7 @@
                 ...payload
             };
 
-            // SIMPAN KE MEMORI HP TERLEBIH DAHULU (PENTING AGAR TIDAK BEKU)
+            // SIMPAN MUTLAK KE MEMORI HP SETIAP KALI KLIK
             if(matchId) {
                 localStorage.setItem('wasit_backup_' + matchId, JSON.stringify(fullState));
                 let currentSession = localStorage.getItem('wasit_active_session');
@@ -297,7 +292,6 @@
                 }
             }
 
-            // JIKA DATABASE GAGAL DIMUAT (KARENA OFFLINE), KITA HANYA UPDATE INDIKATOR & BERHENTI, JANGAN RELOAD.
             if (!db || !navigator.onLine) {
                 updateInd('offline');
                 return false; 
@@ -308,7 +302,6 @@
             try {
                 const { error } = await db.from('matches_pro').update(fullState).eq('id', matchId);
                 if (error) throw error;
-                
                 updateInd('online');
                 return true; 
             } catch (err) {
@@ -427,16 +420,12 @@
             if(backup) {
                 try {
                     let parsed = JSON.parse(backup);
-                    Object.assign(localMatchData, parsed); // Menggabungkan data dari memori
+                    Object.assign(localMatchData, parsed);
                     
                     if(parsed.status === 'FINISHED') {
                         showSyncScreen();
                         startAutoSync({ status: 'FINISHED', is_wo: parsed.is_wo });
                         return; 
-                    } else {
-                        if(!localStorage.getItem('wasit_active_session')) {
-                            alert("⚠️ MEMUAT DATA PEMULIHAN (BACKUP)!\n\nSistem menemukan data ketikan terakhir Anda.");
-                        }
                     }
                 } catch(e) { console.error("Backup Corrupt"); }
             }
@@ -455,11 +444,10 @@
             if (arrPlayersB.includes(globalServer)) lastServerB = globalServer;
             
             renderPlayerBoxes(); 
-            
-            // RENDER DOM DENGAN DATA MEMORI AGAR TIDAK KEMBALI KE 0-0
             renderScores(localMatchData); 
             renderButtons(); 
 
+            // Fire and forget
             dbUpdate({});
         }
 
@@ -469,7 +457,8 @@
             let htmlB = ''; arrPlayersB.forEach(p => { let isAct = (globalServer === p || globalServer === 'b') && !hideServe; let actCls = isAct ? 'active' : ''; let clickEv = hideServe ? '' : `onclick="setServer('${p}')"`; let ball = hideServe ? '' : `<span class="ball-icon">🎾</span>`; htmlB += `<div class="player-row ${actCls}" ${clickEv}><span>${p}</span>${ball}</div>`; }); boxB.innerHTML = htmlB;
         }
 
-        async function setServer(playerName) { if(hideServe) return; globalServer = playerName; if (arrPlayersA.includes(globalServer)) lastServerA = globalServer; if (arrPlayersB.includes(globalServer)) lastServerB = globalServer; renderPlayerBoxes(); await dbUpdate({ server: playerName }); }
+        // 💡 SEMUA FUNGSI TOMBOL SEKARANG FIRE AND FORGET (TANPA AWAIT) 💡
+        function setServer(playerName) { if(hideServe) return; globalServer = playerName; if (arrPlayersA.includes(globalServer)) lastServerA = globalServer; if (arrPlayersB.includes(globalServer)) lastServerB = globalServer; renderPlayerBoxes(); dbUpdate({ server: playerName }); }
 
         function toggleMode() { isTieBreak = !isTieBreak; const btn = document.getElementById('btn-mode'); const ind = document.getElementById('ind-mode'); if(isTieBreak) { btn.classList.add('active'); ind.style.background = 'white'; document.body.classList.add('mode-tb'); } else { btn.classList.remove('active'); ind.style.background = '#555'; document.body.classList.remove('mode-tb'); } renderButtons(); }
 
@@ -494,11 +483,11 @@
             checkAlerts(m.points_a, m.points_b); 
         }
 
-        async function setPt(team, val) { document.getElementById('point-'+team).value = val; let otherTeam = team==='a'?'b':'a'; checkAlerts(val, document.getElementById('point-'+otherTeam).value); await dbUpdate({}); }
-        async function addPt(team, delta) { const el = document.getElementById('point-'+team); let now = parseInt(el.value); if(isNaN(now)) now = 0; let next = now + delta; if(next < 0) next = 0; el.value = next; await dbUpdate({}); }
-        async function resetPoint() { if(!confirm("Kembalikan Poin ke 0-0?")) return; document.getElementById('point-a').value = '0'; document.getElementById('point-b').value = '0'; checkAlerts('0', '0'); await dbUpdate({}); }
+        function setPt(team, val) { document.getElementById('point-'+team).value = val; let otherTeam = team==='a'?'b':'a'; checkAlerts(val, document.getElementById('point-'+otherTeam).value); dbUpdate({}); }
+        function addPt(team, delta) { const el = document.getElementById('point-'+team); let now = parseInt(el.value); if(isNaN(now)) now = 0; let next = now + delta; if(next < 0) next = 0; el.value = next; dbUpdate({}); }
+        function resetPoint() { if(!confirm("Kembalikan Poin ke 0-0?")) return; document.getElementById('point-a').value = '0'; document.getElementById('point-b').value = '0'; checkAlerts('0', '0'); dbUpdate({}); }
 
-        async function winGame(team) {
+        function winGame(team) {
             if(!confirm("Tim ini memenangkan Game?")) return;
             const elGame = document.getElementById('game-'+team); let val = parseInt(elGame.value) + 1; elGame.value = val;
             let nextServer = globalServer; 
@@ -510,12 +499,12 @@
             globalServer = nextServer; if (arrPlayersA.includes(globalServer)) lastServerA = globalServer; if (arrPlayersB.includes(globalServer)) lastServerB = globalServer;
             if(!hideServe) renderPlayerBoxes(); document.getElementById('point-a').value = '0'; document.getElementById('point-b').value = '0'; checkAlerts('0', '0');
             
-            await dbUpdate({ server: nextServer }); 
+            dbUpdate({ server: nextServer }); 
         }
 
-        async function adjGame(team, delta) { const el = document.getElementById('game-'+team); let val = parseInt(el.value) + delta; if(val < 0) val = 0; el.value = val; await dbUpdate({}); }
+        function adjGame(team, delta) { const el = document.getElementById('game-'+team); let val = parseInt(el.value) + delta; if(val < 0) val = 0; el.value = val; dbUpdate({}); }
         
-        async function changeSet(delta) { 
+        function changeSet(delta) { 
             const next = currentSet + delta; 
             if(next < 1 || next > 5) return; 
             if(!confirm(`Pindah ke SET ${next}? Poin akan direset 0-0.`)) return; 
@@ -528,9 +517,10 @@
             document.getElementById('point-b').value = '0';
             checkAlerts('0', '0'); 
             
-            await dbUpdate({}); 
+            dbUpdate({}); 
         }
 
+        // FUNGSI SELESAI TETAP MENGGUNAKAN AWAIT KARENA BUTUH KONFIRMASI STATUS DARI SERVER
         async function tutupMatch() { 
             if(!confirm("Anda yakin Pertandingan ini sudah SELESAI?\nStatus di Control Panel akan otomatis berubah menjadi FINISHED.")) return; 
             
