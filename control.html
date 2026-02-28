@@ -52,11 +52,11 @@
         .badge { padding: 3px 6px; border-radius: 3px; color: white; font-size: 9px; cursor: pointer; display:inline-block; font-weight:bold; min-width:35px; }
         .inp-pin { background: #ffebee; color: #c62828; font-weight: bold; border-radius: 3px; }
 
-        #view-branding { display: none; width: 100%; height: 100%; }
-        #view-branding.active { display: flex; }
-        .branding-panel { flex: 1; height: 100%; padding: 20px; overflow-y: auto; background: white; border-right: 1px solid #ccc; }
+        #view-branding, #view-tv { display: none; width: 100%; height: 100%; }
+        #view-branding.active, #view-tv.active { display: flex; }
         
-        .preview-panel { width: 280px; flex-shrink: 0; height: 100%; background: transparent; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .branding-panel { flex: 1; height: 100%; padding: 20px; overflow-y: auto; background: white; border-right: 1px solid #ccc; }
+        .preview-panel { width: 300px; flex-shrink: 0; height: 100%; background: transparent; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
         .phone-wrapper { transform: scale(0.65); transform-origin: center center; display: flex; justify-content: center; align-items: center; }
         .phone-frame { width: 390px; height: 844px; background: #111; border-radius: 40px; border: 12px solid #333; position: relative; box-shadow: 0 30px 60px rgba(0,0,0,0.5); overflow: hidden; }
         #preview-frame { width: 100%; height: 100%; border: none; background: transparent; border-radius: 28px; }
@@ -83,6 +83,7 @@
         .editor-btn { cursor:pointer; padding:2px 6px; border:1px solid #ccc; background:#eee; font-weight:bold; font-size:10px; }
         
         .studio-card { background: #f0f4c3; padding: 15px; border-radius: 8px; border: 1px solid #cddc39; margin-top: 10px; }
+        .tv-card { background: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #90caf9; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -103,6 +104,7 @@
             <div>
                 <button class="nav-pill active" onclick="switchTab('matches', this)">DATA MATCH</button>
                 <button class="nav-pill" onclick="switchTab('branding', this)">BRANDING & TAMPILAN</button>
+                <button class="nav-pill" onclick="switchTab('tv', this)">PENGATURAN TV LIVE SCORE</button>
             </div>
             <div style="font-size:10px; text-align:right;">ID: <b id="lbl-user">...</b><br><a href="#" onclick="location.reload()" style="color:red; text-decoration:none;">Keluar</a></div>
         </div>
@@ -191,7 +193,6 @@
                     </div>
 
                     <div class="section-title">4. WARNA & GAYA KARTU</div>
-                    
                     <div class="grid-2" style="margin-bottom:15px;">
                         <div class="form-group">
                             <label style="color:#d81b60;">GAYA KARTU SKOR (50 PILIHAN)</label>
@@ -199,7 +200,6 @@
                                 <option value="classic-white">Classic White</option><option value="midnight-blue">Midnight Blue</option><option value="royal-gold">Royal Gold</option><option value="vampire-red">Vampire Red</option><option value="ocean-breeze">Ocean Breeze</option><option value="neon-cyber">Neon Cyber</option><option value="emerald-city">Emerald City</option><option value="sunset-glow">Sunset Glow</option><option value="monochrome">Monochrome</option><option value="lavender">Lavender</option><option value="crimson">Crimson</option><option value="aqua-glass">Aqua Glass</option><option value="forest-dark">Forest Dark</option><option value="rose-gold">Rose Gold</option><option value="matrix-code">Matrix Code</option><option value="obsidian">Obsidian Black</option><option value="pearl">Pearl White</option><option value="ruby">Ruby Flare</option><option value="sapphire">Sapphire Deep</option><option value="amethyst">Amethyst Glow</option><option value="topaz">Topaz Light</option><option value="amber">Amber Warm</option><option value="quartz">Quartz Pink</option><option value="jade">Jade Green</option><option value="onyx">Onyx Dark</option><option value="coral">Coral Reef</option><option value="turquoise">Turquoise Sea</option><option value="malachite">Malachite Rich</option><option value="opal">Opal Shine</option><option value="moonstone">Moonstone Soft</option><option value="sunstone">Sunstone Bright</option><option value="garnet">Garnet Red</option><option value="peridot">Peridot Lime</option><option value="citrine">Citrine Yellow</option><option value="spinel">Spinel Berry</option><option value="zircon">Zircon Blue</option><option value="tourmaline">Tourmaline Mix</option><option value="beryl">Beryl Clear</option><option value="alexandrite">Alexandrite Shift</option><option value="tanzanite">Tanzanite Violet</option><option value="bloodstone">Bloodstone Dark</option><option value="iolite">Iolite Indigo</option><option value="lapis">Lapis Lazuli</option><option value="morganite">Morganite Blush</option><option value="kunzite">Kunzite Lilac</option><option value="tsavorite">Tsavorite Mint</option><option value="rhodolite">Rhodolite Plum</option><option value="spessartite">Spessartite Orange</option><option value="demantoid">Demantoid Olive</option><option value="padparadscha">Padparadscha Peach</option>
                             </select>
                         </div>
-                        
                         <div class="form-group">
                             <label style="color:#1976d2;">FORMAT TABEL KLASEMEN</label>
                             <select id="s-standings-format" class="form-control" onchange="updateBrandingPreview()">
@@ -248,15 +248,101 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div id="modal-tv" class="modal">
+            <div id="view-tv" class="view-section">
+                <div class="branding-panel">
+                    <div class="section-title" style="margin-top:0;">1. HEADER & TEKS TV (KUSTOMISASI)</div>
+                    <div style="font-size:10px; color:#c62828; margin-bottom:10px;"><b>Tips:</b> Jika Anda tidak mengisi teks pada kolom di bawah ini, elemen tersebut akan otomatis hilang/bersih dari layar TV Anda.</div>
+                    
+                    <div class="tv-card">
+                        <label>Judul TV Utama</label>
+                        <div class="input-with-color">
+                            <input id="tv-name" class="form-control" placeholder="Kosongi untuk menyembunyikan teks ini" oninput="updateTVPreview()">
+                            <input type="color" id="tv-col-title" class="color-btn" value="#ffffff" oninput="updateTVPreview()">
+                        </div>
+                        <div style="display:flex; gap:10px; margin-top:8px; font-size:10px; font-weight:bold; color:#555;">
+                            <div style="flex:1">🔍 Zoom <input type="range" id="tv-s-title" min="0.1" max="5" step="0.1" value="1" class="form-control" style="padding:0" oninput="updateTVPreview()"></div>
+                            <div style="flex:1">↔️ X (Kiri-Kanan) <input type="range" id="tv-x-title" min="-100" max="100" step="0.5" value="0" class="form-control" style="padding:0" oninput="updateTVPreview()"></div>
+                            <div style="flex:1">↕️ Y (Atas-Bawah) <input type="range" id="tv-y-title" min="-50" max="50" step="0.5" value="0" class="form-control" style="padding:0" oninput="updateTVPreview()"></div>
+                        </div>
+                    </div>
+
+                    <div class="tv-card">
+                        <label>Sub-Judul TV</label>
+                        <div class="input-with-color">
+                            <input id="tv-sub" class="form-control" placeholder="Kosongi untuk menyembunyikan teks ini" oninput="updateTVPreview()">
+                            <input type="color" id="tv-col-sub" class="color-btn" value="#ffeb3b" oninput="updateTVPreview()">
+                        </div>
+                        <div style="display:flex; gap:10px; margin-top:8px; font-size:10px; font-weight:bold; color:#555;">
+                            <div style="flex:1">🔍 Zoom <input type="range" id="tv-s-sub" min="0.1" max="5" step="0.1" value="1" class="form-control" style="padding:0" oninput="updateTVPreview()"></div>
+                            <div style="flex:1">↔️ X (Kiri-Kanan) <input type="range" id="tv-x-sub" min="-100" max="100" step="0.5" value="0" class="form-control" style="padding:0" oninput="updateTVPreview()"></div>
+                            <div style="flex:1">↕️ Y (Atas-Bawah) <input type="range" id="tv-y-sub" min="-50" max="50" step="0.5" value="0" class="form-control" style="padding:0" oninput="updateTVPreview()"></div>
+                        </div>
+                    </div>
+
+                    <div class="tv-card">
+                        <label>Teks Label (Pojok Header TV)</label>
+                        <div class="input-with-color">
+                            <input id="tv-tag" class="form-control" placeholder="Kosongi untuk menyembunyikan teks ini" oninput="updateTVPreview()">
+                            <input type="color" id="tv-col-tag" class="color-btn" value="#ffffff" oninput="updateTVPreview()">
+                        </div>
+                        <div style="display:flex; gap:10px; margin-top:8px; font-size:10px; font-weight:bold; color:#555;">
+                            <div style="flex:1">🔍 Zoom <input type="range" id="tv-s-tag" min="0.1" max="5" step="0.1" value="1" class="form-control" style="padding:0" oninput="updateTVPreview()"></div>
+                            <div style="flex:1">↔️ X (Kiri-Kanan) <input type="range" id="tv-x-tag" min="-100" max="100" step="0.5" value="0" class="form-control" style="padding:0" oninput="updateTVPreview()"></div>
+                            <div style="flex:1">↕️ Y (Atas-Bawah) <input type="range" id="tv-y-tag" min="-50" max="50" step="0.5" value="0" class="form-control" style="padding:0" oninput="updateTVPreview()"></div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">2. SPONSOR & LOGO TV</div>
+                    <div class="tv-card">
+                        <div class="form-group">
+                            <label>Link Logo Sponsor (URL)</label>
+                            <input id="tv-logo" class="form-control" placeholder="https://....png" oninput="updateTVPreview()">
+                        </div>
+                        <div class="form-group" style="margin-top:10px;">
+                            <label>Sistem Penempatan Dasar</label>
+                            <select id="tv-logo-pos" class="form-control" oninput="updateTVPreview()">
+                                <option value="kiri">Kiri Header</option>
+                                <option value="tengah">Tengah Layar (Mode Watermark)</option>
+                                <option value="kanan">Kanan Header</option>
+                            </select>
+                        </div>
+                        <div style="display:flex; gap:10px; margin-top:15px; font-size:10px; font-weight:bold; color:#555; border-top:1px dashed #90caf9; padding-top:10px;">
+                            <div style="flex:1">🔍 Zoom <input type="range" id="tv-s-logo" min="0.1" max="10" step="0.1" value="1" class="form-control" style="padding:0" oninput="updateTVPreview()"></div>
+                            <div style="flex:1">↔️ X (Geser Bebas) <input type="range" id="tv-x-logo" min="-100" max="100" step="0.5" value="0" class="form-control" style="padding:0" oninput="updateTVPreview()"></div>
+                            <div style="flex:1">↕️ Y (Geser Bebas) <input type="range" id="tv-y-logo" min="-50" max="50" step="0.5" value="0" class="form-control" style="padding:0" oninput="updateTVPreview()"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top:20px; text-align:right;">
+                        <button id="btn-save-tv" class="btn-action btn-green" onclick="saveTVSettings()" style="font-size:14px; padding:10px 20px;">💾 SIMPAN PENGATURAN TV</button>
+                    </div>
+                </div>
+                
+                <div class="preview-panel" style="width: 480px; background: #eceff1; display:flex; flex-direction:column; padding:0 20px;">
+                    <div style="font-weight:bold; color:#546e7a; margin-top:20px; display:flex; justify-content:space-between; align-items:center;">
+                        <span>TV PREVIEW (16:9)</span>
+                        <select id="sim-grid" class="form-control" style="width:auto; padding:4px; font-size:10px; font-weight:bold; cursor:pointer;" onchange="updateTVPreview()">
+                            <option value="1">Simulasi 1 Court</option>
+                            <option value="2">Simulasi 2 Court</option>
+                            <option value="4">Simulasi 4 Court</option>
+                            <option value="6" selected>Simulasi 6 Court</option>
+                        </select>
+                    </div>
+                    <div style="flex:1; display:flex; align-items:center; justify-content:center; width: 100%;">
+                        <div style="width: 100%; position: relative; padding-bottom: 56.25%; height: 0; background: #000; border: 4px solid #333; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); overflow:hidden;">
+                            <iframe id="preview-frame-tv" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; border-radius: 4px;"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div> </div> <div id="modal-tv" class="modal">
         <div class="modal-box" style="width:350px;">
             <h3 style="margin-top:0; color:#6a1b9a;">📺 STUDIO TV DISPLAY</h3>
             <p style="font-size:11px; color:#555;">Pilih Court mana saja yang ingin ditampilkan secara bersamaan di 1 layar TV. (Biarkan kosong jika ingin menampilkan SEMUA Court yang sedang Live).</p>
             <div id="tv-court-list" style="max-height:250px; overflow-y:auto; margin-bottom:15px; background:#f5f5f5; padding:10px; border-radius:6px; border:1px solid #ddd; display:flex; flex-direction:column; gap:8px;">
-                </div>
+            </div>
             <div style="text-align:right;">
                 <button onclick="document.getElementById('modal-tv').style.display='none'" style="padding:8px 15px; border:none; cursor:pointer;">TUTUP</button>
                 <button onclick="generateTVLink()" class="btn-action btn-purple">🚀 BUKA TV SEKARANG</button>
@@ -291,13 +377,23 @@
             </div>
         </div>
     </div>
-    <div id="modal-qr" class="modal"><div class="modal-box" style="width:300px; text-align:center;"><h3>SCAN QR</h3><img id="qr-img" style="width:150px; height:150px; margin-bottom:10px;"><p>ID: <b id="qr-text">...</b></p><button onclick="document.getElementById('modal-qr').style.display='none'" class="btn-action btn-grey">TUTUP</button></div></div>
+    
+    <div id="modal-qr" class="modal">
+        <div class="modal-box" style="width:300px; text-align:center;">
+            <h3>SCAN QR</h3>
+            <img id="qr-img" style="width:150px; height:150px; margin-bottom:10px;">
+            <p>ID: <b id="qr-text">...</b></p>
+            <button onclick="document.getElementById('modal-qr').style.display='none'" class="btn-action btn-grey">TUTUP</button>
+        </div>
+    </div>
 
     <script>
         const SUPABASE_URL = 'https://gubcvxiupehbdpigrdct.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_k1y6fNI2opEXhwqKMbGYcA__2nD0yT6';
         const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let ACTIVE_ID = null; let previewTimeout = null; window.GLOBAL_MATCHES = []; let pendingUpdates = {}; let updateTimer = null; let dragSyncTimeout = null; 
+        
+        window.RAW_DB_DATA = null;
 
         const PRESETS = [
             {n:"Padel Pro", h1:"#1a237e", h2:"#0d47a1", bg:"#e3f2fd", neon:"#76ff03", st:"classic-white"},
@@ -418,28 +514,10 @@
 
         function filterTable() { const f = document.getElementById('search-box').value.toUpperCase(); const tr = document.getElementById('main-table').getElementsByTagName('tr'); for(let i=2; i<tr.length; i++) { const txt = tr[i].innerText; const inps = tr[i].querySelectorAll('input, textarea'); let valTxt = ""; inps.forEach(inp => valTxt += " " + inp.value); const fullTxt = txt + valTxt; tr[i].style.display = fullTxt.toUpperCase().indexOf(f)>-1 ? "" : "none"; } }
 
-        // 💡 FUNGSI SAKTI: EXPORT KE EXCEL (REVISI FORMAT INDONESIA) 💡
         function exportToExcel() {
-            if (!window.GLOBAL_MATCHES || window.GLOBAL_MATCHES.length === 0) {
-                alert("⚠️ Tidak ada data pertandingan untuk diekspor!");
-                return;
-            }
-
-            // Header Tabel Excel (Menggunakan Titik Koma)
+            if (!window.GLOBAL_MATCHES || window.GLOBAL_MATCHES.length === 0) { alert("⚠️ Tidak ada data pertandingan untuk diekspor!"); return; }
             let csvContent = "NO MATCH;PIN;TANGGAL;JAM;COURT;KATEGORI;BABAK;WASIT;STATUS;WO?;TIM A;TIM B;SET 1 A;SET 1 B;SET 2 A;SET 2 B;SET 3 A;SET 3 B;SET 4 A;SET 4 B;SET 5 A;SET 5 B;POIN A;POIN B\n";
-
-            // Fungsi anti-rusak untuk teks
-            const escapeCSV = (str) => {
-                if (str === null || str === undefined) return '""';
-                let stringStr = String(str);
-                // Cek jika ada titik koma, enter, atau tanda kutip di dalam nama pemain
-                if (stringStr.includes('"') || stringStr.includes(';') || stringStr.includes('\n')) {
-                    return '"' + stringStr.replace(/"/g, '""') + '"';
-                }
-                return stringStr;
-            };
-
-            // Looping seluruh baris pertandingan
+            const escapeCSV = (str) => { if (str === null || str === undefined) return '""'; let stringStr = String(str); if (stringStr.includes('"') || stringStr.includes(';') || stringStr.includes('\n')) { return '"' + stringStr.replace(/"/g, '""') + '"'; } return stringStr; };
             window.GLOBAL_MATCHES.forEach(m => {
                 let row = [
                     escapeCSV(m.match_no), escapeCSV(m.pin), escapeCSV(m.date), escapeCSV(m.time),
@@ -450,25 +528,13 @@
                     m.set4_a||0, m.set4_b||0, m.set5_a||0, m.set5_b||0,
                     escapeCSV(m.points_a), escapeCSV(m.points_b)
                 ];
-                // Gabungkan baris menggunakan Titik Koma (;)
                 csvContent += row.join(";") + "\n";
             });
-
-            // Pembuatan File Excel
             const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            
-            // Format Tanggal untuk Nama File
-            let dateObj = new Date();
-            let timestamp = dateObj.getFullYear() + "-" + String(dateObj.getMonth() + 1).padStart(2, '0') + "-" + String(dateObj.getDate()).padStart(2, '0');
-            
-            link.setAttribute("href", url);
-            link.setAttribute("download", `REKAP_${ACTIVE_ID.toUpperCase()}_${timestamp}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const link = document.createElement("a"); const url = URL.createObjectURL(blob);
+            let dateObj = new Date(); let timestamp = dateObj.getFullYear() + "-" + String(dateObj.getMonth() + 1).padStart(2, '0') + "-" + String(dateObj.getDate()).padStart(2, '0');
+            link.setAttribute("href", url); link.setAttribute("download", `REKAP_${ACTIVE_ID.toUpperCase()}_${timestamp}.csv`);
+            link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
         function upd(id, f, v) {
@@ -483,24 +549,13 @@
                         return; 
                     }
                     window.GLOBAL_MATCHES[index][f] = parsed; 
-                } else if (f === 'is_wo') { 
-                    window.GLOBAL_MATCHES[index][f] = (v === true || v === 'true'); 
-                } else { 
-                    window.GLOBAL_MATCHES[index][f] = v; 
-                } 
+                } else if (f === 'is_wo') { window.GLOBAL_MATCHES[index][f] = (v === true || v === 'true'); } else { window.GLOBAL_MATCHES[index][f] = v; } 
                 updateBrandingPreview(); 
             }
-            
             if (!pendingUpdates[id]) { pendingUpdates[id] = {}; }
-            if (f === 'is_wo') {
-                pendingUpdates[id][f] = (v === true || v === 'true'); 
-            } else if (f.includes('set') || f.includes('point')) {
-                let parsed = parseInt(v);
-                if (!isNaN(parsed)) pendingUpdates[id][f] = parsed;
-            } else {
-                pendingUpdates[id][f] = v;
-            }
-            
+            if (f === 'is_wo') { pendingUpdates[id][f] = (v === true || v === 'true'); } else if (f.includes('set') || f.includes('point')) {
+                let parsed = parseInt(v); if (!isNaN(parsed)) pendingUpdates[id][f] = parsed;
+            } else { pendingUpdates[id][f] = v; }
             const btnRefresh = document.getElementById('btn-refresh');
             if(btnRefresh) { btnRefresh.innerText = "⏳ MENYIMPAN..."; btnRefresh.style.background = "#ef6c00"; }
             clearTimeout(updateTimer); 
@@ -528,47 +583,30 @@
         async function del(id) { if(!confirm('Hapus Match?')) return; window.GLOBAL_MATCHES = window.GLOBAL_MATCHES.filter(m => m.id !== id); let row = document.querySelector(`tr[data-id="${id}"]`); if (row) row.remove(); updateBrandingPreview(); await db.from('matches_pro').delete().eq('id', id); }
         
         async function submitMatch() { 
-            const get = (id) => document.getElementById(id).value || "-"; 
-            const qtyStr = document.getElementById('i-qty').value;
-            const qty = parseInt(qtyStr) || 1;
-            
+            const get = (id) => document.getElementById(id).value || "-"; const qtyStr = document.getElementById('i-qty').value; const qty = parseInt(qtyStr) || 1;
             if (qty > 100) { alert("Maksimal 100 match sekaligus untuk menjaga kestabilan!"); return; }
-
             const newMatches = [];
             for(let i=0; i<qty; i++) {
                 newMatches.push({ 
-                    tournament_id: ACTIVE_ID, match_no: get('i-no'), pin: get('i-pin'), 
-                    date: get('i-date'), time: get('i-time'), category: get('i-cat'), 
-                    round: get('i-round'), court_name: get('i-court'), referee_name: get('i-ref'), 
-                    team_a: get('i-ta'), team_b: get('i-tb'), status: 'PENDING', 
-                    set1_a:0, set1_b:0, set2_a:0, set2_b:0, set3_a:0, set3_b:0, 
-                    set4_a:0, set4_b:0, set5_a:0, set5_b:0, points_a:"0", points_b:"0" 
+                    tournament_id: ACTIVE_ID, match_no: get('i-no'), pin: get('i-pin'), date: get('i-date'), time: get('i-time'), category: get('i-cat'), 
+                    round: get('i-round'), court_name: get('i-court'), referee_name: get('i-ref'), team_a: get('i-ta'), team_b: get('i-tb'), status: 'PENDING', 
+                    set1_a:0, set1_b:0, set2_a:0, set2_b:0, set3_a:0, set3_b:0, set4_a:0, set4_b:0, set5_a:0, set5_b:0, points_a:"0", points_b:"0" 
                 });
             }
-            
             document.getElementById('modal-match').style.display='none'; 
-            
-            const btnRefresh = document.getElementById('btn-refresh');
-            btnRefresh.innerText = "⏳ MENAMBAH..."; 
-            btnRefresh.style.background = "#ef6c00";
-            
-            try {
-                for(let i=0; i < newMatches.length; i+=20) {
-                    const chunk = newMatches.slice(i, i+20);
-                    const { error } = await db.from('matches_pro').insert(chunk);
-                    if (error) throw error;
-                }
-            } catch(err) {
-                alert("Terjadi kesalahan sistem: " + err.message);
-            }
-            
-            btnRefresh.innerText = "REFRESH"; 
-            btnRefresh.style.background = "#546e7a";
-            loadMatches(); 
+            const btnRefresh = document.getElementById('btn-refresh'); btnRefresh.innerText = "⏳ MENAMBAH..."; btnRefresh.style.background = "#ef6c00";
+            try { for(let i=0; i < newMatches.length; i+=20) { const chunk = newMatches.slice(i, i+20); const { error } = await db.from('matches_pro').insert(chunk); if (error) throw error; } } 
+            catch(err) { alert("Terjadi kesalahan sistem: " + err.message); }
+            btnRefresh.innerText = "REFRESH"; btnRefresh.style.background = "#546e7a"; loadMatches(); 
         }
 
+        // ==========================================
+        // SISTEM LOAD & SAVE SETTINGS
+        // ==========================================
         function loadSettings(d) {
+            window.RAW_DB_DATA = d; 
             const set = (id, v) => { if(document.getElementById(id)) document.getElementById(id).value = v || ''; };
+            
             set('s-name', d.event_name); set('s-sub', d.event_subtitle); set('s-tag', d.tag_text);
             set('s-logo', d.logo_url); set('s-card-preset', d.card_preset);
             set('s-col-h1', d.color_primary); set('s-col-h2', d.color_gradient_end); set('s-col-bg', d.color_bg); set('s-neon', d.color_neon);
@@ -582,7 +620,21 @@
             document.getElementById('s-logo-mode').value = lmParts[0];
             if(document.getElementById('s-standings-format')) document.getElementById('s-standings-format').value = lmParts[1] || 'GD';
 
+            set('tv-name', d.tv_title); set('tv-sub', d.tv_sub); set('tv-tag', d.tv_tag); set('tv-logo', d.tv_logo);
+            if(d.tv_logo_pos) document.getElementById('tv-logo-pos').value = d.tv_logo_pos;
+
+            if(d.tv_style) {
+                try {
+                    let ts = JSON.parse(d.tv_style);
+                    set('tv-col-title', ts.cT || '#ffffff'); set('tv-s-title', ts.sT || '1'); set('tv-x-title', ts.xT || '0'); set('tv-y-title', ts.yT || '0');
+                    set('tv-col-sub', ts.cS || '#ffeb3b'); set('tv-s-sub', ts.sS || '1'); set('tv-x-sub', ts.xS || '0'); set('tv-y-sub', ts.yS || '0');
+                    set('tv-col-tag', ts.cTag || '#ffffff'); set('tv-s-tag', ts.sTag || '1'); set('tv-x-tag', ts.xTag || '0'); set('tv-y-tag', ts.yTag || '0');
+                    set('tv-s-logo', ts.sL || '1'); set('tv-x-logo', ts.xL || '0'); set('tv-y-logo', ts.yL || '0');
+                } catch(e) { console.error("Error parsing tv_style", e); }
+            }
+
             updateBrandingPreview();
+            updateTVPreview(); 
         }
 
         function applyTheme(h1, h2, bg, neon, st) {
@@ -914,6 +966,238 @@
         function openModalMatch() { document.getElementById('modal-match').style.display='flex'; }
         function showQR() { const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://ryan12918.github.io/pamorpadel-live/client.html?id=${ACTIVE_ID}`; document.getElementById('qr-img').src = url; document.getElementById('qr-text').innerText = ACTIVE_ID; document.getElementById('modal-qr').style.display='flex'; }
         function filterTable() { const f = document.getElementById('search-box').value.toUpperCase(); const tr = document.getElementById('main-table').getElementsByTagName('tr'); for(let i=2; i<tr.length; i++) { const txt = tr[i].innerText; const inps = tr[i].querySelectorAll('input, textarea'); let valTxt = ""; inps.forEach(inp => valTxt += " " + inp.value); const fullTxt = txt + valTxt; tr[i].style.display = fullTxt.toUpperCase().indexOf(f)>-1 ? "" : "none"; } }
+
+        // ==========================================
+        // FITUR PENGATURAN TV LIVE SCORE (ADVANCED)
+        // ==========================================
+        function updateTVPreview() {
+            clearTimeout(previewTimeout);
+            previewTimeout = setTimeout(() => {
+                const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
+                
+                const tvTitle = getVal('tv-name'); 
+                const tvSub = getVal('tv-sub');
+                const tvTag = getVal('tv-tag');
+                const tvLogo = getVal('tv-logo');
+                const tvLogoPos = getVal('tv-logo-pos');
+                
+                const cT = getVal('tv-col-title') || '#fff'; const sT = getVal('tv-s-title') || '1'; const xT = getVal('tv-x-title') || '0'; const yT = getVal('tv-y-title') || '0';
+                const cS = getVal('tv-col-sub') || '#ffeb3b'; const sS = getVal('tv-s-sub') || '1'; const xS = getVal('tv-x-sub') || '0'; const yS = getVal('tv-y-sub') || '0';
+                const cTag = getVal('tv-col-tag') || '#fff'; const sTag = getVal('tv-s-tag') || '1'; const xTag = getVal('tv-x-tag') || '0'; const yTag = getVal('tv-y-tag') || '0';
+                const sL = getVal('tv-s-logo') || '1'; const xL = getVal('tv-x-logo') || '0'; const yL = getVal('tv-y-logo') || '0';
+
+                const h1 = getVal('s-col-h1') || '#222';
+                const h2 = getVal('s-col-h2') || '#111';
+                const bg = getVal('s-col-bg') || '#000';
+                const neon = getVal('s-neon') || '#76FF03';
+                const cardPreset = getVal('s-card-preset') || 'classic-white';
+                const simCount = parseInt(getVal('sim-grid') || '6');
+                
+                // Ambil background image dari data global jika ada
+                const bgImgStyle = window.RAW_DB_DATA && window.RAW_DB_DATA.bg_image_url ? `background-image: url('${window.RAW_DB_DATA.bg_image_url}'); background-size: cover; background-attachment: fixed;` : '';
+
+                const frame = document.getElementById('preview-frame-tv');
+                if(!frame) return;
+
+                // 💡 LOGIKA CANVAS BEBAS (ABSOLUTE 100% SAMA DENGAN TV) 💡
+                let tBase = (tvLogo && tvLogoPos === 'kiri') ? 12 : 3;
+                let sBase = tBase + 28;
+                let tagBase = sBase + 20;
+
+                let logoHTML = '';
+                if(tvLogo) {
+                    if(tvLogoPos === 'kiri') logoHTML = `<img src="${tvLogo}" style="position:absolute; top:50%; left:3vw; transform:translate(${xL}vw, calc(-50% + ${yL}vh)) scale(${sL}); transform-origin:left center; height:6vh; z-index:15; object-fit:contain;">`;
+                    else if(tvLogoPos === 'kanan') logoHTML = `<img src="${tvLogo}" style="position:absolute; top:50%; right:3vw; transform:translate(${xL}vw, calc(-50% + ${yL}vh)) scale(${sL}); transform-origin:right center; height:6vh; z-index:15; object-fit:contain;">`;
+                    else if(tvLogoPos === 'tengah') logoHTML = `<img src="${tvLogo}" style="position:absolute; top:50%; left:50%; transform:translate(calc(-50% + ${xL}vw), calc(-50% + ${yL}vh)) scale(${sL}); transform-origin:center center; height:25vh; opacity:0.15; z-index:1; pointer-events:none; object-fit:contain;">`;
+                }
+
+                let tHTML = tvTitle ? `<h1 style="position:absolute; top:50%; left:${tBase}vw; transform:translate(${xT}vw, calc(-50% + ${yT}vh)) scale(${sT}); transform-origin:left center; color:${cT}; margin:0; font-size:2.5vw; font-weight:900; letter-spacing:2px; text-transform:uppercase; text-shadow:0 4px 10px rgba(0,0,0,0.5); white-space:nowrap; z-index:15;">${tvTitle}</h1>` : '';
+                
+                let sHTML = tvSub ? `<span style="position:absolute; top:50%; left:${sBase}vw; transform:translate(${xS}vw, calc(-50% + ${yS}vh)) scale(${sS}); transform-origin:left center; color:${cS}; font-size:1.2vw; opacity:0.8; font-weight:700; text-shadow:0 2px 5px rgba(0,0,0,0.5); white-space:nowrap; z-index:15;">${tvSub}</span>` : '';
+                
+                let tagHTML = tvTag ? `<div style="position:absolute; top:50%; left:${tagBase}vw; transform:translate(${xTag}vw, calc(-50% + ${yTag}vh)) scale(${sTag}); transform-origin:left center; color:${cTag}; border:1px solid ${cTag}; padding:0.5vh 1.5vw; border-radius:30px; background:rgba(255,255,255,0.1); font-size:0.9vw; font-weight:800; text-transform:uppercase; letter-spacing:1px; backdrop-filter:blur(5px); z-index:15; white-space:nowrap;">${tvTag}</div>` : '';
+
+                const finalHeader = `
+                    <div style="background:linear-gradient(135deg, ${h1}, ${h2}); border-bottom:3px solid rgba(255,255,255,0.1); box-shadow:0 5px 15px rgba(0,0,0,0.5); height:10vh; position:relative; z-index:10; overflow:hidden; width:100%; flex-shrink:0;">
+                        ${logoHTML}
+                        ${tHTML}
+                        ${sHTML}
+                        ${tagHTML}
+                    </div>
+                `;
+
+                // LOGIKA GENERATE KARTU SIMULASI
+                let mockCardsHTML = '';
+                let gridClass = '';
+                if(simCount === 1) gridClass = 'grid-1'; else if(simCount === 2) gridClass = 'grid-2'; else if(simCount <= 4) gridClass = 'grid-4'; else gridClass = 'grid-6';
+
+                for(let i=1; i<=simCount; i++) {
+                    mockCardsHTML += `
+                    <div class="match-card theme-${cardPreset} is-live">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid rgba(0,0,0,0.1); padding-bottom:1vh; margin-bottom:1.5vh; min-width:0;">
+                            <span class="meta-text">SIMULASI • ROUND ${i}</span> 
+                            <div class="live-tag"><div class="dot-live"></div> LIVE</div>
+                        </div>
+                        <div style="display:flex; align-items:center; justify-content:space-between; flex:1; gap:1vw; min-width:0; min-height:0;">
+                            <div class="team" style="align-items:flex-start;">
+                                <div style="display:flex; flex-direction:row; align-items:center; width:100%; min-width:0; gap:0.5vw;">
+                                    <span class="neon-dot"></span><span class="team-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; text-align:left;">Pemain A${i}</span>
+                                </div>
+                            </div>
+                            <div class="score-pill">
+                                <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:0.8vw; align-items:center; line-height:1.2;">
+                                    <span class="set-txt" style="color:var(--live-neon); text-shadow: 0 0 10px rgba(0,0,0,0.8);">2-1</span>
+                                </div>
+                                <div class="point-txt"><span style="color:var(--live-neon)">40 - 30</span></div>
+                            </div>
+                            <div class="team" style="align-items:flex-end;">
+                                <div style="display:flex; flex-direction:row-reverse; align-items:center; width:100%; min-width:0; gap:0.5vw;">
+                                    <span class="team-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; text-align:right;">Pemain B${i}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="text-align:center; margin-top:1.5vh; min-width:0;">
+                            <span class="court-badge">COURT ${i}</span>
+                        </div>
+                    </div>`;
+                }
+
+                // ALL CSS DIPASTIKAN SAMA
+                const htmlString = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+                    <style>
+                        :root { 
+                            --primary-start: ${h1}; --primary-end: ${h2}; --live-neon: ${neon}; --bg-color: ${bg}; --text-color: #fff;
+                            --card-radius: 20px; --font-main: 'Montserrat', sans-serif;
+                        }
+                        body { font-family: var(--font-main); background-color: var(--bg-color); ${bgImgStyle} margin: 0; padding: 0; color: var(--text-color); overflow: hidden; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box;}
+                        
+                        #tv-grid { flex: 1; padding: 2vh 2vw; display: grid; gap: 2vw; align-content: center; width: 100vw; box-sizing: border-box; overflow: hidden; position: relative; z-index: 5;}
+                        #tv-grid.grid-1 { grid-template-columns: 1fr; grid-template-rows: 1fr; padding: 5vh 10vw;}
+                        #tv-grid.grid-2 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
+                        #tv-grid.grid-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+                        #tv-grid.grid-6 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
+                        
+                        .match-card { display: flex; flex-direction: column; justify-content: space-between; padding: 1.5vw; border-radius: var(--card-radius); height: 100%; box-sizing: border-box; position: relative; min-width: 0; min-height: 0; overflow: hidden;}
+                        
+                        .grid-1 .team-name { font-size: 3.5vw; } .grid-1 .set-txt { font-size: 5vw; } .grid-1 .point-txt { font-size: 2.5vw; margin-top: 2vh; padding: 1vh 2vw; } .grid-1 .court-badge { font-size: 1.5vw; } .grid-1 .meta-text { font-size: 1.2vw; }
+                        .grid-2 .team-name { font-size: 2.2vw; } .grid-2 .set-txt { font-size: 3.5vw; } .grid-2 .point-txt { font-size: 1.8vw; margin-top: 1.5vh; padding: 0.8vh 1.5vw; } .grid-2 .court-badge { font-size: 1.2vw; } .grid-2 .meta-text { font-size: 1vw; }
+                        .grid-4 .team-name { font-size: 1.8vw; } .grid-4 .set-txt { font-size: 2.5vw; } .grid-4 .point-txt { font-size: 1.3vw; margin-top: 1vh; padding: 0.5vh 1.2vw; } .grid-4 .court-badge { font-size: 1vw; } .grid-4 .meta-text { font-size: 0.9vw; }
+                        .grid-6 .team-name { font-size: 1.5vw; } .grid-6 .set-txt { font-size: 2vw; } .grid-6 .point-txt { font-size: 1vw; margin-top: 0.5vh; padding: 0.3vh 1vw; } .grid-6 .court-badge { font-size: 0.9vw; padding: 0.3vw 0.8vw; } .grid-6 .meta-text { font-size: 0.8vw; }
+
+                        .meta-text { font-weight: 900; text-transform: uppercase; opacity: 0.9; }
+                        .court-badge { border-radius: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; display: inline-block; box-shadow: 0 5px 15px rgba(0,0,0,0.2);}
+                        .team { flex: 1; font-weight: 800; line-height: 1.2; display: flex; flex-direction: column; justify-content: center; width: 27.5%; overflow: hidden; min-width: 0; }
+                        
+                        .score-pill { background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); color: white; border-radius: 15px; min-width: 15vw; max-width: 45%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin: 0 1vw; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0; padding: 1vh 1vw;}
+                        .set-txt { font-weight: 900; }
+                        .point-txt { font-weight: 900; letter-spacing: 2px; background: rgba(0,0,0,0.2); border-radius: 10px; display: inline-block; color: inherit; text-align: center; }
+
+                        .match-card.is-live { border: 3px solid var(--live-neon); box-shadow: 0 0 10px var(--live-neon); z-index: 20; }
+                        .live-tag { color: #fff; background: var(--primary-start); font-weight: 900; font-size: 0.9vw; display: flex; align-items: center; gap: 0.5vw; padding: 0.4vw 0.8vw; border-radius: 8px; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); flex-shrink: 0;}
+                        .dot-live { display: inline-block; width: 0.8vw; height: 0.8vw; background-color: var(--live-neon) !important; border-radius: 50%; }
+                        .neon-dot { flex-shrink: 0; width: 0.8vw; height: 0.8vw; background-color: var(--live-neon); border-radius: 50%; box-shadow: 0 0 10px var(--live-neon); }
+
+                        /* IMPORT ALL 50 THEMES LENGKAP */
+                        .theme-classic-white { background: white; color: #333; } .theme-classic-white .meta-text { color: #C2185B; } .theme-classic-white .court-badge { background: #f5f5f5; color: #666; border: 1px solid #ddd; } 
+                        .theme-midnight-blue { background: #0d1b2a; color: #e0e1dd; border: 1px solid #1b263b; } .theme-midnight-blue .meta-text { color: #4CC9F0; } .theme-midnight-blue .court-badge { background: #1b263b; color: #4CC9F0; } 
+                        .theme-royal-gold { background: #fffcf5; color: #5d4037; border: 1px solid #daa520; } .theme-royal-gold .meta-text { color: #b8860b; } .theme-royal-gold .court-badge { background: linear-gradient(to bottom, #fff8dc, #f0e68c); color: #5d4037; border: 1px solid #daa520; }
+                        .theme-vampire-red { background: #1a0000; color: #ffcccc; border: 1px solid #4d0000; } .theme-vampire-red .meta-text { color: #FF5252; } .theme-vampire-red .court-badge { background: #4d0000; color: white; }
+                        .theme-ocean-breeze { background: #E1F5FE; color: #01579B; border: 1px solid #81d4fa; } .theme-ocean-breeze .meta-text { color: #0288d1; } .theme-ocean-breeze .court-badge { background: #0288D1; color: white; }
+                        .theme-neon-cyber { background: #050505; border: 1px solid #0ff; color: #0ff; } .theme-neon-cyber .meta-text { color: #fff; text-shadow: 0 0 5px #fff; } .theme-neon-cyber .court-badge { background: #002222; color: #fff; border: 1px solid #0ff; }
+                        .theme-emerald-city { background: #e8f5e9; color: #1b5e20; border: 1px solid #c8e6c9; } .theme-emerald-city .meta-text { color: #2e7d32; } .theme-emerald-city .court-badge { background: #4caf50; color: white; }
+                        .theme-sunset-glow { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; } .theme-sunset-glow .meta-text { color: #f57c00; } .theme-sunset-glow .court-badge { background: #ff9800; color: white; }
+                        .theme-monochrome { background: #fafafa; color: #000; border: 2px solid #000; border-radius:0 !important; } .theme-monochrome .court-badge { background: #000; color: #fff; border-radius:0; }
+                        .theme-lavender { background: #f3e5f5; color: #4a148c; border: 1px solid #e1bee7; } .theme-lavender .court-badge { background: #ab47bc; color: white; }
+                        .theme-crimson { background: #ffebee; color: #b71c1c; border: 1px solid #ffcdd2; } .theme-crimson .court-badge { background: #e53935; color: white; }
+                        .theme-aqua-glass { background: rgba(224,247,250,0.7); backdrop-filter: blur(10px); color: #006064; border: 1px solid rgba(255,255,255,0.5); } .theme-aqua-glass .court-badge { background: #00bcd4; color: white; }
+                        .theme-forest-dark { background: #1b5e20; color: #e8f5e9; border: 1px solid #388e3c; } .theme-forest-dark .court-badge { background: #4caf50; color: white; }
+                        .theme-rose-gold { background: #fce4ec; color: #880e4f; border: 1px solid #f8bbd0; } .theme-rose-gold .meta-text { color: #d81b60; } .theme-rose-gold .court-badge { background: #f06292; color: white; }
+                        .theme-matrix-code { background: black; color: #00ff00; font-family: 'Courier Prime', monospace; } .theme-matrix-code .court-badge { border: 1px solid #00ff00; color: #00ff00; background: transparent; }
+                        .theme-obsidian { background: #0f0f0f; color: #f5f5f5; border: 1px solid #333; } .theme-obsidian .meta-text { color: #ffeb3b; } .theme-obsidian .court-badge { background: #222; color: #ffeb3b; }
+                        .theme-pearl { background: #fdfdfd; color: #444; border: 1px solid #e0e0e0; } .theme-pearl .meta-text { color: #880e4f; } .theme-pearl .court-badge { background: #eee; color: #880e4f; }
+                        .theme-ruby { background: #ffebee; color: #b71c1c; border: 1px solid #ff8a80; } .theme-ruby .court-badge { background: #b71c1c; color: white; }
+                        .theme-sapphire { background: #e3f2fd; color: #0d47a1; border: 1px solid #82b1ff; } .theme-sapphire .court-badge { background: #0d47a1; color: white; }
+                        .theme-amethyst { background: #f3e5f5; color: #4a148c; border: 1px solid #ea80fc; } .theme-amethyst .court-badge { background: #4a148c; color: white; }
+                        .theme-topaz { background: #fffde7; color: #e65100; border: 1px solid #ffd180; } .theme-topaz .court-badge { background: #e65100; color: white; }
+                        .theme-amber { background: #fff8e1; color: #f57f17; border: 1px solid #ffe57f; } .theme-amber .court-badge { background: #f57f17; color: white; }
+                        .theme-quartz { background: #fce4ec; color: #c2185b; border: 1px solid #ff80ab; } .theme-quartz .court-badge { background: #c2185b; color: white; }
+                        .theme-jade { background: #e8f5e9; color: #1b5e20; border: 1px solid #b9f6ca; } .theme-jade .court-badge { background: #1b5e20; color: white; }
+                        .theme-onyx { background: #212121; color: #fafafa; border: 1px solid #424242; } .theme-onyx .meta-text { color: #ff5252; } .theme-onyx .court-badge { background: #424242; color: #ff5252; }
+                        .theme-coral { background: #fbe9e7; color: #bf360c; border: 1px solid #ff9e80; } .theme-coral .court-badge { background: #bf360c; color: white; }
+                        .theme-turquoise { background: #e0f2f1; color: #004d40; border: 1px solid #a7ffeb; } .theme-turquoise .court-badge { background: #004d40; color: white; }
+                        .theme-malachite { background: #11270b; color: #a5d6a7; border: 1px solid #2e7d32; } .theme-malachite .meta-text { color: #69f0ae; } .theme-malachite .court-badge { background: #2e7d32; color: white; }
+                        .theme-opal { background: linear-gradient(120deg, #fdfbfb, #ebedee); color: #37474f; border: 1px solid #cfd8dc; } .theme-opal .court-badge { background: #b0bec5; color: #263238; }
+                        .theme-moonstone { background: #eceff1; color: #263238; border: 1px solid #b0bec5; } .theme-moonstone .court-badge { background: #78909c; color: white; }
+                        .theme-sunstone { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; } .theme-sunstone .court-badge { background: #e65100; color: white; }
+                        .theme-garnet { background: #3e2723; color: #ffccbc; border: 1px solid #5d4037; } .theme-garnet .meta-text { color: #ff5722; } .theme-garnet .court-badge { background: #5d4037; color: #ff5722; }
+                        .theme-peridot { background: #f1f8e9; color: #33691e; border: 1px solid #ccff90; } .theme-peridot .court-badge { background: #33691e; color: white; }
+                        .theme-citrine { background: #fff9c4; color: #f57f17; border: 1px solid #ffff8d; } .theme-citrine .court-badge { background: #f57f17; color: white; }
+                        .theme-spinel { background: #f8bbd0; color: #880e4f; border: 1px solid #ff80ab; } .theme-spinel .court-badge { background: #880e4f; color: white; }
+                        .theme-zircon { background: #e1f5fe; color: #01579b; border: 1px solid #80d8ff; } .theme-zircon .court-badge { background: #01579b; color: white; }
+                        .theme-tourmaline { background: linear-gradient(135deg, #f3e5f5, #e8f5e9); color: #333; border: 1px solid #ce93d8; } .theme-tourmaline .court-badge { background: #ab47bc; color: white; }
+                        .theme-beryl { background: #e0f7fa; color: #006064; border: 1px solid #84ffff; } .theme-beryl .court-badge { background: #006064; color: white; }
+                        .theme-alexandrite { background: #311b92; color: #b388ff; border: 1px solid #512da8; } .theme-alexandrite .meta-text { color: #ea80fc; } .theme-alexandrite .court-badge { background: #512da8; color: white; }
+                        .theme-tanzanite { background: #ede7f6; color: #4527a0; border: 1px solid #b388ff; } .theme-tanzanite .court-badge { background: #4527a0; color: white; }
+                        .theme-bloodstone { background: #1b1b1b; color: #ef9a9a; border: 1px solid #b71c1c; } .theme-bloodstone .court-badge { background: #b71c1c; color: white; }
+                        .theme-iolite { background: #283593; color: #c5cae9; border: 1px solid #3f51b5; } .theme-iolite .meta-text { color: #8c9eff; } .theme-iolite .court-badge { background: #3f51b5; color: white; }
+                        .theme-lapis { background: #1a237e; color: #e8eaf6; border: 1px solid #3949ab; } .theme-lapis .meta-text { color: #ffd740; } .theme-lapis .court-badge { background: #3949ab; color: white; }
+                        .theme-morganite { background: #ffebee; color: #c2185b; border: 1px solid #ff80ab; } .theme-morganite .court-badge { background: #c2185b; color: white; }
+                        .theme-kunzite { background: #fce4ec; color: #880e4f; border: 1px solid #ff4081; } .theme-kunzite .court-badge { background: #880e4f; color: white; }
+                        .theme-tsavorite { background: #e8f5e9; color: #1b5e20; border: 1px solid #00c853; } .theme-tsavorite .court-badge { background: #1b5e20; color: white; }
+                        .theme-rhodolite { background: #880e4f; color: #fce4ec; border: 1px solid #ad1457; } .theme-rhodolite .meta-text { color: #ff80ab; } .theme-rhodolite .court-badge { background: #ad1457; color: white; }
+                        .theme-spessartite { background: #bf360c; color: #fbe9e7; border: 1px solid #d84315; } .theme-spessartite .meta-text { color: #ff9e80; } .theme-spessartite .court-badge { background: #d84315; color: white; }
+                        .theme-demantoid { background: #33691e; color: #f1f8e9; border: 1px solid #558b2f; } .theme-demantoid .meta-text { color: #ccff90; } .theme-demantoid .court-badge { background: #558b2f; color: white; }
+                        .theme-padparadscha { background: #ffccbc; color: #bf360c; border: 1px solid #ff8a65; } .theme-padparadscha .court-badge { background: #bf360c; color: white; }
+                    </style>
+                </head>
+                <body>
+                    ${finalHeader}
+                    <div id="tv-grid" class="${gridClass}">
+                        ${mockCardsHTML}
+                    </div>
+                </body>
+                </html>
+                `;
+                frame.srcdoc = htmlString;
+            }, 500);
+        }
+
+        async function saveTVSettings() {
+            const btn = document.getElementById('btn-save-tv');
+            btn.innerText = "⏳ MENYIMPAN...";
+            
+            const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
+            
+            const tvStyleObj = {
+                cT: getVal('tv-col-title'), sT: getVal('tv-s-title'), xT: getVal('tv-x-title'), yT: getVal('tv-y-title'),
+                cS: getVal('tv-col-sub'), sS: getVal('tv-s-sub'), xS: getVal('tv-x-sub'), yS: getVal('tv-y-sub'),
+                cTag: getVal('tv-col-tag'), sTag: getVal('tv-s-tag'), xTag: getVal('tv-x-tag'), yTag: getVal('tv-y-tag'),
+                sL: getVal('tv-s-logo'), xL: getVal('tv-x-logo'), yL: getVal('tv-y-logo')
+            };
+            
+            const pl = {
+                tv_title: getVal('tv-name'),
+                tv_sub: getVal('tv-sub'),
+                tv_tag: getVal('tv-tag'),
+                tv_logo: getVal('tv-logo'),
+                tv_logo_pos: getVal('tv-logo-pos'),
+                tv_style: JSON.stringify(tvStyleObj) 
+            };
+            
+            const { error } = await db.from('partners').update(pl).eq('tournament_id', ACTIVE_ID);
+            
+            if (error) { 
+                alert("GAGAL MENYIMPAN! ❌\nError: " + error.message); 
+            } else { 
+                alert("Pengaturan TV Berhasil Disimpan! ✅"); 
+            }
+            btn.innerText = "💾 SIMPAN PENGATURAN TV";
+        }
+
     </script>
 </body>
 </html>

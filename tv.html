@@ -11,28 +11,12 @@
     <style>
         :root { 
             --primary-start: #222222; --primary-end: #111111; --live-neon: #76FF03; --bg-color: #000000; --text-color: #fff;
-            --title-color: #fff; --sub-color: #ffeb3b; --tag-color: #ffffff; --card-radius: 20px; --font-main: 'Montserrat', sans-serif;
-            --logo-size: 1; --logo-opacity: 1; --logo-x: 0px; --logo-y: 0px; --title-size: 1; --sub-size: 1;
+            --card-radius: 20px; --font-main: 'Montserrat', sans-serif;
         }
         
         body { font-family: var(--font-main); background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-color); overflow: hidden; display: flex; flex-direction: column; height: 100vh; user-select: none; box-sizing: border-box;}
         
-        /* HEADER TV TIPIS & ELEGAN */
-        .header-wrapper { display: flex; flex-direction: row; align-items: center; justify-content: space-between; background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); padding: 1vh 3vw; border-bottom: 3px solid rgba(255,255,255,0.1); box-shadow: 0 5px 15px rgba(0,0,0,0.5); flex-shrink: 0; height: 6vh; }
-        .header-content { display: flex; align-items: center; gap: 2vw; flex: 1;}
-        .header-title { margin: 0; font-size: calc(1.5vw * var(--title-size)); font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--title-color); text-shadow: 0 4px 10px rgba(0,0,0,0.5); white-space: nowrap; } 
-        .header-sub { display: none; } 
-        .header-badge { padding: 0.5vh 1.5vw; border-radius: 30px; background: rgba(255,255,255,0.2); font-size: 1vw; font-weight: 800; color: var(--tag-color); border: 1px solid rgba(255,255,255,0.2); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;}
-        
-        .logo-classic { width: 4vw; max-height: 4vh; object-fit: contain; transform: translate(var(--logo-x), var(--logo-y)) scale(var(--logo-size)); opacity: var(--logo-opacity); }
-        .logo-watermark { position: absolute; top: 50%; left: 50%; width: 10vw; height: auto; transform: translate(calc(-50% + var(--logo-x)), calc(-50% + var(--logo-y))) scale(var(--logo-size)); opacity: var(--logo-opacity); z-index: 1; pointer-events: none; }
-
-        /* TOMBOL FULLSCREEN DI HEADER */
-        .header-fs-btn { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.6); padding: 0.5vh 1vw; border-radius: 8px; font-size: 0.8vw; font-weight: 800; cursor: pointer; letter-spacing: 1px; transition: 0.3s; display: flex; align-items: center; gap: 0.5vw; white-space: nowrap;}
-        .header-fs-btn:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: #fff; }
-
-        /* 📺 TV GRID SYSTEM (MAKSIMAL 2 KOLOM) 📺 */
-        #tv-grid { flex: 1; padding: 2vh 2vw; display: grid; gap: 2vw; align-content: center; width: 100vw; box-sizing: border-box; overflow: hidden; }
+        #tv-grid { flex: 1; padding: 2vh 2vw; display: grid; gap: 2vw; align-content: center; width: 100vw; box-sizing: border-box; overflow: hidden; position: relative; z-index: 5;}
         
         #tv-grid.grid-1 { grid-template-columns: 1fr; grid-template-rows: 1fr; padding: 5vh 10vw;}
         #tv-grid.grid-2 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
@@ -41,41 +25,16 @@
         
         .match-card { display: flex; flex-direction: column; justify-content: space-between; padding: 1.5vw; border-radius: var(--card-radius); height: 100%; box-sizing: border-box; transition: all 0.5s; position: relative; min-width: 0; min-height: 0; overflow: hidden;}
         
-        /* 💡 KOREKSI TIPOGRAFI: SET BESAR, POIN KECIL 💡 */
-        /* GRID 1 */
-        .grid-1 .team-name { font-size: 3.5vw; }  
-        .grid-1 .set-txt { font-size: 5vw; } /* Skor Set (6-1, dll) Super Besar */
-        .grid-1 .point-txt { font-size: 2.5vw; margin-top: 2vh; padding: 1vh 2vw; } /* Poin 15,30 Mengecil */
-        .grid-1 .court-badge { font-size: 1.5vw; } .grid-1 .meta-text { font-size: 1.2vw; }
-        
-        /* GRID 2 */
-        .grid-2 .team-name { font-size: 2.2vw; } 
-        .grid-2 .set-txt { font-size: 3.5vw; } 
-        .grid-2 .point-txt { font-size: 1.8vw; margin-top: 1.5vh; padding: 0.8vh 1.5vw; } 
-        .grid-2 .court-badge { font-size: 1.2vw; } .grid-2 .meta-text { font-size: 1vw; }
-
-        /* GRID 3 & 4 */
-        .grid-3 .team-name, .grid-4 .team-name { font-size: 1.8vw; }  
-        .grid-3 .set-txt, .grid-4 .set-txt { font-size: 2.5vw; } 
-        .grid-3 .point-txt, .grid-4 .point-txt { font-size: 1.3vw; margin-top: 1vh; padding: 0.5vh 1.2vw; } 
-        .grid-3 .court-badge, .grid-4 .court-badge { font-size: 1vw; } .grid-3 .meta-text, .grid-4 .meta-text { font-size: 0.9vw; }
-
-        /* GRID 5 & 6 */
-        .grid-5 .team-name, .grid-6 .team-name { font-size: 1.5vw; } 
-        .grid-5 .set-txt, .grid-6 .set-txt { font-size: 2vw; } /* Set tetap dominan */
-        .grid-5 .point-txt, .grid-6 .point-txt { font-size: 1vw; margin-top: 0.5vh; padding: 0.3vh 1vw; } /* Poin 15,30 sangat rapi di bawah */
-        .grid-5 .court-badge, .grid-6 .court-badge { font-size: 0.9vw; padding: 0.3vw 0.8vw; }
-        .grid-5 .meta-text, .grid-6 .meta-text { font-size: 0.8vw; }
+        .grid-1 .team-name { font-size: 3.5vw; } .grid-1 .set-txt { font-size: 5vw; } .grid-1 .point-txt { font-size: 2.5vw; margin-top: 2vh; padding: 1vh 2vw; } .grid-1 .court-badge { font-size: 1.5vw; } .grid-1 .meta-text { font-size: 1.2vw; }
+        .grid-2 .team-name { font-size: 2.2vw; } .grid-2 .set-txt { font-size: 3.5vw; } .grid-2 .point-txt { font-size: 1.8vw; margin-top: 1.5vh; padding: 0.8vh 1.5vw; } .grid-2 .court-badge { font-size: 1.2vw; } .grid-2 .meta-text { font-size: 1vw; }
+        .grid-3 .team-name, .grid-4 .team-name { font-size: 1.8vw; } .grid-3 .set-txt, .grid-4 .set-txt { font-size: 2.5vw; } .grid-3 .point-txt, .grid-4 .point-txt { font-size: 1.3vw; margin-top: 1vh; padding: 0.5vh 1.2vw; } .grid-3 .court-badge, .grid-4 .court-badge { font-size: 1vw; } .grid-3 .meta-text, .grid-4 .meta-text { font-size: 0.9vw; }
+        .grid-5 .team-name, .grid-6 .team-name { font-size: 1.5vw; } .grid-5 .set-txt, .grid-6 .set-txt { font-size: 2vw; } .grid-5 .point-txt, .grid-6 .point-txt { font-size: 1vw; margin-top: 0.5vh; padding: 0.3vh 1vw; } .grid-5 .court-badge, .grid-6 .court-badge { font-size: 0.9vw; padding: 0.3vw 0.8vw; } .grid-5 .meta-text, .grid-6 .meta-text { font-size: 0.8vw; }
 
         .meta-text { font-weight: 900; text-transform: uppercase; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;}
         .court-badge { border-radius: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; display: inline-block; box-shadow: 0 5px 15px rgba(0,0,0,0.2);}
-        
         .team { flex: 1; font-weight: 800; line-height: 1.2; display: flex; flex-direction: column; justify-content: center; width: 27.5%; overflow: hidden; min-width: 0; }
-        .player-row { width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 0.5vw; padding: 0.2vh 0;}
         
-        /* WADAH KOTAK SKOR DIPERLEBAR MAX 45% AGAR SET TIDAK BERTUMPUK */
         .score-pill { background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); color: white; border-radius: 15px; min-width: 15vw; max-width: 45%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin: 0 1vw; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0; padding: 1vh 1vw;}
-        
         .set-txt { font-weight: 900; }
         .point-txt { font-weight: 900; letter-spacing: 2px; background: rgba(0,0,0,0.2); border-radius: 10px; display: inline-block; color: inherit; text-align: center; }
 
@@ -83,12 +42,10 @@
         .match-card.is-live { border: 3px solid var(--live-neon); animation: pulse-live-card 2s infinite alternate ease-in-out; z-index: 20; }
         
         .live-tag { color: #fff; background: var(--primary-start); font-weight: 900; font-size: 0.9vw; display: flex; align-items: center; gap: 0.5vw; padding: 0.4vw 0.8vw; border-radius: 8px; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); flex-shrink: 0;}
-        
+        .dot-live { display: inline-block; width: 0.8vw; height: 0.8vw; background-color: var(--live-neon) !important; border-radius: 50%; animation: blinker-live 0.8s infinite alternate;}
         @keyframes blinker-live { 0% { opacity: 0.2; } 100% { opacity: 1; box-shadow: 0 0 15px var(--live-neon); } }
-        .dot-live { display: inline-block; width: 0.8vw; height: 0.8vw; background-color: var(--live-neon) !important; border-radius: 50%; animation: blinker-live 0.8s infinite alternate; }
         .neon-dot { flex-shrink: 0; width: 0.8vw; height: 0.8vw; background-color: var(--live-neon); border-radius: 50%; box-shadow: 0 0 10px var(--live-neon); }
 
-        /* THEMES 50 GAYA KARTU */
         .theme-classic-white { background: white; color: #333; } .theme-classic-white .meta-text { color: #C2185B; } .theme-classic-white .court-badge { background: #f5f5f5; color: #666; border: 1px solid #ddd; } 
         .theme-midnight-blue { background: #0d1b2a; color: #e0e1dd; border: 1px solid #1b263b; } .theme-midnight-blue .meta-text { color: #4CC9F0; } .theme-midnight-blue .court-badge { background: #1b263b; color: #4CC9F0; } 
         .theme-royal-gold { background: #fffcf5; color: #5d4037; border: 1px solid #daa520; } .theme-royal-gold .meta-text { color: #b8860b; } .theme-royal-gold .court-badge { background: linear-gradient(to bottom, #fff8dc, #f0e68c); color: #5d4037; border: 1px solid #daa520; }
@@ -145,39 +102,20 @@
 </head>
 <body>
 
-    <div class="header-wrapper">
-        <div class="header-content">
-            <h1 id="head-title" class="header-title">MEMUAT...</h1>
-            <div id="head-tag" class="header-badge" style="display:none;"></div>
-        </div>
-        
-        <div style="display: flex; align-items: center; gap: 2vw;">
-            <button id="btn-fs" class="header-fs-btn" onclick="makeFullScreen()" title="Klik untuk Layar Penuh">
-                <svg viewBox="0 0 24 24" width="1.2vw" height="1.2vw" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg> FULLSCREEN
-            </button>
-            <img id="head-logo" class="header-logo logo-classic" style="display:none;">
-        </div>
-    </div>
-    
-    <img id="head-logo-watermark" class="header-logo logo-watermark" style="display:none;">
+    <div id="tv-header-container"></div>
 
     <div id="tv-grid">
         <div class="empty-state">MEMUAT LIVE SCORE...</div>
     </div>
 
     <script>
-        function makeFullScreen() {
+        document.body.addEventListener('dblclick', () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => console.log("Gagal Fullscreen"));
-                document.getElementById('btn-fs').style.display = 'none'; 
+            } else {
+                document.exitFullscreen();
             }
-        }
-        
-        document.addEventListener('fullscreenchange', () => {
-            if (!document.fullscreenElement) document.getElementById('btn-fs').style.display = 'flex'; 
         });
-        
-        document.body.addEventListener('dblclick', () => { makeFullScreen(); });
 
         const SUPABASE_URL = 'https://gubcvxiupehbdpigrdct.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_k1y6fNI2opEXhwqKMbGYcA__2nD0yT6';
@@ -209,46 +147,61 @@
             r.setProperty('--bg-color', d.color_bg || '#000000');
             document.body.style.backgroundColor = d.color_bg || '#000000';
             
-            r.setProperty('--title-color', d.text_color_title || '#fff');
-            r.setProperty('--sub-color', d.text_color_sub || '#ffeb3b');
-            r.setProperty('--tag-color', d.text_color_tag || '#ffffff');
-            r.setProperty('--title-size', d.title_size || '1');
-            
             hideServeGlobal = (d.hide_serve === 'true');
+            cardPreset = d.card_preset || 'classic-white'; 
+            r.setProperty('--card-radius', (d.corner_radius || 15) + 'px');
+            if(d.bg_image_url) { document.body.style.backgroundImage = `url('${d.bg_image_url}')`; document.body.style.backgroundSize = 'cover'; document.body.style.backgroundAttachment = 'fixed'; } 
 
-            let rawLogoMode = d.logo_mode || 'watermark|||GD';
-            let lmParts = rawLogoMode.split('|||');
-            let lMode = lmParts[0];
+            const tvTitle = d.tv_title || "";
+            const tvSub = d.tv_sub || "";
+            const tvTag = d.tv_tag || "";
+            const tvLogo = d.tv_logo || "";
+            const tvLogoPos = d.tv_logo_pos || "kiri";
+            
+            let cT = '#ffffff', sT = '1', xT = '0', yT = '0';
+            let cS = '#ffeb3b', sS = '1', xS = '0', yS = '0';
+            let cTag = '#ffffff', sTag = '1', xTag = '0', yTag = '0';
+            let sL = '1', xL = '0', yL = '0';
 
-            const tagEl = document.getElementById('head-tag');
-            if (d.tag_text && d.tag_text.trim() !== '') {
-                tagEl.innerText = d.tag_text;
-                tagEl.style.display = 'inline-block';
-            } else {
-                tagEl.style.display = 'none';
+            if(d.tv_style) {
+                try {
+                    let ts = JSON.parse(d.tv_style);
+                    cT = ts.cT || '#ffffff'; sT = ts.sT || '1'; xT = ts.xT || '0'; yT = ts.yT || '0';
+                    cS = ts.cS || '#ffeb3b'; sS = ts.sS || '1'; xS = ts.xS || '0'; yS = ts.yS || '0';
+                    cTag = ts.cTag || '#ffffff'; sTag = ts.sTag || '1'; xTag = ts.xTag || '0'; yTag = ts.yTag || '0';
+                    sL = ts.sL || '1'; xL = ts.xL || '0'; yL = ts.yL || '0';
+                } catch(e) { console.error("Error parsing tv_style JSON", e); }
             }
 
-            r.setProperty('--logo-size', d.logo_size || '1'); r.setProperty('--logo-opacity', d.logo_opacity || '1');
-            r.setProperty('--logo-x', (d.logo_x || '0') + 'px'); r.setProperty('--logo-y', (d.logo_y || '0') + 'px');
+            // --- EKSEKUSI TAMPILAN KLONING IDENTIK ---
+            let tBase = (tvLogo && tvLogoPos === 'kiri') ? 12 : 3;
+            let sBase = tBase + 28;
+            let tagBase = sBase + 20;
 
-            const imgClassic = document.getElementById('head-logo');
-            const imgWatermark = document.getElementById('head-logo-watermark');
+            let logoHTML = '';
+            if(tvLogo) {
+                if(tvLogoPos === 'kiri') logoHTML = `<img src="${tvLogo}" style="position:absolute; top:50%; left:3vw; transform:translate(${xL}vw, calc(-50% + ${yL}vh)) scale(${sL}); transform-origin:left center; height:6vh; z-index:15; object-fit:contain;">`;
+                else if(tvLogoPos === 'kanan') logoHTML = `<img src="${tvLogo}" style="position:absolute; top:50%; right:3vw; transform:translate(${xL}vw, calc(-50% + ${yL}vh)) scale(${sL}); transform-origin:right center; height:6vh; z-index:15; object-fit:contain;">`;
+                else if(tvLogoPos === 'tengah') logoHTML = `<img src="${tvLogo}" style="position:absolute; top:50%; left:50%; transform:translate(calc(-50% + ${xL}vw), calc(-50% + ${yL}vh)) scale(${sL}); transform-origin:center center; height:25vh; opacity:0.15; z-index:1; pointer-events:none; object-fit:contain;">`;
+            }
+
+            let tHTML = tvTitle ? `<h1 style="position:absolute; top:50%; left:${tBase}vw; transform:translate(${xT}vw, calc(-50% + ${yT}vh)) scale(${sT}); transform-origin:left center; color:${cT}; margin:0; font-size:2.5vw; font-weight:900; letter-spacing:2px; text-transform:uppercase; text-shadow:0 4px 10px rgba(0,0,0,0.5); white-space:nowrap; z-index:15;">${tvTitle}</h1>` : '';
             
-            imgClassic.style.display = 'none';
-            imgWatermark.style.display = 'none';
-
-            if(d.logo_url) { 
-                if(lMode === 'classic') {
-                    imgClassic.src = d.logo_url; imgClassic.style.display = 'block';
-                } else {
-                    imgWatermark.src = d.logo_url; imgWatermark.style.display = 'block';
-                }
-            } 
-
-            cardPreset = d.card_preset || 'classic-white'; r.setProperty('--card-radius', (d.corner_radius || 15) + 'px');
-            if(d.bg_image_url) { document.body.style.backgroundImage = `url('${d.bg_image_url}')`; document.body.style.backgroundSize = 'cover'; document.body.style.backgroundAttachment = 'fixed'; } 
+            let sHTML = tvSub ? `<span style="position:absolute; top:50%; left:${sBase}vw; transform:translate(${xS}vw, calc(-50% + ${yS}vh)) scale(${sS}); transform-origin:left center; color:${cS}; font-size:1.2vw; opacity:0.8; font-weight:700; text-shadow:0 2px 5px rgba(0,0,0,0.5); white-space:nowrap; z-index:15;">${tvSub}</span>` : '';
             
-            document.getElementById('head-title').innerText = d.event_name || "TOURNAMENT";
+            let tagHTML = tvTag ? `<div style="position:absolute; top:50%; left:${tagBase}vw; transform:translate(${xTag}vw, calc(-50% + ${yTag}vh)) scale(${sTag}); transform-origin:left center; color:${cTag}; border:1px solid ${cTag}; padding:0.5vh 1.5vw; border-radius:30px; background:rgba(255,255,255,0.1); font-size:0.9vw; font-weight:800; text-transform:uppercase; letter-spacing:1px; backdrop-filter:blur(5px); z-index:15; white-space:nowrap;">${tvTag}</div>` : '';
+
+            const h1 = d.color_primary || '#222';
+            const h2 = d.color_gradient_end || d.color_primary || '#111';
+
+            document.getElementById('tv-header-container').innerHTML = `
+                <div style="background:linear-gradient(135deg, ${h1}, ${h2}); border-bottom:3px solid rgba(255,255,255,0.1); box-shadow:0 5px 15px rgba(0,0,0,0.5); height:10vh; position:relative; z-index:10; overflow:hidden; width:100%; flex-shrink:0;">
+                    ${logoHTML}
+                    ${tHTML}
+                    ${sHTML}
+                    ${tagHTML}
+                </div>
+            `;
 
             if (matches.length > 0) renderTV();
         }
@@ -324,10 +277,8 @@
                 }
                 if(sets.length === 0) sets.push(`<span class="set-txt">0-0</span>`);
                 
-                // 💡 PENGGABUNGAN SKOR SET (KINI BERUKURAN BESAR)
                 let scoreStr = `<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:0.8vw; align-items:center; line-height:1.2;">` + sets.join('<span style="opacity:0.3; font-size:0.6em;">•</span>') + `</div>`;
                 
-                // 💡 PEMISAHAN SKOR POIN (KINI BERUKURAN KECIL SEBAGAI BADGE)
                 let smallPt = `<div class="point-txt"><span style="color:var(--live-neon)">${m.points_a||0} - ${m.points_b||0}</span></div>`;
 
                 let themeClass = 'theme-' + cardPreset;
