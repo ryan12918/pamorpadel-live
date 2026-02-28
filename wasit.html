@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="color-scheme" content="dark">
-    <title>WASIT PRO V11.0 (OFFLINE SYNC)</title>
+    <title>WASIT PRO V12.0 (AUTO-RESUME)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     
@@ -78,7 +78,7 @@
     <div id="conn-indicator" class="hidden">🟢 ONLINE</div>
 
     <div id="view-login" class="login-box">
-        <h3>WASIT PRO V11.0</h3>
+        <h3>WASIT PRO V12.0</h3>
         
         <div style="text-align:left; font-size:11px; color:#aaa; margin-bottom:2px; padding-left:5px;">Tournament ID:</div>
         <input id="inp-tid" class="inp-login" placeholder="Misal: pamorpadel">
@@ -89,7 +89,7 @@
         <div style="text-align:left; font-size:11px; color:#aaa; margin-top:10px; margin-bottom:2px; padding-left:5px;">PIN Match (Opsional):</div>
         <input id="inp-pin" type="tel" class="inp-login" placeholder="******">
         
-        <button onclick="login()" class="btn-login">MASUK</button>
+        <button onclick="login()" class="btn-login" id="btn-login-main">MASUK</button>
     </div>
 
     <div id="view-dash" class="hidden" style="width:100%; display:flex; flex-direction:column; align-items:center;">
@@ -207,7 +207,26 @@
         let localMatchData = {};
         let syncInterval = null;
 
-        // 💡 UPDATE INDIKATOR KONEKSI (TANPA POP-UP) 💡
+        // 💡 CEK AUTO-RESUME SAAT PERTAMA KALI HALAMAN DIBUKA 💡
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeSession = localStorage.getItem('wasit_active_session');
+            if (activeSession) {
+                try {
+                    const parsedSession = JSON.parse(activeSession);
+                    // Langsung bypass login dan muat data!
+                    document.getElementById('btn-login-main').innerText = "MEMULIHKAN SESI...";
+                    matchId = parsedSession.id;
+                    tournamentId = parsedSession.tournament_id;
+                    serveSystem = parsedSession.serveSystem || 'manual';
+                    hideServe = parsedSession.hideServe || false;
+                    document.getElementById('lbl-court').innerText = parsedSession.court_name;
+                    loadMatch(parsedSession); // Muat tampilannya!
+                } catch(e) {
+                    console.error("Gagal memulihkan sesi aktif.");
+                }
+            }
+        });
+
         function updateInd(status) {
             const ind = document.getElementById('conn-indicator');
             ind.classList.remove('hidden');
@@ -216,7 +235,6 @@
             else if(status === 'offline') { ind.innerHTML = "🔴 OFFLINE (Tersimpan di HP)"; ind.style.color = "#ff8a80"; ind.style.borderColor = "#ff5252"; }
         }
 
-        // 💡 FULL STATE PUSH + LOCAL STORAGE BACKUP 💡
         async function dbUpdate(payload) {
             let fullState = {
                 points_a: document.getElementById('point-a').value,
@@ -225,28 +243,35 @@
                 [`set${currentSet}_b`]: parseInt(document.getElementById('game-b').value) || 0,
                 current_set: currentSet,
                 server: globalServer,
-                ...payload // payload bisa menimpa, misal status: 'FINISHED'
+                ...payload
             };
 
-            // 1. Mutlak simpan di memori internal HP dulu
             if(matchId) {
+                // Simpan update skor ke memori internal (Brankas HP)
                 localStorage.setItem('wasit_backup_' + matchId, JSON.stringify(fullState));
+                
+                // 💡 UPDATE BRANKAS SESI (AUTO-RESUME) 💡
+                let currentSession = localStorage.getItem('wasit_active_session');
+                if (currentSession) {
+                    let parsedSession = JSON.parse(currentSession);
+                    Object.assign(parsedSession, fullState); // Merge data baru ke sesi
+                    localStorage.setItem('wasit_active_session', JSON.stringify(parsedSession));
+                }
             }
 
             updateInd('saving');
 
             try {
-                // Jika koneksi HP dimatikan, langsung lempar ke catch agar cepat
                 if (!navigator.onLine) throw new Error("Tidak ada internet");
 
                 const { error } = await db.from('matches_pro').update(fullState).eq('id', matchId);
                 if (error) throw error;
                 
                 updateInd('online');
-                return true; // Berhasil tembus server
+                return true; 
             } catch (err) {
                 updateInd('offline');
-                return false; // Gagal, sinyal buruk
+                return false; 
             }
         }
 
@@ -292,7 +317,7 @@
 
         async function login() {
             try {
-                const btn = document.querySelector('.btn-login'); btn.innerText = "MEMUAT...";
+                const btn = document.getElementById('btn-login-main'); btn.innerText = "MEMUAT...";
                 const tid = document.getElementById('inp-tid').value.trim();
                 const c = document.getElementById('inp-court').value.trim(); 
                 const p = document.getElementById('inp-pin').value.trim();
@@ -319,32 +344,37 @@
                 serveSystem = sSys; hideServe = hServe; matchId = matchData.id; 
                 document.getElementById('lbl-court').innerText = matchData.court_name; 
                 
-                loadMatch(matchData); // Lempar ke fungsi load
-            } catch (err) { alert("🚨 CRASH SISTEM!\nPesan Error: " + err.message); document.querySelector('.btn-login').innerText = "MASUK"; }
+                // 💡 SIMPAN PROFIL SESI BARU KE MEMORI HP 💡
+                matchData.serveSystem = serveSystem;
+                matchData.hideServe = hideServe;
+                localStorage.setItem('wasit_active_session', JSON.stringify(matchData));
+
+                loadMatch(matchData); 
+            } catch (err) { alert("🚨 CRASH SISTEM!\nPesan Error: " + err.message); document.getElementById('btn-login-main').innerText = "MASUK"; }
         }
 
-        // 💡 FUNGSI LOAD MATCH YANG MEMBACA MEMORI LOKAL JIKA OFFLINE 💡
         function loadMatch(m) {
             document.getElementById('view-login').classList.add('hidden'); 
             document.getElementById('view-dash').classList.remove('hidden');
             
             localMatchData = m;
 
-            // CEK APAKAH ADA BACKUP DI MEMORI HP
+            // CEK APAKAH ADA BACKUP SKOR DI MEMORI HP
             let backup = localStorage.getItem('wasit_backup_' + m.id);
             if(backup) {
                 try {
                     let parsed = JSON.parse(backup);
-                    // Menyatukan data, Prioritaskan data memori lokal!
                     Object.assign(localMatchData, parsed);
                     
                     if(parsed.status === 'FINISHED') {
-                        // Jika ternyata ditutup waktu layar hijau
                         showSyncScreen();
                         startAutoSync({ status: 'FINISHED', is_wo: parsed.is_wo });
-                        return; // Stop loading UI normal
+                        return; 
                     } else {
-                        alert("⚠️ MEMUAT DATA PEMULIHAN (BACKUP)!\n\nSistem menemukan data ketikan terakhir Anda di HP ini sebelum sinyal terputus.");
+                        // Jangan beri alert jika ini auto-resume biasa (biar mulus)
+                        if(!localStorage.getItem('wasit_active_session')) {
+                            alert("⚠️ MEMUAT DATA PEMULIHAN (BACKUP)!\n\nSistem menemukan data ketikan terakhir Anda.");
+                        }
                     }
                 } catch(e) { console.error("Backup Corrupt"); }
             }
@@ -366,10 +396,8 @@
             renderScores(localMatchData); 
             renderButtons(); 
 
-            // Pancing koneksi pertama kali dan kirim full state
+            // Pancing koneksi dan sinkronisasi
             dbUpdate({});
-            
-            // FUNGSI SUBSCRIBE SENGAJA DIMATIKAN AGAR WASIT TIDAK BISA DI-INTERUPSI / DIRESET DARI LUAR
         }
 
         function renderPlayerBoxes() {
@@ -419,7 +447,7 @@
             globalServer = nextServer; if (arrPlayersA.includes(globalServer)) lastServerA = globalServer; if (arrPlayersB.includes(globalServer)) lastServerB = globalServer;
             if(!hideServe) renderPlayerBoxes(); document.getElementById('point-a').value = '0'; document.getElementById('point-b').value = '0'; checkAlerts('0', '0');
             
-            await dbUpdate({ server: nextServer }); // Points already 0, Game already incremented in DOM, dbUpdate will pick it up
+            await dbUpdate({ server: nextServer }); 
         }
 
         async function adjGame(team, delta) { const el = document.getElementById('game-'+team); let val = parseInt(el.value) + delta; if(val < 0) val = 0; el.value = val; await dbUpdate({}); }
@@ -440,7 +468,7 @@
             await dbUpdate({}); 
         }
 
-        // 💡 ALUR PENYELESAIAN MATCH OFFLINE/ONLINE 💡
+        // --- MANAJEMEN PENYELESAIAN MATCH & LOGOUT (MENGHAPUS SESI) ---
         async function tutupMatch() { 
             if(!confirm("Anda yakin Pertandingan ini sudah SELESAI?\nStatus di Control Panel akan otomatis berubah menjadi FINISHED.")) return; 
             
@@ -448,12 +476,12 @@
             let success = await dbUpdate(payload); 
             
             if(success) {
-                // Online sukses
+                // Hapus sesi aman karena online sukses
+                localStorage.removeItem('wasit_active_session');
                 localStorage.removeItem('wasit_backup_' + matchId);
                 alert("Match Berhasil Diselesaikan! Terima kasih."); 
                 location.reload(); 
             } else {
-                // Sinyal Mati / Gagal
                 showSyncScreen();
                 startAutoSync(payload);
             }
@@ -466,6 +494,7 @@
             let success = await dbUpdate(payload); 
             
             if(success) {
+                localStorage.removeItem('wasit_active_session');
                 localStorage.removeItem('wasit_backup_' + matchId);
                 alert("Match ditandai WO/Retired."); 
                 location.reload(); 
@@ -475,7 +504,6 @@
             }
         }
 
-        // --- MANAJEMEN LAYAR HIJAU ---
         function showSyncScreen() {
             document.getElementById('sync-screen').classList.remove('hidden');
         }
@@ -492,7 +520,8 @@
                     txt.innerText = "BERHASIL TERKIRIM! ✅";
                     txt.style.color = "#76ff03";
                     
-                    // Bersihkan memori dan lempar ke awal
+                    // Sinyal kembali, data terkirim, HAPUS SESI!
+                    localStorage.removeItem('wasit_active_session');
                     localStorage.removeItem('wasit_backup_' + matchId);
                     
                     setTimeout(() => {
@@ -502,21 +531,26 @@
                 } else {
                     txt.innerText = "Gagal. Sinyal belum stabil... 🔴";
                 }
-            }, 3000); // Tembak terus tiap 3 detik sampai tembus
+            }, 3000); 
         }
 
         function forceCloseSync() {
             if(!confirm("⚠️ YAKIN INGIN TUTUP PAKSA?\n\nJika Anda menutup paksa, pastikan Anda segera melapor skor akhir secara lisan ke Meja Operator agar mereka bisa merubahnya secara manual di Control Panel!")) return;
             
             if(syncInterval) clearInterval(syncInterval);
+            localStorage.removeItem('wasit_active_session');
             localStorage.removeItem('wasit_backup_' + matchId);
             location.reload();
         }
 
         function logoutWasit() {
-            if(localStorage.getItem('wasit_backup_' + matchId)) {
-                if(!confirm("⚠️ ADA DATA SKOR YANG BELUM TERSIMPAN DI SERVER!\n\nApakah Anda yakin ingin logout? Data yang belum sinkron akan dihapus.")) return;
+            if(localStorage.getItem('wasit_backup_' + matchId) && document.getElementById('conn-indicator').innerText.includes('OFFLINE')) {
+                if(!confirm("⚠️ HP SEDANG OFFLINE DAN ADA SKOR YANG BELUM TERSIMPAN DI SERVER!\n\nApakah Anda yakin ingin logout? Data yang belum sinkron akan HILANG.")) return;
+            } else {
+                if(!confirm("Apakah Anda yakin ingin Logout/Ganti Court?")) return;
             }
+            // Hapus semua kunci sesi!
+            localStorage.removeItem('wasit_active_session');
             localStorage.removeItem('wasit_backup_' + matchId);
             location.reload();
         }
