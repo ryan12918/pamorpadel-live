@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1a237e">
-    <title>LIVE SCORE PRO</title>
+    <title>LIVE SCORE PRO - TOURNAMENT BRACKET</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Courier+Prime&family=Lato:wght@400;700&family=Montserrat:wght@400;600;700;800&family=Oswald:wght@400;700&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;600;700;800&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -67,13 +67,63 @@
         .nav-btn { flex: 1; text-align: center; font-size: 10px; color: #ccc; font-weight: 600; cursor:pointer; }
         .nav-btn.active { color: var(--primary-start); font-weight: 800; }
 
-        /* PENGUNCI SPASI RULES */
         #rules-text { font-size: 13px; line-height: 1.4; color: inherit; font-family: 'Segoe UI', sans-serif; }
         #rules-text p, #rules-text div { margin: 0 0 6px 0; }
         #rules-text ul, #rules-text ol { margin: 4px 0 8px 25px; padding: 0; }
         #rules-text li { margin-bottom: 4px; }
         #rules-text h1, #rules-text h2, #rules-text h3 { margin: 15px 0 8px 0; font-weight: 800; line-height: 1.2; }
         #rules-text hr { margin: 15px 0; border: 0; border-top: 1px solid rgba(128,128,128,0.3); }
+
+        /* BRACKET ENGINE V20 CSS (SLOT & SIKU SEMPURNA) */
+        #view-bagan.container { max-width: 100% !important; padding: 0 !important; }
+        .bracket-container {
+            display: flex; flex-direction: row; align-items: stretch; overflow-x: auto;
+            padding: 50px 30px 150px 30px; gap: 50px; width: 100%; box-sizing: border-box;
+            scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+            min-height: 60vh;
+        }
+        .bracket-container::-webkit-scrollbar { height: 8px; }
+        .bracket-container::-webkit-scrollbar-thumb { background: var(--primary-start); border-radius: 4px; }
+        
+        .bracket-column {
+            display: flex; flex-direction: column; 
+            min-width: 320px; scroll-snap-align: center; position: relative;
+        }
+        .bracket-header {
+            text-align: center; font-weight: 900; color: var(--primary-start); margin-bottom: 20px;
+            text-transform: uppercase; letter-spacing: 2px; font-size: 13px; opacity: 0.8;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.1); flex-shrink: 0;
+        }
+        
+        .bracket-tiers-wrapper {
+            display: flex; flex-direction: column; flex: 1; width: 100%;
+        }
+        .bracket-matchup-pair {
+            display: flex; flex-direction: column; justify-content: space-around; flex: 1; position: relative;
+        }
+        
+        /* Trik Matematika Siku Presisi (Perfect Elbows) */
+        .bracket-matchup-pair.has-children::after {
+            content: ''; position: absolute; right: -25px; top: 25%; bottom: 25%; width: 25px;
+            border-top: 2px solid rgba(128,128,128,0.4); border-bottom: 2px solid rgba(128,128,128,0.4); 
+            border-right: 2px solid rgba(128,128,128,0.4); border-top-right-radius: 6px; border-bottom-right-radius: 6px; z-index: -1;
+        }
+        .bracket-matchup-pair.has-children::before {
+            content: ''; position: absolute; right: -50px; top: 50%; width: 25px; height: 2px;
+            background: rgba(128,128,128,0.4); z-index: -1;
+        }
+        
+        .bracket-match-wrapper {
+            position: relative; width: 100%; z-index: 10; display: flex; align-items: center; justify-content: center;
+            padding: 8px 0;
+        }
+        
+        .match-card { margin-bottom: 0 !important; width: 100%; }
+        
+        .match-card.ghost { 
+            opacity: 0.4; border: 2px dashed rgba(128,128,128,0.6) !important; background: transparent !important; 
+            box-shadow: none !important; display: flex; justify-content: center; align-items: center; min-height: 80px; 
+        }
         
         /* THEMES - AUTO ADAPTIVE COLORS */
         .theme-classic-white { background: white; color: #333; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #eee; } .theme-classic-white .meta-text { color: #C2185B; } .theme-classic-white .court-badge { background: #f5f5f5; color: #666; border: 1px solid #ddd; } 
@@ -286,7 +336,7 @@
             tabEl.innerHTML = html;
         }
 
-        function setCat(c) { currentCategory = c; processAndRender(); setTimeout(() => { document.querySelector('.is-live')?.scrollIntoView({behavior: 'smooth', block: 'center'}); }, 300); }
+        function setCat(c) { currentCategory = c; processAndRender(); setTimeout(() => { document.querySelector('.is-live')?.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'center'}); }, 300); }
 
         function formatTeamName(teamString, serverState, isTeamA) {
             if(hideServeGlobal) return `<div style="font-weight: 800; line-height: 1.15; ${!isTeamA ? 'text-align:right;' : ''}">${teamString}</div>`; 
@@ -359,6 +409,24 @@
             let isPct = (window.klasemenFormat === 'PCT');
             let legendText = isPct ? '%: Persentase (Game Percentage)' : 'GD: Selisih Game (Game Difference)';
             
+            let groups = {};
+            let filteredMatches = matches.filter(m => currentCategory === 'SEMUA' || (m.category||'UMUM') === currentCategory);
+            
+            // 💡 LAPIS 1: KATA KUNCI KHUSUS KLASEMEN SAJA
+            const klasemenKeywords = ['grup', 'group', 'pool', 'penyisihan', 'liga'];
+            const isKlasemen = (r) => klasemenKeywords.some(kw => (r||'').toLowerCase().includes(kw));
+            
+            let klasemenMatches = filteredMatches.filter(m => isKlasemen(m.round));
+
+            if(klasemenMatches.length === 0) {
+                el.innerHTML = `
+                    <div class="match-card theme-${cardPreset}" style="text-align:center; padding: 30px 20px; margin-top:20px; border: 2px dashed rgba(128,128,128,0.3); box-shadow:none;">
+                        <h3 style="margin:0 0 10px 0; font-weight:900; color:var(--primary-start); opacity:0.6;">TIDAK ADA KLASEMEN</h3>
+                        <p style="font-size:12px; opacity:0.6; line-height:1.5; margin:0;">Tidak ada pertandingan dengan sistem Grup/Liga pada kategori ini.</p>
+                    </div>`;
+                return;
+            }
+
             el.innerHTML = `
             <div class="match-card theme-${cardPreset}" style="padding: 12px; margin-bottom: 15px; text-align: center; line-height: 1.6; font-size: 10px; font-weight: 600;">
                 <span style="font-weight: 900; opacity: 0.8; font-size: 12px; text-transform: uppercase;">KETERANGAN TABEL</span><br>
@@ -369,10 +437,7 @@
                 </div>
             </div>`;
 
-            let groups = {};
-            let filteredMatches = matches.filter(m => currentCategory === 'SEMUA' || (m.category||'UMUM') === currentCategory);
-            
-            filteredMatches.filter(m => m.round.toLowerCase().includes('grup')).forEach(m => {
+            klasemenMatches.forEach(m => {
                 let g = (m.category||'UMUM') + ' - ' + m.round;
                 if(!groups[g]) groups[g]={cat: m.category||'UMUM', round: m.round};
                 [m.team_a, m.team_b].forEach(t=>{ if(!groups[g][t]) groups[g][t]={mp:0, w:0, l:0, gw:0, gl:0, gd:0}; });
@@ -413,10 +478,141 @@
         function renderAll() {
             const elJ = document.getElementById('jadwal-content'); elJ.innerHTML = "";
             const elB = document.getElementById('bagan-content'); elB.innerHTML = "";
+            
             let filteredMatches = matches.filter(m => currentCategory === 'SEMUA' || (m.category||'UMUM') === currentCategory);
             
-            filteredMatches.filter(m => m.round.toLowerCase().includes('grup')).forEach(m => elJ.innerHTML += createCardHTML(m));
-            filteredMatches.filter(m => !m.round.toLowerCase().includes('grup')).forEach(m => elB.innerHTML += createCardHTML(m));
+            // 💡 LAPIS 2: KATA KUNCI KHUSUS BAGAN SAJA
+            const baganKeywords = ['16', '32', '64', 'quarter', 'qf', '8', 'perempat', 'semi', 'sf', '4', 'final', 'puncak', 'juara 3', 'third', 'tiga'];
+            const isBagan = (r) => baganKeywords.some(kw => (r||'').toLowerCase().includes(kw));
+            
+            let jadwalMatches = [];
+            let baganMatches = [];
+            
+            filteredMatches.forEach(m => {
+                // Jika itu babak gugur resmi, kirim ke Bagan. 
+                // JIKA BUKAN (Laga Grup, Laga Amal, Blind Match, atau Kosong), SEMUA DILEMPAR KE JADWAL (Lapis 3)
+                if(isBagan(m.round)) baganMatches.push(m);
+                else jadwalMatches.push(m);
+            });
+
+            // RENDER JADWAL (Tempat penampungan laga grup & laga hiburan)
+            if(jadwalMatches.length > 0) {
+                jadwalMatches.forEach(m => elJ.innerHTML += createCardHTML(m));
+            } else {
+                elJ.innerHTML = `<div class="match-card theme-${cardPreset}" style="text-align:center; padding: 30px 20px; margin-top:20px; border: 2px dashed rgba(128,128,128,0.3); box-shadow:none;"><p style="font-size:12px; opacity:0.6;">Tidak ada Jadwal (Penyisihan/Hiburan) di kategori ini.</p></div>`;
+            }
+            
+            // RENDER BAGAN POHON
+            if(baganMatches.length > 0) {
+                if (currentCategory === 'SEMUA') {
+                    elB.innerHTML = `
+                        <div class="match-card theme-${cardPreset}" style="text-align:center; padding: 40px 20px; margin-top:20px; border: 2px dashed rgba(128,128,128,0.3); box-shadow:none;">
+                            <div style="font-size:30px; margin-bottom:10px; opacity:0.5;">🔀</div>
+                            <h3 style="margin:0 0 10px 0; font-weight:900; color:var(--primary-start);">PILIH KATEGORI</h3>
+                            <p style="font-size:12px; opacity:0.8; line-height:1.5; margin:0;">Bagan pohon turnamen tidak dapat ditampilkan untuk "SEMUA LAGA" karena akan menumpuk dan membingungkan.<br><br><b>Silakan geser dan pilih salah satu kategori di atas (Misal: Mixed Doubles) untuk melihat bagannya.</b></p>
+                        </div>
+                    `;
+                } else {
+                    let tiers = [
+                        { id: 'r64', name: 'Round of 64', size: 32, matches: new Array(32).fill(null) },
+                        { id: 'r32', name: 'Round of 32', size: 16, matches: new Array(16).fill(null) },
+                        { id: 'r16', name: 'Round of 16', size: 8, matches: new Array(8).fill(null) },
+                        { id: 'qf', name: 'Quarter Final', size: 4, matches: new Array(4).fill(null) },
+                        { id: 'sf', name: 'Semi Final', size: 2, matches: new Array(2).fill(null) },
+                        { id: 'final', name: 'Grand Final', size: 1, matches: new Array(1).fill(null) },
+                        { id: 'third', name: '3rd Place', size: 1, matches: new Array(1).fill(null) }
+                    ];
+                    
+                    const getNum = (str) => { let match = (str||'').match(/\d+/); return match ? parseInt(match[0]) : null; };
+                    
+                    baganMatches.forEach(m => {
+                        let rawRound = (m.round || '').trim();
+                        if (!rawRound || rawRound === '-' || rawRound === '--' || rawRound === '---') return;
+
+                        let r = rawRound.toLowerCase();
+                        let num = getNum(rawRound);
+                        let targetTier = null;
+                        
+                        if(r.includes('juara 3') || r.includes('third') || r.includes('tiga') || r.includes('perebutan')) targetTier = tiers.find(t=>t.id==='third');
+                        else if(r.includes('quarter') || r.includes('qf') || r.includes('8 besar') || r.includes('perempat')) targetTier = tiers.find(t=>t.id==='qf');
+                        else if(r.includes('semi') || r.includes('sf') || r.includes('4 besar')) targetTier = tiers.find(t=>t.id==='sf');
+                        else if(r.includes('16')) targetTier = tiers.find(t=>t.id==='r16');
+                        else if(r.includes('32')) targetTier = tiers.find(t=>t.id==='r32');
+                        else if(r.includes('64')) targetTier = tiers.find(t=>t.id==='r64');
+                        else if(r.includes('final') || r.includes('puncak')) targetTier = tiers.find(t=>t.id==='final');
+                        else targetTier = tiers.find(t=>t.id==='r64');
+
+                        if(targetTier) {
+                            let idx = (num !== null && num >= 1 && num <= targetTier.size) ? (num - 1) : -1;
+                            if(idx !== -1 && !targetTier.matches[idx]) {
+                                targetTier.matches[idx] = m;
+                            } else {
+                                let emptyIdx = targetTier.matches.findIndex(x => x === null);
+                                if(emptyIdx !== -1) targetTier.matches[emptyIdx] = m;
+                            }
+                        }
+                    });
+
+                    let activeStart = -1; let activeEnd = -1;
+                    for(let i=0; i<tiers.length - 1; i++) {
+                        if(tiers[i].matches.some(m => m !== null)) {
+                            if(activeStart === -1) activeStart = i;
+                            activeEnd = i;
+                        }
+                    }
+
+                    if (activeStart !== -1) {
+                        let renderTiers = tiers.slice(activeStart, activeEnd + 1);
+                        let bracketHTML = '<div class="bracket-container">';
+
+                        function createGhostHTML() {
+                            return `<div class="match-card ghost theme-${cardPreset}"><span style="font-size:11px; font-weight:800; letter-spacing:2px;">TBD / BYE</span></div>`;
+                        }
+
+                        renderTiers.forEach((tier, index) => {
+                            let isLastColumn = (index === renderTiers.length - 1);
+                            let colHTML = `<div class="bracket-column">`;
+                            colHTML += `<div class="bracket-header">${tier.name}</div>`;
+                            colHTML += `<div class="bracket-tiers-wrapper">`;
+                            
+                            let pairCount = Math.max(1, tier.size / 2);
+                            
+                            for(let p=0; p<pairCount; p++) {
+                                let hasChildren = !isLastColumn;
+                                colHTML += `<div class="bracket-matchup-pair ${hasChildren ? 'has-children' : ''}">`;
+                                
+                                if(tier.size === 1) { 
+                                    let m = tier.matches[0];
+                                    colHTML += `<div class="bracket-match-wrapper">${m ? createCardHTML(m) : createGhostHTML()}</div>`;
+                                    
+                                    if (isLastColumn) {
+                                        let thirdTier = tiers.find(t=>t.id==='third');
+                                        if(thirdTier.matches.some(m=>m!==null)) {
+                                            let m3 = thirdTier.matches.find(m=>m!==null);
+                                            colHTML += `<div style="position: absolute; top: calc(50% + 90px); left: 0; width: 100%; z-index: 5;">`;
+                                            colHTML += `<div class="bracket-header" style="margin-bottom:10px; margin-top:0; color:#888; font-size:11px;">PEREBUTAN JUARA 3</div>`;
+                                            colHTML += `<div class="bracket-match-wrapper" style="padding:0;">${createCardHTML(m3)}</div>`;
+                                            colHTML += `</div>`;
+                                        }
+                                    }
+                                } else { 
+                                    let m1 = tier.matches[p*2];
+                                    let m2 = tier.matches[p*2 + 1];
+                                    colHTML += `<div class="bracket-match-wrapper">${m1 ? createCardHTML(m1) : createGhostHTML()}</div>`;
+                                    colHTML += `<div class="bracket-match-wrapper">${m2 ? createCardHTML(m2) : createGhostHTML()}</div>`;
+                                }
+                                colHTML += `</div>`;
+                            }
+                            colHTML += `</div></div>`;
+                            bracketHTML += colHTML;
+                        });
+                        bracketHTML += '</div>';
+                        elB.innerHTML = bracketHTML;
+                    }
+                }
+            } else {
+                 elB.innerHTML = `<div class="match-card theme-${cardPreset}" style="text-align:center; padding: 30px 20px; margin-top:20px; border: 2px dashed rgba(128,128,128,0.3); box-shadow:none;"><p style="font-size:12px; opacity:0.6;">Belum ada data untuk Pohon Turnamen.</p></div>`;
+            }
             renderKlasemen();
         }
 
