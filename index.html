@@ -74,35 +74,33 @@
         #rules-text h1, #rules-text h2, #rules-text h3 { margin: 15px 0 8px 0; font-weight: 800; line-height: 1.2; }
         #rules-text hr { margin: 15px 0; border: 0; border-top: 1px solid rgba(128,128,128,0.3); }
 
-        /* BRACKET ENGINE V20 CSS (SLOT & SIKU SEMPURNA) */
+        /* BRACKET ENGINE V22 CSS (PINCH TO ZOOM VIEWPORT) */
         #view-bagan.container { max-width: 100% !important; padding: 0 !important; }
-        .bracket-container {
-            display: flex; flex-direction: row; align-items: stretch; overflow-x: auto;
-            padding: 50px 30px 150px 30px; gap: 50px; width: 100%; box-sizing: border-box;
-            scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+        
+        .bracket-viewport {
+            width: 100%; overflow: auto; -webkit-overflow-scrolling: touch;
             min-height: 60vh;
         }
-        .bracket-container::-webkit-scrollbar { height: 8px; }
-        .bracket-container::-webkit-scrollbar-thumb { background: var(--primary-start); border-radius: 4px; }
-        
-        .bracket-column {
-            display: flex; flex-direction: column; 
-            min-width: 320px; scroll-snap-align: center; position: relative;
+        .bracket-canvas {
+            min-width: max-content;
+            transform-origin: 0 0;
+            /* Zoom akan diatur via JavaScript */
         }
+        .bracket-container {
+            display: flex; flex-direction: row; align-items: stretch;
+            padding: 50px 30px 150px 30px; gap: 50px; width: 100%; box-sizing: border-box;
+        }
+        
+        .bracket-column { display: flex; flex-direction: column; min-width: 320px; position: relative; }
         .bracket-header {
             text-align: center; font-weight: 900; color: var(--primary-start); margin-bottom: 20px;
             text-transform: uppercase; letter-spacing: 2px; font-size: 13px; opacity: 0.8;
             text-shadow: 0 2px 5px rgba(0,0,0,0.1); flex-shrink: 0;
         }
         
-        .bracket-tiers-wrapper {
-            display: flex; flex-direction: column; flex: 1; width: 100%;
-        }
-        .bracket-matchup-pair {
-            display: flex; flex-direction: column; justify-content: space-around; flex: 1; position: relative;
-        }
+        .bracket-tiers-wrapper { display: flex; flex-direction: column; flex: 1; width: 100%; }
+        .bracket-matchup-pair { display: flex; flex-direction: column; justify-content: space-around; flex: 1; position: relative; }
         
-        /* Trik Matematika Siku Presisi (Perfect Elbows) */
         .bracket-matchup-pair.has-children::after {
             content: ''; position: absolute; right: -25px; top: 25%; bottom: 25%; width: 25px;
             border-top: 2px solid rgba(128,128,128,0.4); border-bottom: 2px solid rgba(128,128,128,0.4); 
@@ -113,11 +111,7 @@
             background: rgba(128,128,128,0.4); z-index: -1;
         }
         
-        .bracket-match-wrapper {
-            position: relative; width: 100%; z-index: 10; display: flex; align-items: center; justify-content: center;
-            padding: 8px 0;
-        }
-        
+        .bracket-match-wrapper { position: relative; width: 100%; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 8px 0; }
         .match-card { margin-bottom: 0 !important; width: 100%; }
         
         .match-card.ghost { 
@@ -250,6 +244,11 @@
         let currentCategory = 'SEMUA';
 
         window.klasemenFormat = 'GD'; 
+        
+        // --- VARIABEL PINCH TO ZOOM BAGAN ---
+        let bracketScale = 1;
+        let initTouchDist = 0;
+        let initTouchScale = 1;
 
         if(isOBSMode) document.body.classList.add('obs-mode');
         else if(isTVMode || reqCourt) document.body.classList.add('tv-mode');
@@ -336,7 +335,11 @@
             tabEl.innerHTML = html;
         }
 
-        function setCat(c) { currentCategory = c; processAndRender(); setTimeout(() => { document.querySelector('.is-live')?.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'center'}); }, 300); }
+        // 💡 FUNGSI SET KATEGORI (Auto-Scroll Dihapus)
+        function setCat(c) { 
+            currentCategory = c; 
+            processAndRender(); 
+        }
 
         function formatTeamName(teamString, serverState, isTeamA) {
             if(hideServeGlobal) return `<div style="font-weight: 800; line-height: 1.15; ${!isTeamA ? 'text-align:right;' : ''}">${teamString}</div>`; 
@@ -412,7 +415,6 @@
             let groups = {};
             let filteredMatches = matches.filter(m => currentCategory === 'SEMUA' || (m.category||'UMUM') === currentCategory);
             
-            // 💡 LAPIS 1: KATA KUNCI KHUSUS KLASEMEN SAJA
             const klasemenKeywords = ['grup', 'group', 'pool', 'penyisihan', 'liga'];
             const isKlasemen = (r) => klasemenKeywords.some(kw => (r||'').toLowerCase().includes(kw));
             
@@ -481,7 +483,6 @@
             
             let filteredMatches = matches.filter(m => currentCategory === 'SEMUA' || (m.category||'UMUM') === currentCategory);
             
-            // 💡 LAPIS 2: KATA KUNCI KHUSUS BAGAN SAJA
             const baganKeywords = ['16', '32', '64', 'quarter', 'qf', '8', 'perempat', 'semi', 'sf', '4', 'final', 'puncak', 'juara 3', 'third', 'tiga'];
             const isBagan = (r) => baganKeywords.some(kw => (r||'').toLowerCase().includes(kw));
             
@@ -489,20 +490,16 @@
             let baganMatches = [];
             
             filteredMatches.forEach(m => {
-                // Jika itu babak gugur resmi, kirim ke Bagan. 
-                // JIKA BUKAN (Laga Grup, Laga Amal, Blind Match, atau Kosong), SEMUA DILEMPAR KE JADWAL (Lapis 3)
                 if(isBagan(m.round)) baganMatches.push(m);
                 else jadwalMatches.push(m);
             });
 
-            // RENDER JADWAL (Tempat penampungan laga grup & laga hiburan)
             if(jadwalMatches.length > 0) {
                 jadwalMatches.forEach(m => elJ.innerHTML += createCardHTML(m));
             } else {
                 elJ.innerHTML = `<div class="match-card theme-${cardPreset}" style="text-align:center; padding: 30px 20px; margin-top:20px; border: 2px dashed rgba(128,128,128,0.3); box-shadow:none;"><p style="font-size:12px; opacity:0.6;">Tidak ada Jadwal (Penyisihan/Hiburan) di kategori ini.</p></div>`;
             }
             
-            // RENDER BAGAN POHON
             if(baganMatches.length > 0) {
                 if (currentCategory === 'SEMUA') {
                     elB.innerHTML = `
@@ -563,7 +560,11 @@
 
                     if (activeStart !== -1) {
                         let renderTiers = tiers.slice(activeStart, activeEnd + 1);
-                        let bracketHTML = '<div class="bracket-container">';
+                        
+                        // 💡 PENAMBAHAN WADAH UNTUK PINCH-TO-ZOOM EKSKLUSIF BAGAN
+                        let bracketHTML = '<div id="bracket-viewport" class="bracket-viewport">';
+                        bracketHTML += '<div id="bracket-canvas" class="bracket-canvas">';
+                        bracketHTML += '<div class="bracket-container">';
 
                         function createGhostHTML() {
                             return `<div class="match-card ghost theme-${cardPreset}"><span style="font-size:11px; font-weight:800; letter-spacing:2px;">TBD / BYE</span></div>`;
@@ -606,14 +607,53 @@
                             colHTML += `</div></div>`;
                             bracketHTML += colHTML;
                         });
-                        bracketHTML += '</div>';
+                        bracketHTML += '</div></div></div>';
                         elB.innerHTML = bracketHTML;
+                        
+                        // 💡 PEMANGGILAN FUNGSI CUBIT LAYAR
+                        attachPinchZoom();
                     }
                 }
             } else {
                  elB.innerHTML = `<div class="match-card theme-${cardPreset}" style="text-align:center; padding: 30px 20px; margin-top:20px; border: 2px dashed rgba(128,128,128,0.3); box-shadow:none;"><p style="font-size:12px; opacity:0.6;">Belum ada data untuk Pohon Turnamen.</p></div>`;
             }
             renderKlasemen();
+        }
+
+        // 💡 FUNGSI KUSTOM PINCH-TO-ZOOM (EKSKLUSIF UNTUK BAGAN)
+        function attachPinchZoom() {
+            const vp = document.getElementById('bracket-viewport');
+            const cv = document.getElementById('bracket-canvas');
+            if(!vp || !cv) return;
+
+            // Menjaga skala terakhir jika kategori diganti bolak-balik
+            cv.style.zoom = bracketScale;
+            // Fallback untuk browser yang tidak mendukung properti CSS Zoom
+            if (CSS.supports && !CSS.supports('zoom: 1')) {
+                cv.style.transform = `scale(${bracketScale})`;
+            }
+
+            vp.addEventListener('touchstart', (e) => {
+                if(e.touches.length === 2) {
+                    initTouchDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                    initTouchScale = bracketScale;
+                }
+            }, {passive: false});
+
+            vp.addEventListener('touchmove', (e) => {
+                if(e.touches.length === 2) {
+                    e.preventDefault(); // Mengunci browser agar tidak men-zoom header web
+                    let dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                    
+                    // Kalkulasi rasio pembesaran dengan batas mentok (30% s/d 250%)
+                    bracketScale = Math.min(Math.max(0.3, initTouchScale * (dist / initTouchDist)), 2.5);
+                    
+                    cv.style.zoom = bracketScale;
+                    if (CSS.supports && !CSS.supports('zoom: 1')) {
+                        cv.style.transform = `scale(${bracketScale})`;
+                    }
+                }
+            }, {passive: false});
         }
 
         let fetchTimeout = null;
