@@ -686,22 +686,49 @@
         async function fin(id) { if(!confirm('Tandai Selesai?')) return; const index = window.GLOBAL_MATCHES.findIndex(m => m.id === id); if (index === -1) return; window.GLOBAL_MATCHES[index].status = 'FINISHED'; let btn = document.getElementById('btn-status-' + id); if (btn) { btn.innerText = 'DONE'; btn.style.background = '#43a047'; } updateBrandingPreview(); await db.from('matches_pro').update({status: 'FINISHED'}).eq('id', id); }
         async function del(id) { if(!confirm('Hapus Match?')) return; window.GLOBAL_MATCHES = window.GLOBAL_MATCHES.filter(m => m.id !== id); let row = document.querySelector(`tr[data-id="${id}"]`); if (row) row.remove(); updateBrandingPreview(); await db.from('matches_pro').delete().eq('id', id); }
         
+        // 💡 FUNGSI SUBMIT MATCH (BULK INSERT DENGAN STAGGERED TIMESTAMP)
         async function submitMatch() { 
-            const get = (id) => document.getElementById(id).value || "-"; const qtyStr = document.getElementById('i-qty').value; const qty = parseInt(qtyStr) || 1;
+            const get = (id) => document.getElementById(id).value || "-"; 
+            const qtyStr = document.getElementById('i-qty').value; 
+            const qty = parseInt(qtyStr) || 1;
+            
             if (qty > 100) { alert("Maksimal 100 match sekaligus untuk menjaga kestabilan!"); return; }
+            
             const newMatches = [];
+            let baseTime = new Date().getTime(); // Ambil waktu instan saat tombol ditekan
+            
             for(let i=0; i<qty; i++) {
+                // Injeksi Waktu Virtual (+10 milidetik untuk setiap kotak agar urut sempurna)
+                let virtualTime = new Date(baseTime + (i * 10)).toISOString();
+                
                 newMatches.push({ 
                     tournament_id: ACTIVE_ID, match_no: get('i-no'), pin: get('i-pin'), date: get('i-date'), time: get('i-time'), category: get('i-cat'), 
                     round: get('i-round'), court_name: get('i-court'), referee_name: get('i-ref'), team_a: get('i-ta'), team_b: get('i-tb'), status: 'PENDING', 
-                    set1_a:0, set1_b:0, set2_a:0, set2_b:0, set3_a:0, set3_b:0, set4_a:0, set4_b:0, set5_a:0, set5_b:0, points_a:"0", points_b:"0" 
+                    set1_a:0, set1_b:0, set2_a:0, set2_b:0, set3_a:0, set3_b:0, set4_a:0, set4_b:0, set5_a:0, set5_b:0, points_a:"0", points_b:"0",
+                    created_at: virtualTime
                 });
             }
+            
             document.getElementById('modal-match').style.display='none'; 
-            const btnRefresh = document.getElementById('btn-refresh'); btnRefresh.innerText = "⏳ MENAMBAH..."; btnRefresh.style.background = "#ef6c00"; btnRefresh.style.pointerEvents = "none";
-            try { for(let i=0; i < newMatches.length; i+=20) { const chunk = newMatches.slice(i, i+20); const { error } = await db.from('matches_pro').insert(chunk); if (error) throw error; } } 
-            catch(err) { alert("Terjadi kesalahan sistem: " + err.message); }
-            btnRefresh.innerText = "REFRESH"; btnRefresh.style.background = "#546e7a"; btnRefresh.style.pointerEvents = "auto"; loadMatches(); 
+            const btnRefresh = document.getElementById('btn-refresh'); 
+            btnRefresh.innerText = "⏳ MENAMBAH..."; 
+            btnRefresh.style.background = "#ef6c00"; 
+            btnRefresh.style.pointerEvents = "none";
+            
+            try { 
+                for(let i=0; i < newMatches.length; i+=20) { 
+                    const chunk = newMatches.slice(i, i+20); 
+                    const { error } = await db.from('matches_pro').insert(chunk); 
+                    if (error) throw error; 
+                } 
+            } catch(err) { 
+                alert("Terjadi kesalahan sistem: " + err.message); 
+            }
+            
+            btnRefresh.innerText = "REFRESH"; 
+            btnRefresh.style.background = "#546e7a"; 
+            btnRefresh.style.pointerEvents = "auto"; 
+            loadMatches(); 
         }
 
         // ==========================================
