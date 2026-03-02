@@ -432,7 +432,18 @@
         const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let ACTIVE_ID = null; let previewTimeout = null; window.GLOBAL_MATCHES = []; let pendingUpdates = {}; let updateTimer = null; let dragSyncTimeout = null; 
         
+        // 💡 VARIABEL PENGUNCI KEAMANAN (ANTI-DATA LOSS)
+        let isUnsavedData = false;
+        
         window.RAW_DB_DATA = null;
+
+        // 💡 SISTEM GEMBOK TAB BROWSER
+        window.addEventListener('beforeunload', function (e) {
+            if (isUnsavedData || Object.keys(pendingUpdates).length > 0) {
+                e.preventDefault();
+                e.returnValue = 'Tunggu! Data sedang disimpan ke server. Yakin ingin keluar/refresh?';
+            }
+        });
 
         const PRESETS = [
             {n:"Padel Pro", h1:"#1a237e", h2:"#0d47a1", bg:"#e3f2fd", neon:"#76ff03", st:"classic-white"},
@@ -576,7 +587,10 @@
             link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
+        // 💡 FUNGSI UPDATE DEBOUNCE DIPERKETAT (TURBO 300MS & GEMBOK)
         function upd(id, f, v) {
+            isUnsavedData = true; // Nyalakan gembok keamanan tab
+
             const index = window.GLOBAL_MATCHES.findIndex(m => m.id === id);
             if (index > -1) { 
                 if (f.includes('set') || f.includes('point')) { 
@@ -591,30 +605,81 @@
                 } else if (f === 'is_wo') { window.GLOBAL_MATCHES[index][f] = (v === true || v === 'true'); } else { window.GLOBAL_MATCHES[index][f] = v; } 
                 updateBrandingPreview(); 
             }
+            
             if (!pendingUpdates[id]) { pendingUpdates[id] = {}; }
             if (f === 'is_wo') { pendingUpdates[id][f] = (v === true || v === 'true'); } else if (f.includes('set') || f.includes('point')) {
                 let parsed = parseInt(v); if (!isNaN(parsed)) pendingUpdates[id][f] = parsed;
             } else { pendingUpdates[id][f] = v; }
+            
+            // Matikan tombol Refresh agar tidak bisa diklik saat loading
             const btnRefresh = document.getElementById('btn-refresh');
-            if(btnRefresh) { btnRefresh.innerText = "⏳ MENYIMPAN..."; btnRefresh.style.background = "#ef6c00"; }
+            if(btnRefresh) { 
+                btnRefresh.innerText = "⏳ MENYIMPAN..."; 
+                btnRefresh.style.background = "#ef6c00"; 
+                btnRefresh.style.pointerEvents = "none"; // Kunci tombol
+            }
+            
             clearTimeout(updateTimer); 
+            // 💡 WAKTU DIPERKECIL KE 300ms AGAR RESPON LEBIH CEPAT
             updateTimer = setTimeout(async () => { 
                 const matchIds = Object.keys(pendingUpdates);
-                if(matchIds.length > 0) { const promises = matchIds.map(matchId => db.from('matches_pro').update(pendingUpdates[matchId]).eq('id', matchId)); await Promise.all(promises); pendingUpdates = {}; }
-                if(btnRefresh) { btnRefresh.innerText = "REFRESH"; btnRefresh.style.background = "#546e7a"; }
-            }, 600);
+                if(matchIds.length > 0) { 
+                    const promises = matchIds.map(matchId => db.from('matches_pro').update(pendingUpdates[matchId]).eq('id', matchId)); 
+                    await Promise.all(promises); 
+                    pendingUpdates = {}; 
+                }
+                
+                isUnsavedData = false; // Matikan gembok keamanan
+                
+                if(btnRefresh) { 
+                    btnRefresh.innerText = "✅ TERSIMPAN"; 
+                    btnRefresh.style.background = "#2e7d32"; 
+                    // Kembalikan ke normal setelah 1.5 detik
+                    setTimeout(() => {
+                        if(!isUnsavedData) {
+                            btnRefresh.innerText = "REFRESH"; 
+                            btnRefresh.style.background = "#546e7a"; 
+                            btnRefresh.style.pointerEvents = "auto"; // Buka gembok tombol
+                        }
+                    }, 1500);
+                }
+            }, 300);
         }
 
+        // 💡 FUNGSI DRAG POSISI DIPERKETAT
         function reorderMatchesSweep() {
+            isUnsavedData = true; // Nyalakan gembok
             const rows = document.querySelectorAll('#tbl-body tr'); let newGlobalMatches = []; let updatesToProcess = []; let baseTime = new Date('2025-01-01T00:00:00Z').getTime(); 
             rows.forEach((row, index) => { const id = row.getAttribute('data-id'); let match = window.GLOBAL_MATCHES.find(m => m.id === id); if (match) { let newTime = new Date(baseTime + (index * 1000)).toISOString(); if (match.created_at !== newTime) { match.created_at = newTime; updatesToProcess.push({ id: id, created_at: newTime }); } newGlobalMatches.push(match); } });
             window.GLOBAL_MATCHES = newGlobalMatches; updateBrandingPreview();
-            const btnRefresh = document.getElementById('btn-refresh'); if(btnRefresh && updatesToProcess.length > 0) { btnRefresh.innerText = "⏳ MENYIMPAN POSISI..."; btnRefresh.style.background = "#ef6c00"; }
+            
+            const btnRefresh = document.getElementById('btn-refresh'); 
+            if(btnRefresh && updatesToProcess.length > 0) { 
+                btnRefresh.innerText = "⏳ MENYIMPAN POSISI..."; 
+                btnRefresh.style.background = "#ef6c00"; 
+                btnRefresh.style.pointerEvents = "none";
+            }
+            
             clearTimeout(dragSyncTimeout); 
             dragSyncTimeout = setTimeout(async () => { 
-                if(updatesToProcess.length > 0) { const promises = updatesToProcess.map(upd => db.from('matches_pro').update({ created_at: upd.created_at }).eq('id', upd.id)); await Promise.all(promises); }
-                if(btnRefresh) { btnRefresh.innerText = "REFRESH"; btnRefresh.style.background = "#546e7a"; }
-            }, 1000); 
+                if(updatesToProcess.length > 0) { 
+                    const promises = updatesToProcess.map(upd => db.from('matches_pro').update({ created_at: upd.created_at }).eq('id', upd.id)); 
+                    await Promise.all(promises); 
+                }
+                
+                isUnsavedData = false; // Matikan gembok
+                if(btnRefresh) { 
+                    btnRefresh.innerText = "✅ TERSIMPAN"; 
+                    btnRefresh.style.background = "#2e7d32"; 
+                    setTimeout(() => {
+                        if(!isUnsavedData) {
+                            btnRefresh.innerText = "REFRESH"; 
+                            btnRefresh.style.background = "#546e7a"; 
+                            btnRefresh.style.pointerEvents = "auto";
+                        }
+                    }, 1500);
+                }
+            }, 500); 
         }
 
         async function tog(id) { const index = window.GLOBAL_MATCHES.findIndex(m => m.id === id); if (index === -1) return; let ns = window.GLOBAL_MATCHES[index].status === 'LIVE' ? 'PENDING' : 'LIVE'; window.GLOBAL_MATCHES[index].status = ns; let btn = document.getElementById('btn-status-' + id); if (btn) { btn.innerText = ns === 'LIVE' ? 'STOP' : 'LIVE'; btn.style.background = ns === 'LIVE' ? '#e91e63' : '#90a4ae'; } updateBrandingPreview(); await db.from('matches_pro').update({status: ns}).eq('id', id); }
@@ -633,10 +698,10 @@
                 });
             }
             document.getElementById('modal-match').style.display='none'; 
-            const btnRefresh = document.getElementById('btn-refresh'); btnRefresh.innerText = "⏳ MENAMBAH..."; btnRefresh.style.background = "#ef6c00";
+            const btnRefresh = document.getElementById('btn-refresh'); btnRefresh.innerText = "⏳ MENAMBAH..."; btnRefresh.style.background = "#ef6c00"; btnRefresh.style.pointerEvents = "none";
             try { for(let i=0; i < newMatches.length; i+=20) { const chunk = newMatches.slice(i, i+20); const { error } = await db.from('matches_pro').insert(chunk); if (error) throw error; } } 
             catch(err) { alert("Terjadi kesalahan sistem: " + err.message); }
-            btnRefresh.innerText = "REFRESH"; btnRefresh.style.background = "#546e7a"; loadMatches(); 
+            btnRefresh.innerText = "REFRESH"; btnRefresh.style.background = "#546e7a"; btnRefresh.style.pointerEvents = "auto"; loadMatches(); 
         }
 
         // ==========================================
@@ -1030,7 +1095,6 @@
         function switchTab(t, btn) { document.querySelectorAll('.view-section').forEach(e=>e.classList.remove('active')); document.getElementById('view-'+t).classList.add('active'); document.querySelectorAll('.nav-pill').forEach(e=>e.classList.remove('active')); btn.classList.add('active'); }
         function openModalMatch() { document.getElementById('modal-match').style.display='flex'; }
         function showQR() { const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://ryan12918.github.io/pamorpadel-live/client.html?id=${ACTIVE_ID}`; document.getElementById('qr-img').src = url; document.getElementById('qr-text').innerText = ACTIVE_ID; document.getElementById('modal-qr').style.display='flex'; }
-        function filterTable() { const f = document.getElementById('search-box').value.toUpperCase(); const tr = document.getElementById('main-table').getElementsByTagName('tr'); for(let i=2; i<tr.length; i++) { const txt = tr[i].innerText; const inps = tr[i].querySelectorAll('input, textarea'); let valTxt = ""; inps.forEach(inp => valTxt += " " + inp.value); const fullTxt = txt + valTxt; tr[i].style.display = fullTxt.toUpperCase().indexOf(f)>-1 ? "" : "none"; } }
 
         // ==========================================
         // FITUR PENGATURAN TV LIVE SCORE (ADVANCED)
@@ -1237,7 +1301,6 @@
             
             const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
             
-            // Satukan semua pengaturan lanjutan (posisi, warna, dll) ke dalam 1 payload JSON
             const tvStyleObj = {
                 cT: getVal('tv-col-title'), sT: getVal('tv-s-title'), xT: getVal('tv-x-title'), yT: getVal('tv-y-title'),
                 cS: getVal('tv-col-sub'), sS: getVal('tv-s-sub'), xS: getVal('tv-x-sub'), yS: getVal('tv-y-sub'),
