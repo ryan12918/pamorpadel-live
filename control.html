@@ -484,13 +484,22 @@
 
         async function loadMatches() { const { data } = await db.from('matches_pro').select('*').eq('tournament_id', ACTIVE_ID).order('created_at', {ascending: true}); window.GLOBAL_MATCHES = data || []; window.GLOBAL_MATCHES.sort((a,b) => new Date(a.created_at) - new Date(b.created_at)); renderTableMatches(); updateBrandingPreview(); }
 
+        // 💡 FUNGSI PENAHAN RELOAD (DEBOUNCE LISTENER) AGAR BROWSER TIDAK CRASH 💡
+        let syncDebounce = null;
+        function triggerLoadMatches() {
+            clearTimeout(syncDebounce);
+            syncDebounce = setTimeout(() => {
+                loadMatches();
+            }, 500); 
+        }
+
         function subscribeControl() {
             db.channel('public:matches_pro_admin')
             .on('postgres_changes', {event:'UPDATE', schema:'public', table:'matches_pro', filter:`tournament_id=eq.${ACTIVE_ID}`}, (payload) => {
                 const newM = payload.new; const index = window.GLOBAL_MATCHES.findIndex(m => m.id === newM.id);
                 if(index > -1) { window.GLOBAL_MATCHES[index] = newM; updateRowDOM(newM); updateBrandingPreview(); }
-            }).on('postgres_changes', {event:'INSERT', schema:'public', table:'matches_pro', filter:`tournament_id=eq.${ACTIVE_ID}`}, () => { loadMatches(); })
-            .on('postgres_changes', {event:'DELETE', schema:'public', table:'matches_pro', filter:`tournament_id=eq.${ACTIVE_ID}`}, () => { loadMatches(); }).subscribe();
+            }).on('postgres_changes', {event:'INSERT', schema:'public', table:'matches_pro', filter:`tournament_id=eq.${ACTIVE_ID}`}, () => { triggerLoadMatches(); })
+            .on('postgres_changes', {event:'DELETE', schema:'public', table:'matches_pro', filter:`tournament_id=eq.${ACTIVE_ID}`}, () => { triggerLoadMatches(); }).subscribe();
         }
 
         function updateRowDOM(m) {
@@ -501,8 +510,11 @@
             if(btn) { let status = String(m.status||'').toUpperCase(); btn.innerText = status === 'LIVE' ? 'STOP' : (status === 'FINISHED' ? 'DONE' : 'LIVE'); btn.style.background = status === 'LIVE' ? '#e91e63' : (status === 'FINISHED' ? '#43a047' : '#90a4ae'); }
         }
 
+        // 💡 SISTEM RENDER STRING BUILDER (ANTI RAM LEAK) 💡
         function renderTableMatches() {
-            const tb = document.getElementById('tbl-body'); tb.innerHTML = "";
+            const tb = document.getElementById('tbl-body'); 
+            let htmlContent = ""; // Tampung semua baris di memori internal JavaScript
+            
             if(window.GLOBAL_MATCHES && window.GLOBAL_MATCHES.length > 0) {
                 window.GLOBAL_MATCHES.forEach((m) => {
                     const inp = (f, v, c='') => `<input class="tbl-inp ${c}" data-field="${f}" value="${v||''}" onchange="upd('${m.id}','${f}',this.value)">`;
@@ -512,12 +524,16 @@
                     let bCls = m.status==='LIVE'?'#e91e63':(m.status==='FINISHED'?'#43a047':'#90a4ae');
                     let bTxt = m.status==='LIVE'?'STOP':(m.status==='FINISHED'?'DONE':'LIVE');
                     
-                    tb.innerHTML += `<tr data-id="${m.id}">
+                    htmlContent += `<tr data-id="${m.id}">
                         <td><input type="checkbox" class="chk-row" value="${m.id}" style="cursor:pointer;"></td>
                         <td>${inp('match_no', m.match_no)}</td><td>${inp('pin', m.pin, 'inp-pin')}</td><td class="bg-grey">${txt('date', m.date)}</td><td class="bg-grey">${inp('time', m.time)}</td><td class="bg-grey">${txt('court_name', m.court_name)}</td><td class="bg-grey">${txt('category', m.category)}</td><td class="bg-grey">${txt('round', m.round)}</td><td class="bg-grey">${txt('referee_name', m.referee_name)}</td><td class="td-team" style="text-align:right;">${txt('team_a', m.team_a)}</td><td class="bg-set">${num('set1_a', m.set1_a)}</td> <td class="bg-set">${num('set1_b', m.set1_b)}</td><td class="bg-set">${num('set2_a', m.set2_a)}</td> <td class="bg-set">${num('set2_b', m.set2_b)}</td><td class="bg-set">${num('set3_a', m.set3_a)}</td> <td class="bg-set">${num('set3_b', m.set3_b)}</td><td class="bg-set">${num('set4_a', m.set4_a)}</td> <td class="bg-set">${num('set4_b', m.set4_b)}</td><td class="bg-set">${num('set5_a', m.set5_a)}</td> <td class="bg-set">${num('set5_b', m.set5_b)}</td><td class="bg-poin">${num('points_a', m.points_a)}</td><td class="bg-poin">${num('points_b', m.points_b)}</td><td class="td-team" style="text-align:left;">${txt('team_b', m.team_b)}</td><td>${cbox('is_wo', m.is_wo)}</td><td><span id="btn-status-${m.id}" class="badge" style="background:${bCls}" onclick="tog('${m.id}')">${bTxt}</span> <span class="badge" style="background:#2e7d32; margin-left:2px;" onclick="fin('${m.id}')">✅</span></td><td><i class="fas fa-grip-lines drag-handle" style="cursor: grab; color: #546e7a; font-size: 14px; padding: 5px;"></i></td><td><button class="badge" style="background:#c62828; border:none;" onclick="del('${m.id}')">🗑️</button></td>
                     </tr>`;
                 });
             }
+            
+            // Cetak ke layar dalam SATU tarikan napas saja.
+            tb.innerHTML = htmlContent;
+            
             if (window.matchSortable) { window.matchSortable.destroy(); }
             window.matchSortable = new Sortable(document.getElementById('tbl-body'), { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', onEnd: function () { reorderMatchesSweep(); } });
         }
@@ -587,7 +603,6 @@
             link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
-        // 💡 FUNGSI UPDATE DEBOUNCE DIPERKETAT (TURBO 300MS & GEMBOK)
         function upd(id, f, v) {
             isUnsavedData = true; // Nyalakan gembok keamanan tab
 
@@ -611,7 +626,6 @@
                 let parsed = parseInt(v); if (!isNaN(parsed)) pendingUpdates[id][f] = parsed;
             } else { pendingUpdates[id][f] = v; }
             
-            // Matikan tombol Refresh agar tidak bisa diklik saat loading
             const btnRefresh = document.getElementById('btn-refresh');
             if(btnRefresh) { 
                 btnRefresh.innerText = "⏳ MENYIMPAN..."; 
@@ -620,7 +634,6 @@
             }
             
             clearTimeout(updateTimer); 
-            // 💡 WAKTU DIPERKECIL KE 300ms AGAR RESPON LEBIH CEPAT
             updateTimer = setTimeout(async () => { 
                 const matchIds = Object.keys(pendingUpdates);
                 if(matchIds.length > 0) { 
@@ -634,19 +647,17 @@
                 if(btnRefresh) { 
                     btnRefresh.innerText = "✅ TERSIMPAN"; 
                     btnRefresh.style.background = "#2e7d32"; 
-                    // Kembalikan ke normal setelah 1.5 detik
                     setTimeout(() => {
                         if(!isUnsavedData) {
                             btnRefresh.innerText = "REFRESH"; 
                             btnRefresh.style.background = "#546e7a"; 
-                            btnRefresh.style.pointerEvents = "auto"; // Buka gembok tombol
+                            btnRefresh.style.pointerEvents = "auto";
                         }
                     }, 1500);
                 }
             }, 300);
         }
 
-        // 💡 FUNGSI DRAG POSISI DIPERKETAT
         function reorderMatchesSweep() {
             isUnsavedData = true; // Nyalakan gembok
             const rows = document.querySelectorAll('#tbl-body tr'); let newGlobalMatches = []; let updatesToProcess = []; let baseTime = new Date('2025-01-01T00:00:00Z').getTime(); 
@@ -686,7 +697,6 @@
         async function fin(id) { if(!confirm('Tandai Selesai?')) return; const index = window.GLOBAL_MATCHES.findIndex(m => m.id === id); if (index === -1) return; window.GLOBAL_MATCHES[index].status = 'FINISHED'; let btn = document.getElementById('btn-status-' + id); if (btn) { btn.innerText = 'DONE'; btn.style.background = '#43a047'; } updateBrandingPreview(); await db.from('matches_pro').update({status: 'FINISHED'}).eq('id', id); }
         async function del(id) { if(!confirm('Hapus Match?')) return; window.GLOBAL_MATCHES = window.GLOBAL_MATCHES.filter(m => m.id !== id); let row = document.querySelector(`tr[data-id="${id}"]`); if (row) row.remove(); updateBrandingPreview(); await db.from('matches_pro').delete().eq('id', id); }
         
-        // 💡 FUNGSI SUBMIT MATCH (BULK INSERT DENGAN STAGGERED TIMESTAMP)
         async function submitMatch() { 
             const get = (id) => document.getElementById(id).value || "-"; 
             const qtyStr = document.getElementById('i-qty').value; 
@@ -698,7 +708,6 @@
             let baseTime = new Date().getTime(); // Ambil waktu instan saat tombol ditekan
             
             for(let i=0; i<qty; i++) {
-                // Injeksi Waktu Virtual (+10 milidetik untuk setiap kotak agar urut sempurna)
                 let virtualTime = new Date(baseTime + (i * 10)).toISOString();
                 
                 newMatches.push({ 
@@ -789,7 +798,6 @@
                 const logoClass = (logoMode === 'classic') ? 'logo-classic' : 'logo-watermark';
                 const logoHTML = logo ? `<img src="${logo}" class="header-logo ${logoClass}" style="display:block;">` : '';
 
-                // 💡 PENGUNCI SPASI RULES UNTUK PREVIEW 💡
                 const htmlString = `
                 <!DOCTYPE html>
                 <html>
