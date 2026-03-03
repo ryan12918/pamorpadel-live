@@ -1129,7 +1129,7 @@
 
         function switchTab(t, btn) { document.querySelectorAll('.view-section').forEach(e=>e.classList.remove('active')); document.getElementById('view-'+t).classList.add('active'); document.querySelectorAll('.nav-pill').forEach(e=>e.classList.remove('active')); btn.classList.add('active'); }
         function openModalMatch() { document.getElementById('modal-match').style.display='flex'; }
-        function showQR() { const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://ryan12918.github.io/pamorpadel-live/client.html?id=${ACTIVE_ID}`; document.getElementById('qr-img').src = url; document.getElementById('qr-text').innerText = ACTIVE_ID; document.getElementById('modal-qr').style.display='flex'; }
+        function showQR() { const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://matchlivepro.com/?id=${ACTIVE_ID}`; document.getElementById('qr-img').src = url; document.getElementById('qr-text').innerText = ACTIVE_ID; document.getElementById('modal-qr').style.display='flex'; }
 
         // ==========================================
         // FITUR PENGATURAN TV LIVE SCORE (ADVANCED)

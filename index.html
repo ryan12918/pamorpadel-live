@@ -74,17 +74,17 @@
         #rules-text h1, #rules-text h2, #rules-text h3 { margin: 15px 0 8px 0; font-weight: 800; line-height: 1.2; }
         #rules-text hr { margin: 15px 0; border: 0; border-top: 1px solid rgba(128,128,128,0.3); }
 
-        /* BRACKET ENGINE V22 CSS (PINCH TO ZOOM VIEWPORT) */
+        /* BRACKET ENGINE V26 CSS (PERFECT ZOOM & PAN) */
         #view-bagan.container { max-width: 100% !important; padding: 0 !important; }
         
         .bracket-viewport {
             width: 100%; overflow: auto; -webkit-overflow-scrolling: touch;
-            min-height: 60vh;
+            min-height: 60vh; position: relative;
         }
         .bracket-canvas {
             min-width: max-content;
             transform-origin: 0 0;
-            /* Zoom akan diatur via JavaScript */
+            /* Kita mutlak gunakan transform, bukan properti zoom */
         }
         .bracket-container {
             display: flex; flex-direction: row; align-items: stretch;
@@ -205,6 +205,13 @@
         <div id="skeleton-box">
             <div class="skeleton skel-card"></div><div class="skeleton skel-card"></div><div class="skeleton skel-card"></div>
         </div>
+        
+        <div id="live-nav-bar" style="display:none; justify-content:center; margin-bottom:15px; position: sticky; top: 10px; z-index: 50;">
+            <button onclick="scrollToNextLive()" style="background:var(--primary-start); color:var(--live-neon); border:1px solid var(--live-neon); padding:8px 20px; border-radius:20px; font-weight:900; font-size:12px; box-shadow:0 4px 10px rgba(0,0,0,0.3); cursor:pointer; display:flex; align-items:center; gap:8px;">
+                <div class="dot-live"></div> TEMUKAN MATCH LIVE
+            </button>
+        </div>
+
         <div id="jadwal-content"></div>
     </div>
     
@@ -220,10 +227,10 @@
     </div>
 
     <div class="nav">
-        <a class="nav-btn active" onclick="go('jadwal', this)">JADWAL</a>
-        <a class="nav-btn" onclick="go('klasemen', this)">KLASEMEN</a>
-        <a class="nav-btn" onclick="go('bagan', this)">BAGAN</a>
-        <a class="nav-btn" onclick="go('peraturan', this)">ATURAN</a>
+        <a class="nav-btn active" onclick="go('jadwal')">JADWAL</a>
+        <a class="nav-btn" onclick="go('klasemen')">KLASEMEN</a>
+        <a class="nav-btn" onclick="go('bagan')">BAGAN</a>
+        <a class="nav-btn" onclick="go('peraturan')">ATURAN</a>
     </div>
 
     <script>
@@ -241,11 +248,12 @@
         let matches = [];
         let cardPreset = 'classic-white';
         let hideServeGlobal = false;
-        let currentCategory = 'SEMUA';
-
+        
+        // 💡 MEMORI SESI TAB (Agar tidak keriset ke Jadwal)
+        let currentCategory = sessionStorage.getItem('currentCategory') || 'SEMUA';
         window.klasemenFormat = 'GD'; 
         
-        // --- VARIABEL PINCH TO ZOOM BAGAN ---
+        // --- VARIABEL PINCH TO ZOOM & PAN BAGAN ---
         let bracketScale = 1;
         let initTouchDist = 0;
         let initTouchScale = 1;
@@ -259,6 +267,13 @@
             await fetchMatches();
             document.getElementById('skeleton-box').style.display = 'none';
             document.getElementById('loading-screen').style.display = 'none';
+            
+            // 💡 Kembalikan posisi tab terakhir yang dibuka
+            if(!isTVMode && !isOBSMode) {
+                let storedTab = sessionStorage.getItem('activeTab') || 'jadwal';
+                go(storedTab);
+            }
+
             subscribe();
         }
 
@@ -324,6 +339,12 @@
         function renderTabs() {
             if(isTVMode || reqCourt || isOBSMode) return; 
             let cats = [...new Set(matches.map(m => m.category || 'UMUM'))].filter(c => c);
+            
+            if (currentCategory !== 'SEMUA' && !cats.includes(currentCategory)) {
+                currentCategory = 'SEMUA';
+                sessionStorage.setItem('currentCategory', 'SEMUA');
+            }
+
             const tabEl = document.getElementById('cat-tabs');
             let html = `<div class="cat-pill ${currentCategory==='SEMUA'?'active':''}" onclick="setCat('SEMUA')">SEMUA LAGA</div>`;
             cats.forEach(c => {
@@ -335,9 +356,9 @@
             tabEl.innerHTML = html;
         }
 
-        // 💡 FUNGSI SET KATEGORI (Auto-Scroll Dihapus)
         function setCat(c) { 
             currentCategory = c; 
+            sessionStorage.setItem('currentCategory', c); // 💡 SIMPAN MEMORI KATEGORI
             processAndRender(); 
         }
 
@@ -477,26 +498,50 @@
             });
         }
 
+        // 💡 VARIABEL MEMORI BAGAN (Anti Keseret ke Kiri saat Update)
+        let savedScrollTop = 0;
+        let savedScrollLeft = 0;
+
         function renderAll() {
             const elJ = document.getElementById('jadwal-content'); elJ.innerHTML = "";
-            const elB = document.getElementById('bagan-content'); elB.innerHTML = "";
+            const elB = document.getElementById('bagan-content'); 
             
+            // Simpan Koordinat Bagan saat ini (sebelum di-render ulang)
+            let oldVp = document.getElementById('bracket-viewport');
+            if (oldVp) {
+                savedScrollTop = oldVp.scrollTop;
+                savedScrollLeft = oldVp.scrollLeft;
+            }
+
             let filteredMatches = matches.filter(m => currentCategory === 'SEMUA' || (m.category||'UMUM') === currentCategory);
             
-            const baganKeywords = ['16', '32', '64', 'quarter', 'qf', '8', 'perempat', 'semi', 'sf', '4', 'final', 'puncak', 'juara 3', 'third', 'tiga'];
+            const klasemenKeywords = ['grup', 'group', 'pool', 'penyisihan', 'liga'];
+            const isKlasemen = (r) => klasemenKeywords.some(kw => (r||'').toLowerCase().includes(kw));
+
+            const baganKeywords = ['16', '32', '64', 'quarter', 'qf', '8 besar', 'perempat', 'semi', 'sf', '4 besar', 'final', 'puncak', 'juara 3', 'third', 'tiga'];
             const isBagan = (r) => baganKeywords.some(kw => (r||'').toLowerCase().includes(kw));
             
             let jadwalMatches = [];
             let baganMatches = [];
             
             filteredMatches.forEach(m => {
-                if(isBagan(m.round)) baganMatches.push(m);
-                else jadwalMatches.push(m);
+                if(isKlasemen(m.round)) {
+                    jadwalMatches.push(m);
+                } else if(isBagan(m.round)) {
+                    baganMatches.push(m);
+                } else {
+                    jadwalMatches.push(m);
+                }
             });
 
+            // LOGIKA RENDER JADWAL + TOMBOL CARI LIVE PINTAR
             if(jadwalMatches.length > 0) {
+                let hasLive = jadwalMatches.some(m => m.status === 'LIVE');
+                document.getElementById('live-nav-bar').style.display = hasLive ? 'flex' : 'none';
+                
                 jadwalMatches.forEach(m => elJ.innerHTML += createCardHTML(m));
             } else {
+                document.getElementById('live-nav-bar').style.display = 'none';
                 elJ.innerHTML = `<div class="match-card theme-${cardPreset}" style="text-align:center; padding: 30px 20px; margin-top:20px; border: 2px dashed rgba(128,128,128,0.3); box-shadow:none;"><p style="font-size:12px; opacity:0.6;">Tidak ada Jadwal (Penyisihan/Hiburan) di kategori ini.</p></div>`;
             }
             
@@ -561,7 +606,6 @@
                     if (activeStart !== -1) {
                         let renderTiers = tiers.slice(activeStart, activeEnd + 1);
                         
-                        // 💡 PENAMBAHAN WADAH UNTUK PINCH-TO-ZOOM EKSKLUSIF BAGAN
                         let bracketHTML = '<div id="bracket-viewport" class="bracket-viewport">';
                         bracketHTML += '<div id="bracket-canvas" class="bracket-canvas">';
                         bracketHTML += '<div class="bracket-container">';
@@ -608,10 +652,21 @@
                             bracketHTML += colHTML;
                         });
                         bracketHTML += '</div></div></div>';
+                        
                         elB.innerHTML = bracketHTML;
                         
-                        // 💡 PEMANGGILAN FUNGSI CUBIT LAYAR
-                        attachPinchZoom();
+                        // 💡 KEMBALIKAN POSISI KOORDINAT DAN ZOOM KE TITIK SEMULA
+                        let newVp = document.getElementById('bracket-viewport');
+                        if (newVp) {
+                            newVp.scrollTop = savedScrollTop;
+                            newVp.scrollLeft = savedScrollLeft;
+                            let cv = document.getElementById('bracket-canvas');
+                            if(cv) {
+                                cv.style.transformOrigin = '0 0';
+                                cv.style.transform = `scale(${bracketScale})`;
+                            }
+                            attachPinchZoom();
+                        }
                     }
                 }
             } else {
@@ -620,40 +675,69 @@
             renderKlasemen();
         }
 
-        // 💡 FUNGSI KUSTOM PINCH-TO-ZOOM (EKSKLUSIF UNTUK BAGAN)
+        // 💡 FUNGSI TOMBOL CARI LIVE
+        let currentLiveIndex = 0;
+        function scrollToNextLive() {
+            const liveCards = document.querySelectorAll('#jadwal-content .match-card.is-live');
+            if(liveCards.length === 0) return;
+            
+            if(currentLiveIndex >= liveCards.length) currentLiveIndex = 0;
+            
+            // Geser tepat ke tengah layar, dipotong sedikit agar tidak ketutupan kategori
+            const y = liveCards[currentLiveIndex].getBoundingClientRect().top + window.scrollY - 100;
+            window.scrollTo({top: y, behavior: 'smooth'});
+            
+            currentLiveIndex++;
+        }
+
+        // 💡 FUNGSI PINCH-TO-ZOOM + PANNING SEKALIGUS (FITUR CANVA)
         function attachPinchZoom() {
             const vp = document.getElementById('bracket-viewport');
             const cv = document.getElementById('bracket-canvas');
             if(!vp || !cv) return;
 
-            // Menjaga skala terakhir jika kategori diganti bolak-balik
-            cv.style.zoom = bracketScale;
-            // Fallback untuk browser yang tidak mendukung properti CSS Zoom
-            if (CSS.supports && !CSS.supports('zoom: 1')) {
-                cv.style.transform = `scale(${bracketScale})`;
-            }
-
             vp.addEventListener('touchstart', (e) => {
                 if(e.touches.length === 2) {
                     initTouchDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
                     initTouchScale = bracketScale;
+                    
+                    // Tangkap titik tengah dari 2 jari Anda
+                    vp.lastCentroid = {
+                        x: (e.touches[0].pageX + e.touches[1].pageX) / 2,
+                        y: (e.touches[0].pageY + e.touches[1].pageY) / 2
+                    };
                 }
             }, {passive: false});
 
             vp.addEventListener('touchmove', (e) => {
                 if(e.touches.length === 2) {
-                    e.preventDefault(); // Mengunci browser agar tidak men-zoom header web
+                    e.preventDefault(); // Kunci agar web tidak kerefresh/tertarik
+                    
+                    // 1. Eksekusi Zoom
                     let dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-                    
-                    // Kalkulasi rasio pembesaran dengan batas mentok (30% s/d 250%)
                     bracketScale = Math.min(Math.max(0.3, initTouchScale * (dist / initTouchDist)), 2.5);
-                    
-                    cv.style.zoom = bracketScale;
-                    if (CSS.supports && !CSS.supports('zoom: 1')) {
-                        cv.style.transform = `scale(${bracketScale})`;
+                    cv.style.transform = `scale(${bracketScale})`;
+
+                    // 2. Eksekusi Panning (Geser Mengikuti Titik Jari)
+                    let currentCentroid = {
+                        x: (e.touches[0].pageX + e.touches[1].pageX) / 2,
+                        y: (e.touches[0].pageY + e.touches[1].pageY) / 2
+                    };
+
+                    if (vp.lastCentroid) {
+                        let dx = currentCentroid.x - vp.lastCentroid.x;
+                        let dy = currentCentroid.y - vp.lastCentroid.y;
+                        
+                        vp.scrollLeft -= dx;
+                        vp.scrollTop -= dy;
                     }
+                    vp.lastCentroid = currentCentroid; // Simpan memori pergerakan
                 }
             }, {passive: false});
+            
+            vp.addEventListener('touchend', (e) => {
+                if (e.touches.length < 2) vp.lastCentroid = null; // Lepaskan memori jika jari diangkat
+            });
         }
 
         let fetchTimeout = null;
@@ -662,7 +746,18 @@
             db.channel('public:matches_pro').on('postgres_changes', {event:'*', schema:'public', table:'matches_pro', filter:`tournament_id=eq.${TOURNAMENT_ID}`}, ()=>triggerFetch()).subscribe();
             db.channel('public:partners').on('postgres_changes', {event:'UPDATE', schema:'public', table:'partners', filter:`tournament_id=eq.${TOURNAMENT_ID}`}, (p)=>applyTheme(p.new)).subscribe();
         }
-        function go(id, btn) { document.querySelectorAll('.container').forEach(c=>c.classList.add('hidden')); document.getElementById('view-'+id).classList.remove('hidden'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); window.scrollTo(0,0); }
+        
+        // 💡 FUNGSI GO() DENGAN MEMORI SESI (Anti Pindah Tab)
+        function go(id) { 
+            sessionStorage.setItem('activeTab', id);
+            document.querySelectorAll('.container').forEach(c=>c.classList.add('hidden')); 
+            document.getElementById('view-'+id).classList.remove('hidden'); 
+            document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); 
+            let btn = document.querySelector(`.nav-btn[onclick="go('${id}')"]`);
+            if(btn) btn.classList.add('active'); 
+            window.scrollTo(0,0); 
+        }
+        
         init();
     </script>
 </body>
