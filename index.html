@@ -47,6 +47,7 @@
         .team { flex: 1; font-size: 13px; color: inherit; line-height: 1.4; }
         
         .score-pill { background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); color: white; padding: 8px 15px; border-radius: 12px; font-size: 16px; font-weight: 800; min-width: 60px; max-width: 60%; flex-shrink: 0; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); margin: 0 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2;}
+        .score-pill.empty { background: white; color: #ccc; border: 1px dashed #ccc; box-shadow: none; font-size: 14px; }
         
         @keyframes pulse-live-card { 0% { box-shadow: 0 0 5px var(--live-neon); transform: scale(1); border-color: transparent;} 100% { box-shadow: 0 0 20px var(--live-neon); transform: scale(1.02); border-color: var(--live-neon); } }
         .match-card.is-live { border: 2px solid var(--live-neon); animation: pulse-live-card 1.5s infinite alternate ease-in-out; z-index: 20; }
@@ -84,7 +85,6 @@
         .bracket-canvas {
             min-width: max-content;
             transform-origin: 0 0;
-            /* Kita mutlak gunakan transform, bukan properti zoom */
         }
         .bracket-container {
             display: flex; flex-direction: row; align-items: stretch;
@@ -119,7 +119,9 @@
             box-shadow: none !important; display: flex; justify-content: center; align-items: center; min-height: 80px; 
         }
         
-        /* THEMES - AUTO ADAPTIVE COLORS */
+        /* ========================================================
+           IMPORT ALL 80 THEMES (SINKRON DENGAN CONTROL PANEL & TV)
+           ======================================================== */
         .theme-classic-white { background: white; color: #333; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #eee; } .theme-classic-white .meta-text { color: #C2185B; } .theme-classic-white .court-badge { background: #f5f5f5; color: #666; border: 1px solid #ddd; } 
         .theme-midnight-blue { background: #0d1b2a; color: #e0e1dd; border: 1px solid #1b263b; } .theme-midnight-blue .meta-text { color: #4CC9F0; } .theme-midnight-blue .court-badge { background: #1b263b; color: #4CC9F0; } 
         .theme-royal-gold { background: #fffcf5; color: #5d4037; border: 1px solid #daa520; } .theme-royal-gold .meta-text { color: #b8860b; } .theme-royal-gold .court-badge { background: linear-gradient(to bottom, #fff8dc, #f0e68c); color: #5d4037; border: 1px solid #daa520; }
@@ -170,7 +172,42 @@
         .theme-spessartite { background: #bf360c; color: #fbe9e7; border: 1px solid #d84315; } .theme-spessartite .meta-text { color: #ff9e80; } .theme-spessartite .court-badge { background: #d84315; color: white; }
         .theme-demantoid { background: #33691e; color: #f1f8e9; border: 1px solid #558b2f; } .theme-demantoid .meta-text { color: #ccff90; } .theme-demantoid .court-badge { background: #558b2f; color: white; }
         .theme-padparadscha { background: #ffccbc; color: #bf360c; border: 1px solid #ff8a65; } .theme-padparadscha .court-badge { background: #bf360c; color: white; }
+        
+        .theme-ivory-minimal { background: #FFFFF0; color: #333; border: 1px solid #EEE8AA; } .theme-ivory-minimal .meta-text { color: #8B4513; } .theme-ivory-minimal .court-badge { background: #EEE8AA; color: #333; }
+        .theme-platinum-light { background: #E5E4E2; color: #2C2C2C; border: 1px solid #B0C4DE; } .theme-platinum-light .meta-text { color: #4682B4; } .theme-platinum-light .court-badge { background: #B0C4DE; color: #2C2C2C; }
+        .theme-ghost-white { background: #F8F8FF; color: #191970; border: 1px solid #DCDCDC; } .theme-ghost-white .meta-text { color: #4169E1; } .theme-ghost-white .court-badge { background: #DCDCDC; color: #191970; }
+        .theme-silver-ash { background: #C0C0C0; color: #000; border: 1px solid #A9A9A9; } .theme-silver-ash .meta-text { color: #2F4F4F; } .theme-silver-ash .court-badge { background: #808080; color: #FFF; }
+        .theme-clear-glass { background: rgba(255,255,255,0.8); backdrop-filter: blur(8px); color: #333; border: 1px solid rgba(0,0,0,0.1); } .theme-clear-glass .court-badge { background: rgba(0,0,0,0.1); color: #333; }
+        .theme-snow-blind { background: #FFFAFA; color: #000; border: 2px solid #F0F8FF; } .theme-snow-blind .court-badge { background: #000; color: #FFF; }
+        .theme-paper-crisp { background: #FDF5E6; color: #5C4033; border: 1px solid #DEB887; } .theme-paper-crisp .court-badge { background: #DEB887; color: #FFF; }
+        .theme-dark-matter { background: #121212; color: #A9A9A9; border: 1px solid #2F4F4F; } .theme-dark-matter .meta-text { color: #696969; } .theme-dark-matter .court-badge { background: #2F4F4F; color: #FFF; }
+        .theme-stealth-carbon { background: #1C1C1C; color: #D3D3D3; border: 1px solid #383838; } .theme-stealth-carbon .court-badge { background: #383838; color: #D3D3D3; }
+        .theme-charcoal-matte { background: #36454F; color: #FFF8DC; border: 1px solid #2F4F4F; } .theme-charcoal-matte .court-badge { background: #2F4F4F; color: #FFF8DC; }
+        .theme-abyssal-black { background: #000005; color: #4682B4; border: 1px solid #000080; } .theme-abyssal-black .meta-text { color: #1E90FF; } .theme-abyssal-black .court-badge { background: #000080; color: #FFF; }
+        .theme-eclipse-shadow { background: #0B0B0B; color: #FFFAF0; border: 1px solid #FF4500; } .theme-eclipse-shadow .meta-text { color: #FF6347; } .theme-eclipse-shadow .court-badge { background: #FF4500; color: #FFF; }
+        .theme-void-deep { background: #050505; color: #9370DB; border: 1px solid #4B0082; } .theme-void-deep .court-badge { background: #4B0082; color: #FFF; }
+        .theme-midnight-slate { background: #2F4F4F; color: #E0FFFF; border: 1px solid #008080; } .theme-midnight-slate .court-badge { background: #008080; color: #FFF; }
+        .theme-synthwave-pink { background: #1A001A; color: #FF1493; border: 1px solid #FF00FF; text-shadow: 0 0 5px #FF1493; } .theme-synthwave-pink .court-badge { background: #FF00FF; color: #FFF; text-shadow:none; }
+        .theme-cyber-yellow { background: #0A0A00; color: #FFFF00; border: 1px solid #BDB76B; text-shadow: 0 0 5px #FFFF00; } .theme-cyber-yellow .court-badge { background: #FFFF00; color: #000; text-shadow:none; }
+        .theme-toxic-green { background: #001A00; color: #39FF14; border: 1px solid #00FF00; text-shadow: 0 0 5px #39FF14; } .theme-toxic-green .court-badge { background: #00FF00; color: #000; text-shadow:none; }
+        .theme-laser-blue { background: #00001A; color: #00FFFF; border: 1px solid #00BFFF; text-shadow: 0 0 5px #00FFFF; } .theme-laser-blue .court-badge { background: #00BFFF; color: #000; text-shadow:none; }
+        .theme-neon-purple { background: #0D001A; color: #B026FF; border: 1px solid #8A2BE2; text-shadow: 0 0 5px #B026FF; } .theme-neon-purple .court-badge { background: #8A2BE2; color: #FFF; text-shadow:none; }
+        .theme-plasma-red { background: #1A0000; color: #FF3333; border: 1px solid #DC143C; text-shadow: 0 0 5px #FF3333; } .theme-plasma-red .court-badge { background: #DC143C; color: #FFF; text-shadow:none; }
+        .theme-electric-cyan { background: #001A1A; color: #00E5FF; border: 1px solid #008B8B; text-shadow: 0 0 5px #00E5FF; } .theme-electric-cyan .court-badge { background: #008B8B; color: #FFF; text-shadow:none; }
+        .theme-ultraviolet { background: #190033; color: #BF00FF; border: 1px solid #9400D3; text-shadow: 0 0 5px #BF00FF; } .theme-ultraviolet .court-badge { background: #9400D3; color: #FFF; text-shadow:none; }
+        .theme-golden-champagne { background: #FDF6E3; color: #8B6508; border: 1px solid #DAA520; } .theme-golden-champagne .court-badge { background: #DAA520; color: #FFF; }
+        .theme-brushed-bronze { background: #CD7F32; color: #FFF; border: 1px solid #8B4513; } .theme-brushed-bronze .court-badge { background: #8B4513; color: #FFF; }
+        .theme-diamond-glow { background: #F0F8FF; color: #B0E0E6; border: 1px solid #ADD8E6; box-shadow: 0 0 15px rgba(173,216,230,0.5); } .theme-diamond-glow .meta-text { color: #4682B4; } .theme-diamond-glow .court-badge { background: #4682B4; color: #FFF; }
+        .theme-desert-sand { background: #F4A460; color: #8B4513; border: 1px solid #D2691E; } .theme-desert-sand .court-badge { background: #D2691E; color: #FFF; }
+        .theme-pine-wood { background: #DEB887; color: #006400; border: 1px solid #8B4513; } .theme-pine-wood .court-badge { background: #8B4513; color: #FFF; }
+        .theme-deep-sea { background: #006994; color: #E0FFFF; border: 1px solid #000080; } .theme-deep-sea .court-badge { background: #000080; color: #FFF; }
+        .theme-matcha-latte { background: #F5FFFA; color: #556B2F; border: 1px solid #8FBC8F; } .theme-matcha-latte .court-badge { background: #8FBC8F; color: #FFF; }
+        .theme-sky-blue-soft { background: #E0FFFF; color: #4682B4; border: 1px solid #87CEFA; } .theme-sky-blue-soft .court-badge { background: #87CEFA; color: #FFF; }
+        .theme-peach-blossom { background: #FFF0F5; color: #FF69B4; border: 1px solid #FFB6C1; } .theme-peach-blossom .court-badge { background: #FFB6C1; color: #FFF; }
+        .theme-mint-cream { background: #F5FFFA; color: #20B2AA; border: 1px solid #66CDAA; } .theme-mint-cream .court-badge { background: #66CDAA; color: #FFF; }
+        .theme-lilac-dream { background: #F8F8FF; color: #9370DB; border: 1px solid #D8BFD8; } .theme-lilac-dream .court-badge { background: #D8BFD8; color: #FFF; }
 
+        /* BACKWARD COMPATIBILITY: TV MODE LAMA */
         body.tv-mode .header-wrapper { padding: 15px; min-height: auto; border-radius: 0; margin-bottom: 10px; }
         body.tv-mode .nav, body.tv-mode .cat-scroll-wrapper { display: none !important; }
         body.tv-mode { padding-bottom: 0; }
@@ -178,6 +215,7 @@
         body.tv-mode .match-card { width: calc(50% - 30px); font-size: 1.3em; margin-bottom: 0; box-sizing: border-box; }
         body.tv-mode .score-pill { font-size: 30px; min-width: 100px; }
         
+        /* OBS MODE TRANSPARAN */
         body.obs-mode { background: #00ff00 !important; color: white !important; }
         body.obs-mode .header-wrapper, body.obs-mode .nav, body.obs-mode .cat-scroll-wrapper, body.obs-mode #bg-overlay { display: none !important; }
         body.obs-mode .match-card { background: rgba(0,0,0,0.85) !important; border: 2px solid rgba(255,255,255,0.2) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important; width: 600px; margin: 20px auto; color: white !important; }
@@ -187,7 +225,7 @@
 </head>
 <body>
 
-    <div id="loading-screen">Loading...</div>
+    <div id="loading-screen" style="text-align:center; padding:50px; font-weight:bold; color:#777;">MEMUAT DATA...</div>
     <div id="bg-overlay"></div>
 
     <div class="header-wrapper">
@@ -220,7 +258,7 @@
     <div id="view-bagan" class="container hidden"><div id="bagan-content"></div></div>
     
     <div id="view-peraturan" class="container hidden">
-        <div class="match-card theme-classic-white">
+        <div class="match-card theme-classic-white" id="rules-card">
             <h3 style="margin-top:0; margin-bottom:10px; color:var(--primary-start); font-weight:900; border-bottom:2px solid rgba(0,0,0,0.1); padding-bottom:10px;">PERATURAN</h3>
             <div id="rules-text"></div>
         </div>
@@ -249,7 +287,7 @@
         let cardPreset = 'classic-white';
         let hideServeGlobal = false;
         
-        // 💡 MEMORI SESI TAB (Agar tidak keriset ke Jadwal)
+        // 💡 MEMORI SESI TAB
         let currentCategory = sessionStorage.getItem('currentCategory') || 'SEMUA';
         window.klasemenFormat = 'GD'; 
         
@@ -314,7 +352,9 @@
             if(img && d.logo_url) { img.src = d.logo_url; img.style.display = 'block'; img.className = (lMode === 'classic') ? 'header-logo logo-classic' : 'header-logo logo-watermark'; } 
             else if(img) { img.style.display = 'none'; }
 
-            cardPreset = d.card_preset || 'classic-white'; r.setProperty('--card-radius', (d.corner_radius || 15) + 'px');
+            cardPreset = d.card_preset || 'classic-white'; 
+            r.setProperty('--card-radius', (d.corner_radius || 15) + 'px');
+            document.getElementById('rules-card').className = `match-card theme-${cardPreset}`;
 
             if(d.bg_image_url && !isOBSMode) { document.body.style.backgroundImage = `url('${d.bg_image_url}')`; document.body.style.backgroundSize = 'cover'; document.body.style.backgroundAttachment = 'fixed'; } 
             else { document.body.style.backgroundImage = 'none'; }
@@ -358,10 +398,11 @@
 
         function setCat(c) { 
             currentCategory = c; 
-            sessionStorage.setItem('currentCategory', c); // 💡 SIMPAN MEMORI KATEGORI
+            sessionStorage.setItem('currentCategory', c); 
             processAndRender(); 
         }
 
+        // TATA LETAK HP: TETAP RATA KIRI KANAN NORMAL (BUKAN CENTER-HUGGING TV)
         function formatTeamName(teamString, serverState, isTeamA) {
             if(hideServeGlobal) return `<div style="font-weight: 800; line-height: 1.15; ${!isTeamA ? 'text-align:right;' : ''}">${teamString}</div>`; 
             const dotHTML = '<span class="neon-dot"></span>';
@@ -498,7 +539,7 @@
             });
         }
 
-        // 💡 VARIABEL MEMORI BAGAN (Anti Keseret ke Kiri saat Update)
+        // 💡 VARIABEL MEMORI BAGAN
         let savedScrollTop = 0;
         let savedScrollLeft = 0;
 
@@ -506,7 +547,7 @@
             const elJ = document.getElementById('jadwal-content'); elJ.innerHTML = "";
             const elB = document.getElementById('bagan-content'); 
             
-            // Simpan Koordinat Bagan saat ini (sebelum di-render ulang)
+            // Simpan Koordinat Bagan
             let oldVp = document.getElementById('bracket-viewport');
             if (oldVp) {
                 savedScrollTop = oldVp.scrollTop;
@@ -534,7 +575,7 @@
                 }
             });
 
-            // LOGIKA RENDER JADWAL + TOMBOL CARI LIVE PINTAR
+            // TOMBOL CARI LIVE PINTAR
             if(jadwalMatches.length > 0) {
                 let hasLive = jadwalMatches.some(m => m.status === 'LIVE');
                 document.getElementById('live-nav-bar').style.display = hasLive ? 'flex' : 'none';
@@ -655,7 +696,7 @@
                         
                         elB.innerHTML = bracketHTML;
                         
-                        // 💡 KEMBALIKAN POSISI KOORDINAT DAN ZOOM KE TITIK SEMULA
+                        // 💡 KEMBALIKAN POSISI KOORDINAT DAN ZOOM
                         let newVp = document.getElementById('bracket-viewport');
                         if (newVp) {
                             newVp.scrollTop = savedScrollTop;
@@ -675,22 +716,18 @@
             renderKlasemen();
         }
 
-        // 💡 FUNGSI TOMBOL CARI LIVE
+        // FUNGSI TOMBOL CARI LIVE
         let currentLiveIndex = 0;
         function scrollToNextLive() {
             const liveCards = document.querySelectorAll('#jadwal-content .match-card.is-live');
             if(liveCards.length === 0) return;
-            
             if(currentLiveIndex >= liveCards.length) currentLiveIndex = 0;
-            
-            // Geser tepat ke tengah layar, dipotong sedikit agar tidak ketutupan kategori
             const y = liveCards[currentLiveIndex].getBoundingClientRect().top + window.scrollY - 100;
             window.scrollTo({top: y, behavior: 'smooth'});
-            
             currentLiveIndex++;
         }
 
-        // 💡 FUNGSI PINCH-TO-ZOOM + PANNING SEKALIGUS (FITUR CANVA)
+        // FUNGSI PINCH-TO-ZOOM + PANNING
         function attachPinchZoom() {
             const vp = document.getElementById('bracket-viewport');
             const cv = document.getElementById('bracket-canvas');
@@ -700,8 +737,6 @@
                 if(e.touches.length === 2) {
                     initTouchDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
                     initTouchScale = bracketScale;
-                    
-                    // Tangkap titik tengah dari 2 jari Anda
                     vp.lastCentroid = {
                         x: (e.touches[0].pageX + e.touches[1].pageX) / 2,
                         y: (e.touches[0].pageY + e.touches[1].pageY) / 2
@@ -711,14 +746,11 @@
 
             vp.addEventListener('touchmove', (e) => {
                 if(e.touches.length === 2) {
-                    e.preventDefault(); // Kunci agar web tidak kerefresh/tertarik
-                    
-                    // 1. Eksekusi Zoom
+                    e.preventDefault(); 
                     let dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
                     bracketScale = Math.min(Math.max(0.3, initTouchScale * (dist / initTouchDist)), 2.5);
                     cv.style.transform = `scale(${bracketScale})`;
 
-                    // 2. Eksekusi Panning (Geser Mengikuti Titik Jari)
                     let currentCentroid = {
                         x: (e.touches[0].pageX + e.touches[1].pageX) / 2,
                         y: (e.touches[0].pageY + e.touches[1].pageY) / 2
@@ -727,16 +759,15 @@
                     if (vp.lastCentroid) {
                         let dx = currentCentroid.x - vp.lastCentroid.x;
                         let dy = currentCentroid.y - vp.lastCentroid.y;
-                        
                         vp.scrollLeft -= dx;
                         vp.scrollTop -= dy;
                     }
-                    vp.lastCentroid = currentCentroid; // Simpan memori pergerakan
+                    vp.lastCentroid = currentCentroid; 
                 }
             }, {passive: false});
             
             vp.addEventListener('touchend', (e) => {
-                if (e.touches.length < 2) vp.lastCentroid = null; // Lepaskan memori jika jari diangkat
+                if (e.touches.length < 2) vp.lastCentroid = null; 
             });
         }
 
@@ -747,7 +778,6 @@
             db.channel('public:partners').on('postgres_changes', {event:'UPDATE', schema:'public', table:'partners', filter:`tournament_id=eq.${TOURNAMENT_ID}`}, (p)=>applyTheme(p.new)).subscribe();
         }
         
-        // 💡 FUNGSI GO() DENGAN MEMORI SESI (Anti Pindah Tab)
         function go(id) { 
             sessionStorage.setItem('activeTab', id);
             document.querySelectorAll('.container').forEach(c=>c.classList.add('hidden')); 

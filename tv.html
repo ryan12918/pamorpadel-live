@@ -48,6 +48,9 @@
         @keyframes blinker-live { 0% { opacity: 0.2; } 100% { opacity: 1; box-shadow: 0 0 15px var(--live-neon); } }
         .neon-dot { flex-shrink: 0; width: 0.8vw; height: 0.8vw; background-color: var(--live-neon); border-radius: 50%; box-shadow: 0 0 10px var(--live-neon); }
 
+        /* ========================================================
+           IMPORT ALL 80 THEMES (SINKRON DENGAN CONTROL PANEL)
+           ======================================================== */
         .theme-classic-white { background: white; color: #333; } .theme-classic-white .meta-text { color: #C2185B; } .theme-classic-white .court-badge { background: #f5f5f5; color: #666; border: 1px solid #ddd; } 
         .theme-midnight-blue { background: #0d1b2a; color: #e0e1dd; border: 1px solid #1b263b; } .theme-midnight-blue .meta-text { color: #4CC9F0; } .theme-midnight-blue .court-badge { background: #1b263b; color: #4CC9F0; } 
         .theme-royal-gold { background: #fffcf5; color: #5d4037; border: 1px solid #daa520; } .theme-royal-gold .meta-text { color: #b8860b; } .theme-royal-gold .court-badge { background: linear-gradient(to bottom, #fff8dc, #f0e68c); color: #5d4037; border: 1px solid #daa520; }
@@ -98,6 +101,41 @@
         .theme-spessartite { background: #bf360c; color: #fbe9e7; border: 1px solid #d84315; } .theme-spessartite .meta-text { color: #ff9e80; } .theme-spessartite .court-badge { background: #d84315; color: white; }
         .theme-demantoid { background: #33691e; color: #f1f8e9; border: 1px solid #558b2f; } .theme-demantoid .meta-text { color: #ccff90; } .theme-demantoid .court-badge { background: #558b2f; color: white; }
         .theme-padparadscha { background: #ffccbc; color: #bf360c; border: 1px solid #ff8a65; } .theme-padparadscha .court-badge { background: #bf360c; color: white; }
+        
+        /* THEMES BARU */
+        .theme-ivory-minimal { background: #FFFFF0; color: #333; border: 1px solid #EEE8AA; } .theme-ivory-minimal .meta-text { color: #8B4513; } .theme-ivory-minimal .court-badge { background: #EEE8AA; color: #333; }
+        .theme-platinum-light { background: #E5E4E2; color: #2C2C2C; border: 1px solid #B0C4DE; } .theme-platinum-light .meta-text { color: #4682B4; } .theme-platinum-light .court-badge { background: #B0C4DE; color: #2C2C2C; }
+        .theme-ghost-white { background: #F8F8FF; color: #191970; border: 1px solid #DCDCDC; } .theme-ghost-white .meta-text { color: #4169E1; } .theme-ghost-white .court-badge { background: #DCDCDC; color: #191970; }
+        .theme-silver-ash { background: #C0C0C0; color: #000; border: 1px solid #A9A9A9; } .theme-silver-ash .meta-text { color: #2F4F4F; } .theme-silver-ash .court-badge { background: #808080; color: #FFF; }
+        .theme-clear-glass { background: rgba(255,255,255,0.8); backdrop-filter: blur(8px); color: #333; border: 1px solid rgba(0,0,0,0.1); } .theme-clear-glass .court-badge { background: rgba(0,0,0,0.1); color: #333; }
+        .theme-snow-blind { background: #FFFAFA; color: #000; border: 2px solid #F0F8FF; } .theme-snow-blind .court-badge { background: #000; color: #FFF; }
+        .theme-paper-crisp { background: #FDF5E6; color: #5C4033; border: 1px solid #DEB887; } .theme-paper-crisp .court-badge { background: #DEB887; color: #FFF; }
+        .theme-dark-matter { background: #121212; color: #A9A9A9; border: 1px solid #2F4F4F; } .theme-dark-matter .meta-text { color: #696969; } .theme-dark-matter .court-badge { background: #2F4F4F; color: #FFF; }
+        .theme-stealth-carbon { background: #1C1C1C; color: #D3D3D3; border: 1px solid #383838; } .theme-stealth-carbon .court-badge { background: #383838; color: #D3D3D3; }
+        .theme-charcoal-matte { background: #36454F; color: #FFF8DC; border: 1px solid #2F4F4F; } .theme-charcoal-matte .court-badge { background: #2F4F4F; color: #FFF8DC; }
+        .theme-abyssal-black { background: #000005; color: #4682B4; border: 1px solid #000080; } .theme-abyssal-black .meta-text { color: #1E90FF; } .theme-abyssal-black .court-badge { background: #000080; color: #FFF; }
+        .theme-eclipse-shadow { background: #0B0B0B; color: #FFFAF0; border: 1px solid #FF4500; } .theme-eclipse-shadow .meta-text { color: #FF6347; } .theme-eclipse-shadow .court-badge { background: #FF4500; color: #FFF; }
+        .theme-void-deep { background: #050505; color: #9370DB; border: 1px solid #4B0082; } .theme-void-deep .court-badge { background: #4B0082; color: #FFF; }
+        .theme-midnight-slate { background: #2F4F4F; color: #E0FFFF; border: 1px solid #008080; } .theme-midnight-slate .court-badge { background: #008080; color: #FFF; }
+        .theme-synthwave-pink { background: #1A001A; color: #FF1493; border: 1px solid #FF00FF; text-shadow: 0 0 5px #FF1493; } .theme-synthwave-pink .court-badge { background: #FF00FF; color: #FFF; text-shadow:none; }
+        .theme-cyber-yellow { background: #0A0A00; color: #FFFF00; border: 1px solid #BDB76B; text-shadow: 0 0 5px #FFFF00; } .theme-cyber-yellow .court-badge { background: #FFFF00; color: #000; text-shadow:none; }
+        .theme-toxic-green { background: #001A00; color: #39FF14; border: 1px solid #00FF00; text-shadow: 0 0 5px #39FF14; } .theme-toxic-green .court-badge { background: #00FF00; color: #000; text-shadow:none; }
+        .theme-laser-blue { background: #00001A; color: #00FFFF; border: 1px solid #00BFFF; text-shadow: 0 0 5px #00FFFF; } .theme-laser-blue .court-badge { background: #00BFFF; color: #000; text-shadow:none; }
+        .theme-neon-purple { background: #0D001A; color: #B026FF; border: 1px solid #8A2BE2; text-shadow: 0 0 5px #B026FF; } .theme-neon-purple .court-badge { background: #8A2BE2; color: #FFF; text-shadow:none; }
+        .theme-plasma-red { background: #1A0000; color: #FF3333; border: 1px solid #DC143C; text-shadow: 0 0 5px #FF3333; } .theme-plasma-red .court-badge { background: #DC143C; color: #FFF; text-shadow:none; }
+        .theme-electric-cyan { background: #001A1A; color: #00E5FF; border: 1px solid #008B8B; text-shadow: 0 0 5px #00E5FF; } .theme-electric-cyan .court-badge { background: #008B8B; color: #FFF; text-shadow:none; }
+        .theme-ultraviolet { background: #190033; color: #BF00FF; border: 1px solid #9400D3; text-shadow: 0 0 5px #BF00FF; } .theme-ultraviolet .court-badge { background: #9400D3; color: #FFF; text-shadow:none; }
+        .theme-golden-champagne { background: #FDF6E3; color: #8B6508; border: 1px solid #DAA520; } .theme-golden-champagne .court-badge { background: #DAA520; color: #FFF; }
+        .theme-brushed-bronze { background: #CD7F32; color: #FFF; border: 1px solid #8B4513; } .theme-brushed-bronze .court-badge { background: #8B4513; color: #FFF; }
+        .theme-diamond-glow { background: #F0F8FF; color: #B0E0E6; border: 1px solid #ADD8E6; box-shadow: 0 0 15px rgba(173,216,230,0.5); } .theme-diamond-glow .meta-text { color: #4682B4; } .theme-diamond-glow .court-badge { background: #4682B4; color: #FFF; }
+        .theme-desert-sand { background: #F4A460; color: #8B4513; border: 1px solid #D2691E; } .theme-desert-sand .court-badge { background: #D2691E; color: #FFF; }
+        .theme-pine-wood { background: #DEB887; color: #006400; border: 1px solid #8B4513; } .theme-pine-wood .court-badge { background: #8B4513; color: #FFF; }
+        .theme-deep-sea { background: #006994; color: #E0FFFF; border: 1px solid #000080; } .theme-deep-sea .court-badge { background: #000080; color: #FFF; }
+        .theme-matcha-latte { background: #F5FFFA; color: #556B2F; border: 1px solid #8FBC8F; } .theme-matcha-latte .court-badge { background: #8FBC8F; color: #FFF; }
+        .theme-sky-blue-soft { background: #E0FFFF; color: #4682B4; border: 1px solid #87CEFA; } .theme-sky-blue-soft .court-badge { background: #87CEFA; color: #FFF; }
+        .theme-peach-blossom { background: #FFF0F5; color: #FF69B4; border: 1px solid #FFB6C1; } .theme-peach-blossom .court-badge { background: #FFB6C1; color: #FFF; }
+        .theme-mint-cream { background: #F5FFFA; color: #20B2AA; border: 1px solid #66CDAA; } .theme-mint-cream .court-badge { background: #66CDAA; color: #FFF; }
+        .theme-lilac-dream { background: #F8F8FF; color: #9370DB; border: 1px solid #D8BFD8; } .theme-lilac-dream .court-badge { background: #D8BFD8; color: #FFF; }
 
         .empty-state { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3vw; color: rgba(255,255,255,0.3); font-weight: 900; text-transform: uppercase; letter-spacing: 5px; }
     </style>

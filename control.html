@@ -67,7 +67,7 @@
         .form-control { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 11px; }
         .form-group label { display: block; font-size: 10px; font-weight: 700; color: #555; margin-bottom: 4px; }
         
-        .theme-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .theme-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
         .theme-btn { padding: 8px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 10px; text-align: center; font-weight: bold; background: #f9f9f9; }
         .theme-btn:hover { background: #e3f2fd; border-color: #2196f3; }
 
@@ -84,7 +84,6 @@
         .studio-card { background: #f0f4c3; padding: 15px; border-radius: 8px; border: 1px solid #cddc39; margin-top: 10px; }
         .tv-card { background: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #90caf9; margin-top: 10px; }
 
-        /* EDITOR PREMIUM CSS */
         .editor-container { border: 1px solid #ccc; border-radius: 6px; overflow: hidden; background: #fff; margin-bottom: 10px; }
         .editor-toolbar { display: flex; flex-wrap: wrap; gap: 4px; background: #f4f6f8; padding: 8px; border-bottom: 1px solid #ccc; align-items: center; }
         .editor-btn { background: white; border: 1px solid #ddd; padding: 6px 10px; cursor: pointer; border-radius: 4px; color: #444; font-size: 12px; transition: 0.2s; display: flex; align-items: center; justify-content: center;}
@@ -95,7 +94,6 @@
         .editor-color-btn::-webkit-color-swatch-wrapper { padding: 0; }
         .editor-color-btn::-webkit-color-swatch { border: none; border-radius: 3px; }
         
-        /* PENGUNCI SPASI RULES */
         #rich-editor { min-height: 250px; padding: 15px; font-size: 13px; line-height: 1.4; color: #333; overflow-y: auto; background: #fff; font-family: 'Segoe UI', sans-serif; }
         #rich-editor:focus { outline: none; }
         #rich-editor p, #rich-editor div { margin: 0 0 6px 0; }
@@ -214,9 +212,29 @@
                     <div class="section-title">4. WARNA & GAYA KARTU</div>
                     <div class="grid-2" style="margin-bottom:15px;">
                         <div class="form-group">
-                            <label style="color:#d81b60;">GAYA KARTU SKOR (50 PILIHAN)</label>
+                            <label style="color:#d81b60;">GAYA KARTU SKOR (80 PILIHAN)</label>
                             <select id="s-card-preset" class="form-control" onchange="updateBrandingPreview()">
-                                <option value="classic-white">Classic White</option><option value="midnight-blue">Midnight Blue</option><option value="royal-gold">Royal Gold</option><option value="vampire-red">Vampire Red</option><option value="ocean-breeze">Ocean Breeze</option><option value="neon-cyber">Neon Cyber</option><option value="emerald-city">Emerald City</option><option value="sunset-glow">Sunset Glow</option><option value="monochrome">Monochrome</option><option value="lavender">Lavender</option><option value="crimson">Crimson</option><option value="aqua-glass">Aqua Glass</option><option value="forest-dark">Forest Dark</option><option value="rose-gold">Rose Gold</option><option value="matrix-code">Matrix Code</option><option value="obsidian">Obsidian Black</option><option value="pearl">Pearl White</option><option value="ruby">Ruby Flare</option><option value="sapphire">Sapphire Deep</option><option value="amethyst">Amethyst Glow</option><option value="topaz">Topaz Light</option><option value="amber">Amber Warm</option><option value="quartz">Quartz Pink</option><option value="jade">Jade Green</option><option value="onyx">Onyx Dark</option><option value="coral">Coral Reef</option><option value="turquoise">Turquoise Sea</option><option value="malachite">Malachite Rich</option><option value="opal">Opal Shine</option><option value="moonstone">Moonstone Soft</option><option value="sunstone">Sunstone Bright</option><option value="garnet">Garnet Red</option><option value="peridot">Peridot Lime</option><option value="citrine">Citrine Yellow</option><option value="spinel">Spinel Berry</option><option value="zircon">Zircon Blue</option><option value="tourmaline">Tourmaline Mix</option><option value="beryl">Beryl Clear</option><option value="alexandrite">Alexandrite Shift</option><option value="tanzanite">Tanzanite Violet</option><option value="bloodstone">Bloodstone Dark</option><option value="iolite">Iolite Indigo</option><option value="lapis">Lapis Lazuli</option><option value="morganite">Morganite Blush</option><option value="kunzite">Kunzite Lilac</option><option value="tsavorite">Tsavorite Mint</option><option value="rhodolite">Rhodolite Plum</option><option value="spessartite">Spessartite Orange</option><option value="demantoid">Demantoid Olive</option><option value="padparadscha">Padparadscha Peach</option>
+                                <optgroup label="🏛️ CLASSIC & CLEAN">
+                                    <option value="classic-white">Classic White</option><option value="monochrome">Monochrome</option><option value="pearl">Pearl White</option><option value="ivory-minimal">Ivory Minimal</option><option value="platinum-light">Platinum Light</option><option value="ghost-white">Ghost White</option><option value="silver-ash">Silver Ash</option><option value="clear-glass">Clear Glass</option><option value="snow-blind">Snow Blind</option><option value="paper-crisp">Paper Crisp</option>
+                                </optgroup>
+                                <optgroup label="🌃 DARK & ELEGANT">
+                                    <option value="midnight-blue">Midnight Blue</option><option value="obsidian">Obsidian Black</option><option value="onyx">Onyx Dark</option><option value="dark-matter">Dark Matter</option><option value="stealth-carbon">Stealth Carbon</option><option value="charcoal-matte">Charcoal Matte</option><option value="abyssal-black">Abyssal Black</option><option value="eclipse-shadow">Eclipse Shadow</option><option value="void-deep">Deep Void</option><option value="midnight-slate">Midnight Slate</option>
+                                </optgroup>
+                                <optgroup label="⚡ NEON & CYBER">
+                                    <option value="neon-cyber">Neon Cyber</option><option value="matrix-code">Matrix Code</option><option value="synthwave-pink">Synthwave Pink</option><option value="cyber-yellow">Cyber Yellow</option><option value="toxic-green">Toxic Green</option><option value="laser-blue">Laser Blue</option><option value="neon-purple">Neon Purple</option><option value="plasma-red">Plasma Red</option><option value="electric-cyan">Electric Cyan</option><option value="ultraviolet">Ultra Violet</option>
+                                </optgroup>
+                                <optgroup label="🏆 METALLIC & LUXURY">
+                                    <option value="royal-gold">Royal Gold</option><option value="rose-gold">Rose Gold</option><option value="sapphire">Sapphire Deep</option><option value="ruby">Ruby Flare</option><option value="amethyst">Amethyst Glow</option><option value="emerald-city">Emerald City</option><option value="topaz">Topaz Light</option><option value="golden-champagne">Golden Champagne</option><option value="brushed-bronze">Brushed Bronze</option><option value="diamond-glow">Diamond Glow</option>
+                                </optgroup>
+                                <optgroup label="🍃 NATURE & EARTH">
+                                    <option value="forest-dark">Forest Dark</option><option value="ocean-breeze">Ocean Breeze</option><option value="sunset-glow">Sunset Glow</option><option value="jade">Jade Green</option><option value="coral">Coral Reef</option><option value="turquoise">Turquoise Sea</option><option value="malachite">Malachite Rich</option><option value="desert-sand">Desert Sand</option><option value="pine-wood">Pine Wood</option><option value="deep-sea">Deep Sea</option>
+                                </optgroup>
+                                <optgroup label="🌸 PASTEL & SOFT">
+                                    <option value="lavender">Lavender</option><option value="aqua-glass">Aqua Glass</option><option value="moonstone">Moonstone Soft</option><option value="sunstone">Sunstone Bright</option><option value="peridot">Peridot Lime</option><option value="citrine">Citrine Yellow</option><option value="spinel">Spinel Berry</option><option value="zircon">Zircon Blue</option><option value="tourmaline">Tourmaline Mix</option><option value="beryl">Beryl Clear</option><option value="matcha-latte">Matcha Latte</option><option value="sky-blue-soft">Sky Blue Soft</option><option value="peach-blossom">Peach Blossom</option><option value="mint-cream">Mint Cream</option><option value="lilac-dream">Lilac Dream</option>
+                                </optgroup>
+                                <optgroup label="🔥 VIBRANT & BOLD">
+                                    <option value="vampire-red">Vampire Red</option><option value="crimson">Crimson</option><option value="amber">Amber Warm</option><option value="garnet">Garnet Red</option><option value="alexandrite">Alexandrite Shift</option><option value="tanzanite">Tanzanite Violet</option><option value="bloodstone">Bloodstone Dark</option><option value="iolite">Iolite Indigo</option><option value="lapis">Lapis Lazuli</option><option value="morganite">Morganite Blush</option><option value="kunzite">Kunzite Lilac</option><option value="tsavorite">Tsavorite Mint</option><option value="rhodolite">Rhodolite Plum</option><option value="spessartite">Spessartite Orange</option><option value="demantoid">Demantoid Olive</option>
+                                </optgroup>
                             </select>
                         </div>
                         <div class="form-group">
@@ -443,6 +461,7 @@
             }
         });
 
+        // 💡 24 QUICK THEMES PREMIUM 💡
         const PRESETS = [
             {n:"Padel Pro", h1:"#1a237e", h2:"#0d47a1", bg:"#e3f2fd", neon:"#76ff03", st:"classic-white"},
             {n:"Midnight", h1:"#000000", h2:"#212121", bg:"#121212", neon:"#00e5ff", st:"midnight-blue"},
@@ -458,7 +477,16 @@
             {n:"Aqua Glass", h1:"#0097a7", h2:"#006064", bg:"#e0f7fa", neon:"#18ffff", st:"aqua-glass"},
             {n:"Forest", h1:"#33691e", h2:"#1b5e20", bg:"#1b5e20", neon:"#b2ff59", st:"forest-dark"},
             {n:"Rose Gold", h1:"#ad1457", h2:"#880e4f", bg:"#fce4ec", neon:"#ff4081", st:"rose-gold"},
-            {n:"Matrix", h1:"#004d40", h2:"#000000", bg:"#000000", neon:"#00e676", st:"matrix-code"}
+            {n:"Matrix", h1:"#004d40", h2:"#000000", bg:"#000000", neon:"#00e676", st:"matrix-code"},
+            {n:"Titanium", h1:"#4B4B4B", h2:"#2C2C2C", bg:"#F0F0F0", neon:"#FFD700", st:"platinum-light"},
+            {n:"Deep Void", h1:"#0a0a0a", h2:"#000000", bg:"#050505", neon:"#ff00ff", st:"void-deep"},
+            {n:"Toxic", h1:"#1a3300", h2:"#0d1a00", bg:"#050a00", neon:"#39ff14", st:"toxic-green"},
+            {n:"Champagne", h1:"#C5A059", h2:"#8B6914", bg:"#FAFAFA", neon:"#D2691E", st:"golden-champagne"},
+            {n:"Matcha", h1:"#4F6F52", h2:"#3A4D39", bg:"#F5F5DC", neon:"#86A789", st:"matcha-latte"},
+            {n:"Velvet", h1:"#3E065F", h2:"#210440", bg:"#1A0B2E", neon:"#D8B4E2", st:"ultraviolet"},
+            {n:"Sky Soft", h1:"#87CEEB", h2:"#4682B4", bg:"#F0F8FF", neon:"#00BFFF", st:"sky-blue-soft"},
+            {n:"Plasma", h1:"#800000", h2:"#4d0000", bg:"#1a0000", neon:"#ff3333", st:"plasma-red"},
+            {n:"Abyssal", h1:"#000033", h2:"#00001a", bg:"#00000a", neon:"#00ffff", st:"abyssal-black"}
         ];
 
         function initUI() { const tc = document.getElementById('theme-container'); PRESETS.forEach(t => { tc.innerHTML += `<div class="theme-btn" onclick="applyTheme('${t.h1}','${t.h2}','${t.bg}','${t.neon}','${t.st}')">${t.n}</div>`; }); }
@@ -805,6 +833,7 @@
                 const logoClass = (logoMode === 'classic') ? 'logo-classic' : 'logo-watermark';
                 const logoHTML = logo ? `<img src="${logo}" class="header-logo ${logoClass}" style="display:block;">` : '';
 
+                // 💡 HTML PREVIEW SINKRON DENGAN 80 THEMES 💡
                 const htmlString = `
                 <!DOCTYPE html>
                 <html>
@@ -849,20 +878,34 @@
                         
                         .neon-dot { display: inline-block; width: 6px; height: 6px; background-color: var(--live-neon); border-radius: 50%; box-shadow: 0 0 6px var(--live-neon); margin: 0 6px; vertical-align:middle;}
 
-                        .theme-classic-white { background: white; color: #333; } .theme-classic-white .meta-text { color: #C2185B; } .theme-classic-white .court-badge { background: #f5f5f5; color: #666; border: 1px solid #ddd; }
-                        .theme-midnight-blue { background: #0d1b2a; color: #e0e1dd; border: 1px solid #1b263b; } .theme-midnight-blue .meta-text { color: #4CC9F0; } .theme-midnight-blue .court-badge { background: #1b263b; color: #4CC9F0; }
-                        .theme-royal-gold { background: #fffcf5; color: #5d4037; border: 1px solid #daa520; } .theme-royal-gold .meta-text { color: #b8860b;} .theme-royal-gold .court-badge { background: linear-gradient(to bottom, #fff8dc, #f0e68c); color: #5d4037; border: 1px solid #daa520; }
+                        #view-bagan.container { max-width: 100% !important; padding: 0 !important; }
+                        .bracket-viewport { width: 100%; overflow: auto; -webkit-overflow-scrolling: touch; min-height: 60vh; position: relative; }
+                        .bracket-canvas { min-width: max-content; transform-origin: 0 0; }
+                        .bracket-container { display: flex; flex-direction: row; align-items: stretch; padding: 50px 30px 150px 30px; gap: 50px; width: 100%; box-sizing: border-box; }
+                        .bracket-column { display: flex; flex-direction: column; min-width: 320px; position: relative; }
+                        .bracket-header { text-align: center; font-weight: 900; color: var(--primary-start); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; font-size: 13px; opacity: 0.8; text-shadow: 0 2px 5px rgba(0,0,0,0.1); flex-shrink: 0; }
+                        .bracket-tiers-wrapper { display: flex; flex-direction: column; flex: 1; width: 100%; }
+                        .bracket-matchup-pair { display: flex; flex-direction: column; justify-content: space-around; flex: 1; position: relative; }
+                        .bracket-matchup-pair.has-children::after { content: ''; position: absolute; right: -25px; top: 25%; bottom: 25%; width: 25px; border-top: 2px solid rgba(128,128,128,0.4); border-bottom: 2px solid rgba(128,128,128,0.4); border-right: 2px solid rgba(128,128,128,0.4); border-top-right-radius: 6px; border-bottom-right-radius: 6px; z-index: -1; }
+                        .bracket-matchup-pair.has-children::before { content: ''; position: absolute; right: -50px; top: 50%; width: 25px; height: 2px; background: rgba(128,128,128,0.4); z-index: -1; }
+                        .bracket-match-wrapper { position: relative; width: 100%; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 8px 0; }
+                        .match-card.ghost { opacity: 0.4; border: 2px dashed rgba(128,128,128,0.6) !important; background: transparent !important; box-shadow: none !important; display: flex; justify-content: center; align-items: center; min-height: 80px; }
+
+                        /* IMPORT ALL 80 THEMES */
+                        .theme-classic-white { background: white; color: #333; } .theme-classic-white .meta-text { color: #C2185B; } .theme-classic-white .court-badge { background: #f5f5f5; color: #666; border: 1px solid #ddd; } 
+                        .theme-midnight-blue { background: #0d1b2a; color: #e0e1dd; border: 1px solid #1b263b; } .theme-midnight-blue .meta-text { color: #4CC9F0; } .theme-midnight-blue .court-badge { background: #1b263b; color: #4CC9F0; } 
+                        .theme-royal-gold { background: #fffcf5; color: #5d4037; border: 1px solid #daa520; } .theme-royal-gold .meta-text { color: #b8860b; } .theme-royal-gold .court-badge { background: linear-gradient(to bottom, #fff8dc, #f0e68c); color: #5d4037; border: 1px solid #daa520; }
                         .theme-vampire-red { background: #1a0000; color: #ffcccc; border: 1px solid #4d0000; } .theme-vampire-red .meta-text { color: #FF5252; } .theme-vampire-red .court-badge { background: #4d0000; color: white; }
                         .theme-ocean-breeze { background: #E1F5FE; color: #01579B; border: 1px solid #81d4fa; } .theme-ocean-breeze .meta-text { color: #0288d1; } .theme-ocean-breeze .court-badge { background: #0288D1; color: white; }
-                        .theme-neon-cyber { background: #050505; border: 1px solid #0ff; color: #0ff; } .theme-neon-cyber .meta-text { color: #fff;} .theme-neon-cyber .court-badge { background: #002222; color: #fff; border: 1px solid #0ff; }
+                        .theme-neon-cyber { background: #050505; border: 1px solid #0ff; color: #0ff; } .theme-neon-cyber .meta-text { color: #fff; text-shadow: 0 0 5px #fff; } .theme-neon-cyber .court-badge { background: #002222; color: #fff; border: 1px solid #0ff; }
                         .theme-emerald-city { background: #e8f5e9; color: #1b5e20; border: 1px solid #c8e6c9; } .theme-emerald-city .meta-text { color: #2e7d32; } .theme-emerald-city .court-badge { background: #4caf50; color: white; }
                         .theme-sunset-glow { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; } .theme-sunset-glow .meta-text { color: #f57c00; } .theme-sunset-glow .court-badge { background: #ff9800; color: white; }
-                        .theme-monochrome { background: #fafafa; color: #000; border: 2px solid #000; border-radius:0; } .theme-monochrome .court-badge { background: #000; color: #fff; border-radius:0; }
+                        .theme-monochrome { background: #fafafa; color: #000; border: 2px solid #000; border-radius:0 !important; } .theme-monochrome .court-badge { background: #000; color: #fff; border-radius:0; }
                         .theme-lavender { background: #f3e5f5; color: #4a148c; border: 1px solid #e1bee7; } .theme-lavender .court-badge { background: #ab47bc; color: white; }
                         .theme-crimson { background: #ffebee; color: #b71c1c; border: 1px solid #ffcdd2; } .theme-crimson .court-badge { background: #e53935; color: white; }
-                        .theme-aqua-glass { background: rgba(224,247,250,0.7); backdrop-filter: blur(10px); color: #006064; } .theme-aqua-glass .court-badge { background: #00bcd4; color: white; }
-                        .theme-forest-dark { background: #1b5e20; color: #e8f5e9; } .theme-forest-dark .court-badge { background: #4caf50; color: white; }
-                        .theme-rose-gold { background: #fce4ec; color: #880e4f; } .theme-rose-gold .court-badge { background: #f06292; color: white; }
+                        .theme-aqua-glass { background: rgba(224,247,250,0.7); backdrop-filter: blur(10px); color: #006064; border: 1px solid rgba(255,255,255,0.5); } .theme-aqua-glass .court-badge { background: #00bcd4; color: white; }
+                        .theme-forest-dark { background: #1b5e20; color: #e8f5e9; border: 1px solid #388e3c; } .theme-forest-dark .court-badge { background: #4caf50; color: white; }
+                        .theme-rose-gold { background: #fce4ec; color: #880e4f; border: 1px solid #f8bbd0; } .theme-rose-gold .meta-text { color: #d81b60; } .theme-rose-gold .court-badge { background: #f06292; color: white; }
                         .theme-matrix-code { background: black; color: #00ff00; font-family: 'Courier Prime', monospace; } .theme-matrix-code .court-badge { border: 1px solid #00ff00; color: #00ff00; background: transparent; }
                         .theme-obsidian { background: #0f0f0f; color: #f5f5f5; border: 1px solid #333; } .theme-obsidian .meta-text { color: #ffeb3b; } .theme-obsidian .court-badge { background: #222; color: #ffeb3b; }
                         .theme-pearl { background: #fdfdfd; color: #444; border: 1px solid #e0e0e0; } .theme-pearl .meta-text { color: #880e4f; } .theme-pearl .court-badge { background: #eee; color: #880e4f; }
@@ -899,6 +942,39 @@
                         .theme-spessartite { background: #bf360c; color: #fbe9e7; border: 1px solid #d84315; } .theme-spessartite .meta-text { color: #ff9e80; } .theme-spessartite .court-badge { background: #d84315; color: white; }
                         .theme-demantoid { background: #33691e; color: #f1f8e9; border: 1px solid #558b2f; } .theme-demantoid .meta-text { color: #ccff90; } .theme-demantoid .court-badge { background: #558b2f; color: white; }
                         .theme-padparadscha { background: #ffccbc; color: #bf360c; border: 1px solid #ff8a65; } .theme-padparadscha .court-badge { background: #bf360c; color: white; }
+                        .theme-ivory-minimal { background: #FFFFF0; color: #333; border: 1px solid #EEE8AA; } .theme-ivory-minimal .meta-text { color: #8B4513; } .theme-ivory-minimal .court-badge { background: #EEE8AA; color: #333; }
+                        .theme-platinum-light { background: #E5E4E2; color: #2C2C2C; border: 1px solid #B0C4DE; } .theme-platinum-light .meta-text { color: #4682B4; } .theme-platinum-light .court-badge { background: #B0C4DE; color: #2C2C2C; }
+                        .theme-ghost-white { background: #F8F8FF; color: #191970; border: 1px solid #DCDCDC; } .theme-ghost-white .meta-text { color: #4169E1; } .theme-ghost-white .court-badge { background: #DCDCDC; color: #191970; }
+                        .theme-silver-ash { background: #C0C0C0; color: #000; border: 1px solid #A9A9A9; } .theme-silver-ash .meta-text { color: #2F4F4F; } .theme-silver-ash .court-badge { background: #808080; color: #FFF; }
+                        .theme-clear-glass { background: rgba(255,255,255,0.8); backdrop-filter: blur(8px); color: #333; border: 1px solid rgba(0,0,0,0.1); } .theme-clear-glass .court-badge { background: rgba(0,0,0,0.1); color: #333; }
+                        .theme-snow-blind { background: #FFFAFA; color: #000; border: 2px solid #F0F8FF; } .theme-snow-blind .court-badge { background: #000; color: #FFF; }
+                        .theme-paper-crisp { background: #FDF5E6; color: #5C4033; border: 1px solid #DEB887; } .theme-paper-crisp .court-badge { background: #DEB887; color: #FFF; }
+                        .theme-dark-matter { background: #121212; color: #A9A9A9; border: 1px solid #2F4F4F; } .theme-dark-matter .meta-text { color: #696969; } .theme-dark-matter .court-badge { background: #2F4F4F; color: #FFF; }
+                        .theme-stealth-carbon { background: #1C1C1C; color: #D3D3D3; border: 1px solid #383838; } .theme-stealth-carbon .court-badge { background: #383838; color: #D3D3D3; }
+                        .theme-charcoal-matte { background: #36454F; color: #FFF8DC; border: 1px solid #2F4F4F; } .theme-charcoal-matte .court-badge { background: #2F4F4F; color: #FFF8DC; }
+                        .theme-abyssal-black { background: #000005; color: #4682B4; border: 1px solid #000080; } .theme-abyssal-black .meta-text { color: #1E90FF; } .theme-abyssal-black .court-badge { background: #000080; color: #FFF; }
+                        .theme-eclipse-shadow { background: #0B0B0B; color: #FFFAF0; border: 1px solid #FF4500; } .theme-eclipse-shadow .meta-text { color: #FF6347; } .theme-eclipse-shadow .court-badge { background: #FF4500; color: #FFF; }
+                        .theme-void-deep { background: #050505; color: #9370DB; border: 1px solid #4B0082; } .theme-void-deep .court-badge { background: #4B0082; color: #FFF; }
+                        .theme-midnight-slate { background: #2F4F4F; color: #E0FFFF; border: 1px solid #008080; } .theme-midnight-slate .court-badge { background: #008080; color: #FFF; }
+                        .theme-synthwave-pink { background: #1A001A; color: #FF1493; border: 1px solid #FF00FF; text-shadow: 0 0 5px #FF1493; } .theme-synthwave-pink .court-badge { background: #FF00FF; color: #FFF; text-shadow:none; }
+                        .theme-cyber-yellow { background: #0A0A00; color: #FFFF00; border: 1px solid #BDB76B; text-shadow: 0 0 5px #FFFF00; } .theme-cyber-yellow .court-badge { background: #FFFF00; color: #000; text-shadow:none; }
+                        .theme-toxic-green { background: #001A00; color: #39FF14; border: 1px solid #00FF00; text-shadow: 0 0 5px #39FF14; } .theme-toxic-green .court-badge { background: #00FF00; color: #000; text-shadow:none; }
+                        .theme-laser-blue { background: #00001A; color: #00FFFF; border: 1px solid #00BFFF; text-shadow: 0 0 5px #00FFFF; } .theme-laser-blue .court-badge { background: #00BFFF; color: #000; text-shadow:none; }
+                        .theme-neon-purple { background: #0D001A; color: #B026FF; border: 1px solid #8A2BE2; text-shadow: 0 0 5px #B026FF; } .theme-neon-purple .court-badge { background: #8A2BE2; color: #FFF; text-shadow:none; }
+                        .theme-plasma-red { background: #1A0000; color: #FF3333; border: 1px solid #DC143C; text-shadow: 0 0 5px #FF3333; } .theme-plasma-red .court-badge { background: #DC143C; color: #FFF; text-shadow:none; }
+                        .theme-electric-cyan { background: #001A1A; color: #00E5FF; border: 1px solid #008B8B; text-shadow: 0 0 5px #00E5FF; } .theme-electric-cyan .court-badge { background: #008B8B; color: #FFF; text-shadow:none; }
+                        .theme-ultraviolet { background: #190033; color: #BF00FF; border: 1px solid #9400D3; text-shadow: 0 0 5px #BF00FF; } .theme-ultraviolet .court-badge { background: #9400D3; color: #FFF; text-shadow:none; }
+                        .theme-golden-champagne { background: #FDF6E3; color: #8B6508; border: 1px solid #DAA520; } .theme-golden-champagne .court-badge { background: #DAA520; color: #FFF; }
+                        .theme-brushed-bronze { background: #CD7F32; color: #FFF; border: 1px solid #8B4513; } .theme-brushed-bronze .court-badge { background: #8B4513; color: #FFF; }
+                        .theme-diamond-glow { background: #F0F8FF; color: #B0E0E6; border: 1px solid #ADD8E6; box-shadow: 0 0 15px rgba(173,216,230,0.5); } .theme-diamond-glow .meta-text { color: #4682B4; } .theme-diamond-glow .court-badge { background: #4682B4; color: #FFF; }
+                        .theme-desert-sand { background: #F4A460; color: #8B4513; border: 1px solid #D2691E; } .theme-desert-sand .court-badge { background: #D2691E; color: #FFF; }
+                        .theme-pine-wood { background: #DEB887; color: #006400; border: 1px solid #8B4513; } .theme-pine-wood .court-badge { background: #8B4513; color: #FFF; }
+                        .theme-deep-sea { background: #006994; color: #E0FFFF; border: 1px solid #000080; } .theme-deep-sea .court-badge { background: #000080; color: #FFF; }
+                        .theme-matcha-latte { background: #F5FFFA; color: #556B2F; border: 1px solid #8FBC8F; } .theme-matcha-latte .court-badge { background: #8FBC8F; color: #FFF; }
+                        .theme-sky-blue-soft { background: #E0FFFF; color: #4682B4; border: 1px solid #87CEFA; } .theme-sky-blue-soft .court-badge { background: #87CEFA; color: #FFF; }
+                        .theme-peach-blossom { background: #FFF0F5; color: #FF69B4; border: 1px solid #FFB6C1; } .theme-peach-blossom .court-badge { background: #FFB6C1; color: #FFF; }
+                        .theme-mint-cream { background: #F5FFFA; color: #20B2AA; border: 1px solid #66CDAA; } .theme-mint-cream .court-badge { background: #66CDAA; color: #FFF; }
+                        .theme-lilac-dream { background: #F8F8FF; color: #9370DB; border: 1px solid #D8BFD8; } .theme-lilac-dream .court-badge { background: #D8BFD8; color: #FFF; }
 
                         .nav { position: fixed; bottom: 0; width: 100%; background: white; border-top-left-radius: 20px; border-top-right-radius: 20px; display: flex; padding: 12px 0; z-index: 100; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); }
                         .nav-btn { flex: 1; text-align: center; font-size: 10px; color: #ccc; font-weight: 600; cursor:pointer; }
@@ -1045,6 +1121,23 @@
                             let isPct = (klasemenFormat === 'PCT');
                             let legendText = isPct ? '%: Persentase (Game Percentage)' : 'GD: Selisih Game (Game Difference)';
                             
+                            let groups = {};
+                            let filteredMatches = matches.filter(m => currentCategory === 'SEMUA' || (m.category||'UMUM') === currentCategory);
+                            
+                            const klasemenKeywords = ['grup', 'group', 'pool', 'penyisihan', 'liga'];
+                            const isKlasemen = (r) => klasemenKeywords.some(kw => (r||'').toLowerCase().includes(kw));
+                            
+                            let klasemenMatches = filteredMatches.filter(m => isKlasemen(m.round));
+
+                            if(klasemenMatches.length === 0) {
+                                el.innerHTML = \`
+                                    <div class="match-card theme-\${cardPreset}" style="text-align:center; padding: 30px 20px; margin-top:20px; border: 2px dashed rgba(128,128,128,0.3); box-shadow:none;">
+                                        <h3 style="margin:0 0 10px 0; font-weight:900; color:var(--primary-start); opacity:0.6;">TIDAK ADA KLASEMEN</h3>
+                                        <p style="font-size:12px; opacity:0.6; line-height:1.5; margin:0;">Tidak ada pertandingan dengan sistem Grup/Liga pada kategori ini.</p>
+                                    </div>\`;
+                                return;
+                            }
+
                             el.innerHTML = \`
                             <div class="match-card theme-\${cardPreset}" style="padding: 12px; margin-bottom: 15px; text-align: center; line-height: 1.6; font-size: 10px; font-weight: 600;">
                                 <span style="font-weight: 900; opacity: 0.8; font-size: 12px; text-transform: uppercase;">KETERANGAN TABEL</span><br>
@@ -1055,9 +1148,7 @@
                                 </div>
                             </div>\`;
 
-                            let groups = {};
-                            let filteredMatches = matches.filter(m => currentCategory === 'SEMUA' || (m.category||'UMUM') === currentCategory);
-                            filteredMatches.filter(m => m.round.toLowerCase().includes('grup')).forEach(m => {
+                            klasemenMatches.forEach(m => {
                                 let g = (m.category||'UMUM') + ' - ' + m.round;
                                 if(!groups[g]) groups[g]={cat: m.category||'UMUM', round: m.round};
                                 [m.team_a, m.team_b].forEach(t=>{ if(!groups[g][t]) groups[g][t]={mp:0, w:0, l:0, gw:0, gl:0, gd:0}; });
@@ -1097,9 +1188,148 @@
                         function renderAll() {
                             const elJ = document.getElementById('jadwal-content'); elJ.innerHTML = "";
                             const elB = document.getElementById('bagan-content'); elB.innerHTML = "";
+                            
                             let filteredMatches = matches.filter(m => currentCategory === 'SEMUA' || (m.category||'UMUM') === currentCategory);
-                            filteredMatches.filter(m => m.round.toLowerCase().includes('grup')).forEach(m => elJ.innerHTML += createCardHTML(m));
-                            filteredMatches.filter(m => !m.round.toLowerCase().includes('grup')).forEach(m => elB.innerHTML += createCardHTML(m));
+                            
+                            const klasemenKeywords = ['grup', 'group', 'pool', 'penyisihan', 'liga'];
+                            const isKlasemen = (r) => klasemenKeywords.some(kw => (r||'').toLowerCase().includes(kw));
+
+                            const baganKeywords = ['16', '32', '64', 'quarter', 'qf', '8 besar', 'perempat', 'semi', 'sf', '4 besar', 'final', 'puncak', 'juara 3', 'third', 'tiga'];
+                            const isBagan = (r) => baganKeywords.some(kw => (r||'').toLowerCase().includes(kw));
+                            
+                            let jadwalMatches = [];
+                            let baganMatches = [];
+                            
+                            filteredMatches.forEach(m => {
+                                if(isKlasemen(m.round)) {
+                                    jadwalMatches.push(m);
+                                } else if(isBagan(m.round)) {
+                                    baganMatches.push(m);
+                                } else {
+                                    jadwalMatches.push(m);
+                                }
+                            });
+
+                            if(jadwalMatches.length > 0) {
+                                jadwalMatches.forEach(m => elJ.innerHTML += createCardHTML(m));
+                            } else {
+                                elJ.innerHTML = \`<div class="match-card theme-\${cardPreset}" style="text-align:center; padding: 30px 20px; margin-top:20px; border: 2px dashed rgba(128,128,128,0.3); box-shadow:none;"><p style="font-size:12px; opacity:0.6;">Tidak ada Jadwal (Penyisihan/Hiburan) di kategori ini.</p></div>\`;
+                            }
+                            
+                            if(baganMatches.length > 0) {
+                                if (currentCategory === 'SEMUA') {
+                                    elB.innerHTML = \`
+                                        <div class="match-card theme-\${cardPreset}" style="text-align:center; padding: 40px 20px; margin-top:20px; border: 2px dashed rgba(128,128,128,0.3); box-shadow:none;">
+                                            <div style="font-size:30px; margin-bottom:10px; opacity:0.5;">🔀</div>
+                                            <h3 style="margin:0 0 10px 0; font-weight:900; color:var(--primary-start);">PILIH KATEGORI</h3>
+                                            <p style="font-size:12px; opacity:0.8; line-height:1.5; margin:0;">Bagan pohon turnamen tidak dapat ditampilkan untuk "SEMUA LAGA" karena akan menumpuk dan membingungkan.<br><br><b>Silakan geser dan pilih salah satu kategori di atas (Misal: Mixed Doubles) untuk melihat bagannya.</b></p>
+                                        </div>
+                                    \`;
+                                } else {
+                                    let tiers = [
+                                        { id: 'r64', name: 'Round of 64', size: 32, matches: new Array(32).fill(null) },
+                                        { id: 'r32', name: 'Round of 32', size: 16, matches: new Array(16).fill(null) },
+                                        { id: 'r16', name: 'Round of 16', size: 8, matches: new Array(8).fill(null) },
+                                        { id: 'qf', name: 'Quarter Final', size: 4, matches: new Array(4).fill(null) },
+                                        { id: 'sf', name: 'Semi Final', size: 2, matches: new Array(2).fill(null) },
+                                        { id: 'final', name: 'Grand Final', size: 1, matches: new Array(1).fill(null) },
+                                        { id: 'third', name: '3rd Place', size: 1, matches: new Array(1).fill(null) }
+                                    ];
+                                    
+                                    const getNum = (str) => { let match = (str||'').match(/\\d+/); return match ? parseInt(match[0]) : null; };
+                                    
+                                    baganMatches.forEach(m => {
+                                        let rawRound = (m.round || '').trim();
+                                        if (!rawRound || rawRound === '-' || rawRound === '--' || rawRound === '---') return;
+
+                                        let r = rawRound.toLowerCase();
+                                        let num = getNum(rawRound);
+                                        let targetTier = null;
+                                        
+                                        if(r.includes('juara 3') || r.includes('third') || r.includes('tiga') || r.includes('perebutan')) targetTier = tiers.find(t=>t.id==='third');
+                                        else if(r.includes('quarter') || r.includes('qf') || r.includes('8 besar') || r.includes('perempat')) targetTier = tiers.find(t=>t.id==='qf');
+                                        else if(r.includes('semi') || r.includes('sf') || r.includes('4 besar')) targetTier = tiers.find(t=>t.id==='sf');
+                                        else if(r.includes('16')) targetTier = tiers.find(t=>t.id==='r16');
+                                        else if(r.includes('32')) targetTier = tiers.find(t=>t.id==='r32');
+                                        else if(r.includes('64')) targetTier = tiers.find(t=>t.id==='r64');
+                                        else if(r.includes('final') || r.includes('puncak')) targetTier = tiers.find(t=>t.id==='final');
+                                        else targetTier = tiers.find(t=>t.id==='r64');
+
+                                        if(targetTier) {
+                                            let idx = (num !== null && num >= 1 && num <= targetTier.size) ? (num - 1) : -1;
+                                            if(idx !== -1 && !targetTier.matches[idx]) {
+                                                targetTier.matches[idx] = m;
+                                            } else {
+                                                let emptyIdx = targetTier.matches.findIndex(x => x === null);
+                                                if(emptyIdx !== -1) targetTier.matches[emptyIdx] = m;
+                                            }
+                                        }
+                                    });
+
+                                    let activeStart = -1; let activeEnd = -1;
+                                    for(let i=0; i<tiers.length - 1; i++) {
+                                        if(tiers[i].matches.some(m => m !== null)) {
+                                            if(activeStart === -1) activeStart = i;
+                                            activeEnd = i;
+                                        }
+                                    }
+
+                                    if (activeStart !== -1) {
+                                        let renderTiers = tiers.slice(activeStart, activeEnd + 1);
+                                        
+                                        let bracketHTML = '<div id="bracket-viewport" class="bracket-viewport">';
+                                        bracketHTML += '<div id="bracket-canvas" class="bracket-canvas">';
+                                        bracketHTML += '<div class="bracket-container">';
+
+                                        function createGhostHTML() {
+                                            return \`<div class="match-card ghost theme-\${cardPreset}"><span style="font-size:11px; font-weight:800; letter-spacing:2px;">TBD / BYE</span></div>\`;
+                                        }
+
+                                        renderTiers.forEach((tier, index) => {
+                                            let isLastColumn = (index === renderTiers.length - 1);
+                                            let colHTML = \`<div class="bracket-column">\`;
+                                            colHTML += \`<div class="bracket-header">\${tier.name}</div>\`;
+                                            colHTML += \`<div class="bracket-tiers-wrapper">\`;
+                                            
+                                            let pairCount = Math.max(1, tier.size / 2);
+                                            
+                                            for(let p=0; p<pairCount; p++) {
+                                                let hasChildren = !isLastColumn;
+                                                colHTML += \`<div class="bracket-matchup-pair \${hasChildren ? 'has-children' : ''}">\`;
+                                                
+                                                if(tier.size === 1) { 
+                                                    let m = tier.matches[0];
+                                                    colHTML += \`<div class="bracket-match-wrapper">\${m ? createCardHTML(m) : createGhostHTML()}</div>\`;
+                                                    
+                                                    if (isLastColumn) {
+                                                        let thirdTier = tiers.find(t=>t.id==='third');
+                                                        if(thirdTier.matches.some(m=>m!==null)) {
+                                                            let m3 = thirdTier.matches.find(m=>m!==null);
+                                                            colHTML += \`<div style="position: absolute; top: calc(50% + 90px); left: 0; width: 100%; z-index: 5;">\`;
+                                                            colHTML += \`<div class="bracket-header" style="margin-bottom:10px; margin-top:0; color:#888; font-size:11px;">PEREBUTAN JUARA 3</div>\`;
+                                                            colHTML += \`<div class="bracket-match-wrapper" style="padding:0;">\${createCardHTML(m3)}</div>\`;
+                                                            colHTML += \`</div>\`;
+                                                        }
+                                                    }
+                                                } else { 
+                                                    let m1 = tier.matches[p*2];
+                                                    let m2 = tier.matches[p*2 + 1];
+                                                    colHTML += \`<div class="bracket-match-wrapper">\${m1 ? createCardHTML(m1) : createGhostHTML()}</div>\`;
+                                                    colHTML += \`<div class="bracket-match-wrapper">\${m2 ? createCardHTML(m2) : createGhostHTML()}</div>\`;
+                                                }
+                                                colHTML += \`</div>\`;
+                                            }
+                                            colHTML += \`</div></div>\`;
+                                            bracketHTML += colHTML;
+                                        });
+                                        bracketHTML += '</div></div></div>';
+                                        
+                                        elB.innerHTML = bracketHTML;
+                                    }
+                                }
+                            } else {
+                                elB.innerHTML = \`<div class="match-card theme-\${cardPreset}" style="text-align:center; padding: 30px 20px; margin-top:20px; border: 2px dashed rgba(128,128,128,0.3); box-shadow:none;"><p style="font-size:12px; opacity:0.6;">Belum ada data untuk Pohon Turnamen.</p></div>\`;
+                            }
                             renderKlasemen();
                         }
 
@@ -1164,13 +1394,11 @@
                 const cardPreset = getVal('s-card-preset') || 'classic-white';
                 const simCount = parseInt(getVal('sim-grid') || '6');
                 
-                // Ambil background image dari data global jika ada
                 const bgImgStyle = window.RAW_DB_DATA && window.RAW_DB_DATA.bg_image_url ? `background-image: url('${window.RAW_DB_DATA.bg_image_url}'); background-size: cover; background-attachment: fixed;` : '';
 
                 const frame = document.getElementById('preview-frame-tv');
                 if(!frame) return;
 
-                // LOGIKA CANVAS BEBAS
                 let tBase = (tvLogo && tvLogoPos === 'kiri') ? 12 : 3;
                 let sBase = tBase + 28;
                 let tagBase = sBase + 20;
@@ -1183,9 +1411,7 @@
                 }
 
                 let tHTML = tvTitle ? `<h1 style="position:absolute; top:50%; left:${tBase}vw; transform:translate(${xT}vw, calc(-50% + ${yT}vh)) scale(${sT}); transform-origin:left center; color:${cT}; margin:0; font-size:2.5vw; font-weight:900; letter-spacing:2px; text-transform:uppercase; text-shadow:0 4px 10px rgba(0,0,0,0.5); white-space:nowrap; z-index:15;">${tvTitle}</h1>` : '';
-                
                 let sHTML = tvSub ? `<span style="position:absolute; top:50%; left:${sBase}vw; transform:translate(${xS}vw, calc(-50% + ${yS}vh)) scale(${sS}); transform-origin:left center; color:${cS}; font-size:1.2vw; opacity:0.8; font-weight:700; text-shadow:0 2px 5px rgba(0,0,0,0.5); white-space:nowrap; z-index:15;">${tvSub}</span>` : '';
-                
                 let tagHTML = tvTag ? `<div style="position:absolute; top:50%; left:${tagBase}vw; transform:translate(${xTag}vw, calc(-50% + ${yTag}vh)) scale(${sTag}); transform-origin:left center; color:${cTag}; border:1px solid ${cTag}; padding:0.5vh 1.5vw; border-radius:30px; background:rgba(255,255,255,0.1); font-size:0.9vw; font-weight:800; text-transform:uppercase; letter-spacing:1px; backdrop-filter:blur(5px); z-index:15; white-space:nowrap;">${tvTag}</div>` : '';
 
                 const finalHeader = `
@@ -1197,7 +1423,6 @@
                     </div>
                 `;
 
-                // LOGIKA GENERATE KARTU SIMULASI
                 let mockCardsHTML = '';
                 let gridClass = '';
                 if(simCount === 1) gridClass = 'grid-1'; else if(simCount === 2) gridClass = 'grid-2'; else if(simCount <= 4) gridClass = 'grid-4'; else gridClass = 'grid-6';
@@ -1209,7 +1434,6 @@
                             <span class="meta-text">SIMULASI • ROUND ${i}</span> 
                             <div class="live-tag"><div class="dot-live"></div> LIVE</div>
                         </div>
-                        
                         <div style="display:flex; align-items:center; justify-content:center; flex:1; gap:0.5vw; min-width:0; min-height:0;">
                             <div class="team" style="align-items:flex-end;">
                                 <div style="display:flex; flex-direction:row; align-items:center; justify-content:flex-end; width:100%; min-width:0; gap:0.5vw;">
@@ -1229,53 +1453,39 @@
                                 </div>
                             </div>
                         </div>
-
                         <div style="text-align:center; margin-top:1vh; min-width:0; flex-shrink:0;">
                             <span class="court-badge">COURT ${i}</span>
                         </div>
                     </div>`;
                 }
 
-                // ALL CSS DIPASTIKAN SAMA DENGAN TV.HTML
+                // 💡 HTML PREVIEW TV SINKRON 80 THEMES 💡
                 const htmlString = `
                 <!DOCTYPE html>
                 <html>
                 <head>
                     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
                     <style>
-                        :root { 
-                            --primary-start: ${h1}; --primary-end: ${h2}; --live-neon: ${neon}; --bg-color: ${bg}; --text-color: #fff;
-                            --card-radius: 20px; --font-main: 'Montserrat', sans-serif;
-                        }
+                        :root { --primary-start: ${h1}; --primary-end: ${h2}; --live-neon: ${neon}; --bg-color: ${bg}; --text-color: #fff; --card-radius: 20px; --font-main: 'Montserrat', sans-serif; }
                         body { font-family: var(--font-main); background-color: var(--bg-color); ${bgImgStyle} margin: 0; padding: 0; color: var(--text-color); overflow: hidden; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box;}
-                        
                         #tv-grid { flex: 1; padding: 2vh 2vw; display: grid; gap: 2vw; align-content: center; width: 100vw; box-sizing: border-box; overflow: hidden; position: relative; z-index: 5;}
-                        #tv-grid.grid-1 { grid-template-columns: 1fr; grid-template-rows: 1fr; padding: 5vh 10vw;}
-                        #tv-grid.grid-2 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
-                        #tv-grid.grid-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
-                        #tv-grid.grid-6 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
-                        
+                        #tv-grid.grid-1 { grid-template-columns: 1fr; grid-template-rows: 1fr; padding: 5vh 10vw;} #tv-grid.grid-2 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; } #tv-grid.grid-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; } #tv-grid.grid-6 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
                         .match-card { display: flex; flex-direction: column; justify-content: space-between; padding: 1.5vw; border-radius: var(--card-radius); height: 100%; box-sizing: border-box; position: relative; min-width: 0; min-height: 0; overflow: hidden;}
-                        
                         .grid-1 .team-name { font-size: 4vw; } .grid-1 .set-txt { font-size: 4vw; } .grid-1 .point-txt { font-size: 2vw; margin-top: 1vh; padding: 0.5vh 2vw; } .grid-1 .court-badge { font-size: 1.5vw; } .grid-1 .meta-text { font-size: 1.2vw; }
                         .grid-2 .team-name { font-size: 2.5vw; } .grid-2 .set-txt { font-size: 2.5vw; } .grid-2 .point-txt { font-size: 1.5vw; margin-top: 1vh; padding: 0.5vh 1.5vw; } .grid-2 .court-badge { font-size: 1.2vw; } .grid-2 .meta-text { font-size: 1vw; }
                         .grid-4 .team-name { font-size: 2vw; } .grid-4 .set-txt { font-size: 1.8vw; } .grid-4 .point-txt { font-size: 1.1vw; margin-top: 0.8vh; padding: 0.4vh 1.2vw; } .grid-4 .court-badge { font-size: 1vw; } .grid-4 .meta-text { font-size: 0.9vw; }
                         .grid-6 .team-name { font-size: 1.6vw; } .grid-6 .set-txt { font-size: 1.3vw; } .grid-6 .point-txt { font-size: 0.9vw; margin-top: 0.5vh; padding: 0.3vh 1vw; } .grid-6 .court-badge { font-size: 0.9vw; padding: 0.3vw 0.8vw; } .grid-6 .meta-text { font-size: 0.8vw; }
-
                         .meta-text { font-weight: 900; text-transform: uppercase; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;}
                         .court-badge { border-radius: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; display: inline-block; box-shadow: 0 5px 15px rgba(0,0,0,0.2);}
-                        
                         .team { flex: 1; font-weight: 800; line-height: 1.3; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
                         .score-pill { background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); color: white; border-radius: 15px; min-width: auto; max-width: 35%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin: 0 1.5vw; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0; padding: 0.8vh 1.5vw;}
-                        .set-txt { font-weight: 900; }
-                        .point-txt { font-weight: 900; letter-spacing: 2px; background: rgba(0,0,0,0.2); border-radius: 10px; display: inline-block; color: inherit; text-align: center; }
-
+                        .set-txt { font-weight: 900; } .point-txt { font-weight: 900; letter-spacing: 2px; background: rgba(0,0,0,0.2); border-radius: 10px; display: inline-block; color: inherit; text-align: center; }
                         .match-card.is-live { border: 3px solid var(--live-neon); box-shadow: 0 0 10px var(--live-neon); z-index: 20; }
                         .live-tag { color: #fff; background: var(--primary-start); font-weight: 900; font-size: 0.9vw; display: flex; align-items: center; gap: 0.5vw; padding: 0.4vw 0.8vw; border-radius: 8px; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); flex-shrink: 0;}
                         .dot-live { display: inline-block; width: 0.8vw; height: 0.8vw; background-color: var(--live-neon) !important; border-radius: 50%; }
                         .neon-dot { flex-shrink: 0; width: 0.8vw; height: 0.8vw; background-color: var(--live-neon); border-radius: 50%; box-shadow: 0 0 10px var(--live-neon); }
 
-                        /* IMPORT ALL 50 THEMES LENGKAP */
+                        /* IMPORT ALL 80 THEMES */
                         .theme-classic-white { background: white; color: #333; } .theme-classic-white .meta-text { color: #C2185B; } .theme-classic-white .court-badge { background: #f5f5f5; color: #666; border: 1px solid #ddd; } 
                         .theme-midnight-blue { background: #0d1b2a; color: #e0e1dd; border: 1px solid #1b263b; } .theme-midnight-blue .meta-text { color: #4CC9F0; } .theme-midnight-blue .court-badge { background: #1b263b; color: #4CC9F0; } 
                         .theme-royal-gold { background: #fffcf5; color: #5d4037; border: 1px solid #daa520; } .theme-royal-gold .meta-text { color: #b8860b; } .theme-royal-gold .court-badge { background: linear-gradient(to bottom, #fff8dc, #f0e68c); color: #5d4037; border: 1px solid #daa520; }
@@ -1326,6 +1536,39 @@
                         .theme-spessartite { background: #bf360c; color: #fbe9e7; border: 1px solid #d84315; } .theme-spessartite .meta-text { color: #ff9e80; } .theme-spessartite .court-badge { background: #d84315; color: white; }
                         .theme-demantoid { background: #33691e; color: #f1f8e9; border: 1px solid #558b2f; } .theme-demantoid .meta-text { color: #ccff90; } .theme-demantoid .court-badge { background: #558b2f; color: white; }
                         .theme-padparadscha { background: #ffccbc; color: #bf360c; border: 1px solid #ff8a65; } .theme-padparadscha .court-badge { background: #bf360c; color: white; }
+                        .theme-ivory-minimal { background: #FFFFF0; color: #333; border: 1px solid #EEE8AA; } .theme-ivory-minimal .meta-text { color: #8B4513; } .theme-ivory-minimal .court-badge { background: #EEE8AA; color: #333; }
+                        .theme-platinum-light { background: #E5E4E2; color: #2C2C2C; border: 1px solid #B0C4DE; } .theme-platinum-light .meta-text { color: #4682B4; } .theme-platinum-light .court-badge { background: #B0C4DE; color: #2C2C2C; }
+                        .theme-ghost-white { background: #F8F8FF; color: #191970; border: 1px solid #DCDCDC; } .theme-ghost-white .meta-text { color: #4169E1; } .theme-ghost-white .court-badge { background: #DCDCDC; color: #191970; }
+                        .theme-silver-ash { background: #C0C0C0; color: #000; border: 1px solid #A9A9A9; } .theme-silver-ash .meta-text { color: #2F4F4F; } .theme-silver-ash .court-badge { background: #808080; color: #FFF; }
+                        .theme-clear-glass { background: rgba(255,255,255,0.8); backdrop-filter: blur(8px); color: #333; border: 1px solid rgba(0,0,0,0.1); } .theme-clear-glass .court-badge { background: rgba(0,0,0,0.1); color: #333; }
+                        .theme-snow-blind { background: #FFFAFA; color: #000; border: 2px solid #F0F8FF; } .theme-snow-blind .court-badge { background: #000; color: #FFF; }
+                        .theme-paper-crisp { background: #FDF5E6; color: #5C4033; border: 1px solid #DEB887; } .theme-paper-crisp .court-badge { background: #DEB887; color: #FFF; }
+                        .theme-dark-matter { background: #121212; color: #A9A9A9; border: 1px solid #2F4F4F; } .theme-dark-matter .meta-text { color: #696969; } .theme-dark-matter .court-badge { background: #2F4F4F; color: #FFF; }
+                        .theme-stealth-carbon { background: #1C1C1C; color: #D3D3D3; border: 1px solid #383838; } .theme-stealth-carbon .court-badge { background: #383838; color: #D3D3D3; }
+                        .theme-charcoal-matte { background: #36454F; color: #FFF8DC; border: 1px solid #2F4F4F; } .theme-charcoal-matte .court-badge { background: #2F4F4F; color: #FFF8DC; }
+                        .theme-abyssal-black { background: #000005; color: #4682B4; border: 1px solid #000080; } .theme-abyssal-black .meta-text { color: #1E90FF; } .theme-abyssal-black .court-badge { background: #000080; color: #FFF; }
+                        .theme-eclipse-shadow { background: #0B0B0B; color: #FFFAF0; border: 1px solid #FF4500; } .theme-eclipse-shadow .meta-text { color: #FF6347; } .theme-eclipse-shadow .court-badge { background: #FF4500; color: #FFF; }
+                        .theme-void-deep { background: #050505; color: #9370DB; border: 1px solid #4B0082; } .theme-void-deep .court-badge { background: #4B0082; color: #FFF; }
+                        .theme-midnight-slate { background: #2F4F4F; color: #E0FFFF; border: 1px solid #008080; } .theme-midnight-slate .court-badge { background: #008080; color: #FFF; }
+                        .theme-synthwave-pink { background: #1A001A; color: #FF1493; border: 1px solid #FF00FF; text-shadow: 0 0 5px #FF1493; } .theme-synthwave-pink .court-badge { background: #FF00FF; color: #FFF; text-shadow:none; }
+                        .theme-cyber-yellow { background: #0A0A00; color: #FFFF00; border: 1px solid #BDB76B; text-shadow: 0 0 5px #FFFF00; } .theme-cyber-yellow .court-badge { background: #FFFF00; color: #000; text-shadow:none; }
+                        .theme-toxic-green { background: #001A00; color: #39FF14; border: 1px solid #00FF00; text-shadow: 0 0 5px #39FF14; } .theme-toxic-green .court-badge { background: #00FF00; color: #000; text-shadow:none; }
+                        .theme-laser-blue { background: #00001A; color: #00FFFF; border: 1px solid #00BFFF; text-shadow: 0 0 5px #00FFFF; } .theme-laser-blue .court-badge { background: #00BFFF; color: #000; text-shadow:none; }
+                        .theme-neon-purple { background: #0D001A; color: #B026FF; border: 1px solid #8A2BE2; text-shadow: 0 0 5px #B026FF; } .theme-neon-purple .court-badge { background: #8A2BE2; color: #FFF; text-shadow:none; }
+                        .theme-plasma-red { background: #1A0000; color: #FF3333; border: 1px solid #DC143C; text-shadow: 0 0 5px #FF3333; } .theme-plasma-red .court-badge { background: #DC143C; color: #FFF; text-shadow:none; }
+                        .theme-electric-cyan { background: #001A1A; color: #00E5FF; border: 1px solid #008B8B; text-shadow: 0 0 5px #00E5FF; } .theme-electric-cyan .court-badge { background: #008B8B; color: #FFF; text-shadow:none; }
+                        .theme-ultraviolet { background: #190033; color: #BF00FF; border: 1px solid #9400D3; text-shadow: 0 0 5px #BF00FF; } .theme-ultraviolet .court-badge { background: #9400D3; color: #FFF; text-shadow:none; }
+                        .theme-golden-champagne { background: #FDF6E3; color: #8B6508; border: 1px solid #DAA520; } .theme-golden-champagne .court-badge { background: #DAA520; color: #FFF; }
+                        .theme-brushed-bronze { background: #CD7F32; color: #FFF; border: 1px solid #8B4513; } .theme-brushed-bronze .court-badge { background: #8B4513; color: #FFF; }
+                        .theme-diamond-glow { background: #F0F8FF; color: #B0E0E6; border: 1px solid #ADD8E6; box-shadow: 0 0 15px rgba(173,216,230,0.5); } .theme-diamond-glow .meta-text { color: #4682B4; } .theme-diamond-glow .court-badge { background: #4682B4; color: #FFF; }
+                        .theme-desert-sand { background: #F4A460; color: #8B4513; border: 1px solid #D2691E; } .theme-desert-sand .court-badge { background: #D2691E; color: #FFF; }
+                        .theme-pine-wood { background: #DEB887; color: #006400; border: 1px solid #8B4513; } .theme-pine-wood .court-badge { background: #8B4513; color: #FFF; }
+                        .theme-deep-sea { background: #006994; color: #E0FFFF; border: 1px solid #000080; } .theme-deep-sea .court-badge { background: #000080; color: #FFF; }
+                        .theme-matcha-latte { background: #F5FFFA; color: #556B2F; border: 1px solid #8FBC8F; } .theme-matcha-latte .court-badge { background: #8FBC8F; color: #FFF; }
+                        .theme-sky-blue-soft { background: #E0FFFF; color: #4682B4; border: 1px solid #87CEFA; } .theme-sky-blue-soft .court-badge { background: #87CEFA; color: #FFF; }
+                        .theme-peach-blossom { background: #FFF0F5; color: #FF69B4; border: 1px solid #FFB6C1; } .theme-peach-blossom .court-badge { background: #FFB6C1; color: #FFF; }
+                        .theme-mint-cream { background: #F5FFFA; color: #20B2AA; border: 1px solid #66CDAA; } .theme-mint-cream .court-badge { background: #66CDAA; color: #FFF; }
+                        .theme-lilac-dream { background: #F8F8FF; color: #9370DB; border: 1px solid #D8BFD8; } .theme-lilac-dream .court-badge { background: #D8BFD8; color: #FFF; }
                     </style>
                 </head>
                 <body>
