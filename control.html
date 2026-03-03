@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Courier+Prime&family=Lato:wght@400;700&family=Montserrat:wght@400;600;700;800&family=Oswald:wght@400;700&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;600;700;800&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
@@ -582,25 +582,57 @@
 
         function exportToExcel() {
             if (!window.GLOBAL_MATCHES || window.GLOBAL_MATCHES.length === 0) { alert("⚠️ Tidak ada data pertandingan untuk diekspor!"); return; }
-            let csvContent = "NO MATCH;PIN;TANGGAL;JAM;COURT;KATEGORI;BABAK;WASIT;STATUS;WO?;TIM A;TIM B;SET 1 A;SET 1 B;SET 2 A;SET 2 B;SET 3 A;SET 3 B;SET 4 A;SET 4 B;SET 5 A;SET 5 B;POIN A;POIN B\n";
-            const escapeCSV = (str) => { if (str === null || str === undefined) return '""'; let stringStr = String(str); if (stringStr.includes('"') || stringStr.includes(';') || stringStr.includes('\n')) { return '"' + stringStr.replace(/"/g, '""') + '"'; } return stringStr; };
+            
+            // 1. Susun Data Header
+            let dataArr = [
+                ["NO MATCH", "PIN", "TANGGAL", "JAM", "COURT", "KATEGORI", "BABAK", "WASIT", "STATUS", "WO?", "TIM A", "TIM B", "S1 A", "S1 B", "S2 A", "S2 B", "S3 A", "S3 B", "S4 A", "S4 B", "S5 A", "S5 B", "POIN A", "POIN B"]
+            ];
+
+            // 2. Masukkan Data ke Array
             window.GLOBAL_MATCHES.forEach(m => {
-                let row = [
-                    escapeCSV(m.match_no), escapeCSV(m.pin), escapeCSV(m.date), escapeCSV(m.time),
-                    escapeCSV(m.court_name), escapeCSV(m.category), escapeCSV(m.round), escapeCSV(m.referee_name),
-                    escapeCSV(m.status), escapeCSV(m.is_wo ? "YA" : "TIDAK"),
-                    escapeCSV(m.team_a), escapeCSV(m.team_b),
-                    m.set1_a||0, m.set1_b||0, m.set2_a||0, m.set2_b||0, m.set3_a||0, m.set3_b||0,
-                    m.set4_a||0, m.set4_b||0, m.set5_a||0, m.set5_b||0,
-                    escapeCSV(m.points_a), escapeCSV(m.points_b)
-                ];
-                csvContent += row.join(";") + "\n";
+                dataArr.push([
+                    m.match_no || "", m.pin || "", m.date || "", m.time || "",
+                    m.court_name || "", m.category || "", m.round || "", m.referee_name || "",
+                    m.status || "", m.is_wo ? "YA" : "TIDAK",
+                    m.team_a || "", m.team_b || "",
+                    m.set1_a || 0, m.set1_b || 0, m.set2_a || 0, m.set2_b || 0,
+                    m.set3_a || 0, m.set3_b || 0, m.set4_a || 0, m.set4_b || 0,
+                    m.set5_a || 0, m.set5_b || 0,
+                    m.points_a || "0", m.points_b || "0"
+                ]);
             });
-            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a"); const url = URL.createObjectURL(blob);
-            let dateObj = new Date(); let timestamp = dateObj.getFullYear() + "-" + String(dateObj.getMonth() + 1).padStart(2, '0') + "-" + String(dateObj.getDate()).padStart(2, '0');
-            link.setAttribute("href", url); link.setAttribute("download", `REKAP_${ACTIVE_ID.toUpperCase()}_${timestamp}.csv`);
-            link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
+
+            // 3. Buat Lembar Kerja Excel
+            const ws = XLSX.utils.aoa_to_sheet(dataArr);
+
+            // 4. ATUR LEBAR KOLOM OTOMATIS (Ini yang membuat Excel rapi seketika)
+            ws['!cols'] = [
+                { wch: 10 }, // NO MATCH
+                { wch: 8 },  // PIN
+                { wch: 12 }, // TANGGAL
+                { wch: 8 },  // JAM
+                { wch: 12 }, // COURT
+                { wch: 25 }, // KATEGORI (Dibuat Lebar)
+                { wch: 18 }, // BABAK
+                { wch: 15 }, // WASIT
+                { wch: 10 }, // STATUS
+                { wch: 6 },  // WO?
+                { wch: 35 }, // TIM A (Sangat Lebar agar nama panjang muat)
+                { wch: 35 }, // TIM B (Sangat Lebar agar nama panjang muat)
+                { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, // SET 1-3
+                { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, // SET 4-5
+                { wch: 8 }, { wch: 8 }  // POIN A & B
+            ];
+
+            // 5. Rakit File .xlsx dan Download
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Rekap Turnamen");
+
+            let dateObj = new Date(); 
+            let timestamp = dateObj.getFullYear() + "-" + String(dateObj.getMonth() + 1).padStart(2, '0') + "-" + String(dateObj.getDate()).padStart(2, '0');
+            
+            // File diunduh dalam format native Excel (.xlsx) bukan (.csv)
+            XLSX.writeFile(wb, `REKAP_${ACTIVE_ID.toUpperCase()}_${timestamp}.xlsx`);
         }
 
         function upd(id, f, v) {
