@@ -374,50 +374,46 @@ function checkRequired(id, wrapId) {
         let globalWaAdmin = "";
         let globalMultiWa = false;
 
-        // SENSOR SAKLAR, WA KASIR, PEMBACA KATEGORI, & KUSTOM TEKS (ANTI-BUG)
+        // SENSOR SAKLAR, WA KASIR, PEMBACA KATEGORI, & JUDUL
         async function fetchSettings() {
             try {
+                // KITA UBAH SELECT AGAR MEMBACA KOLOM BARU DI SUPABASE
                 const { data, error } = await db.from('partners')
-                    .select('form_jersey, form_club, wa_admin, categories_config, form_config')
+                    .select('wa_admin, categories, form_settings, is_registration_open, event_name, event_subtitle')
                     .eq('tournament_id', TOURNAMENT_ID)
                     .single();
                 
                 if (data) {
-                    if (data.form_club === false) document.getElementById('wrap-club').style.display = 'none';
-                    if (data.form_jersey === false) {
-                        document.getElementById('wrap-jersey-capt').style.display = 'none';
-                        document.getElementById('wrap-jersey-partner').style.display = 'none';
+                    // 1. SINKRONISASI JUDUL DARI COCKPIT KE FORM PENDAFTARAN
+                    if (data.event_name) document.getElementById('lbl-form-title').innerText = data.event_name;
+                    if (data.event_subtitle) document.getElementById('lbl-form-sub').innerText = data.event_subtitle;
+
+                    // 2. CEK SAKLAR PENDAFTARAN BUKA/TUTUP
+                    if (data.is_registration_open === false) {
+                        document.getElementById('category-container').innerHTML = `<div style="text-align:center; padding:30px; color:#d9534f; font-weight:800; font-size:16px; border:2px dashed #d9534f; border-radius:12px; background:#ffebee;">🔴 MOHON MAAF<br><br>PENDAFTARAN SAAT INI SEDANG DITUTUP.</div>`;
+                        return; // Hentikan proses render kategori
                     }
+
                     globalWaAdmin = sanitizeWA(data.wa_admin || "");
                     
-                    if(data.form_config) {
+                    // 3. BACA PENGATURAN KUSTOMISASI FORM 
+                    if(data.form_settings) {
                         try {
-                            let fc = JSON.parse(data.form_config);
-                            if(fc.sponTxt || fc.sponLog) {
-                                document.getElementById('lbl-spon-txt').innerText = fc.sponTxt || '';
-                                document.getElementById('lbl-spon-logo').innerText = fc.sponLog || '';
-                                document.getElementById('sponsor-wrap').style.display = 'block';
-                            } else {
-                                document.getElementById('sponsor-wrap').style.display = 'none';
-                            }
-                            document.getElementById('lbl-form-title').innerText = fc.title || 'Registrasi Resmi';
-                            document.getElementById('lbl-form-sub').innerText = fc.sub || 'Padel Anniversary Tournament';
-                            if (document.getElementById('lbl-form-step1')) document.getElementById('lbl-form-step1').innerText = fc.step1 || 'Amankan Slot Kategori';
-                            
-                            globalMultiWa = (fc.multiWa === true);
-                            
-                            // Menyembunyikan Nama Tim & IG sesuai pengaturan Cockpit
-                            if(fc.reqTeam === false && document.getElementById('wrap-team')) document.getElementById('wrap-team').style.display = 'none';
-                            if(fc.reqIg === false) {
+                            let fs = JSON.parse(data.form_settings);
+                            // Menyembunyikan elemen jika dimatikan di Cockpit
+                            if(fs.reqTeam === false && document.getElementById('wrap-team')) document.getElementById('wrap-team').style.display = 'none';
+                            if(fs.reqClub === false && document.getElementById('wrap-club')) document.getElementById('wrap-club').style.display = 'none';
+                            if(fs.reqIg === false) {
                                 if(document.getElementById('wrap-ig-capt')) document.getElementById('wrap-ig-capt').style.display = 'none';
                                 if(document.getElementById('wrap-ig-partner')) document.getElementById('wrap-ig-partner').style.display = 'none';
                             }
                         } catch(e){}
                     }
                     
+                    // 4. RENDER KATEGORI DARI KOLOM BARU
                     const catContainer = document.getElementById('category-container');
-                    if (data.categories_config) {
-                        let cats = JSON.parse(data.categories_config);
+                    if (data.categories && data.categories !== "[]") {
+                        let cats = JSON.parse(data.categories);
                         let html = '';
                         cats.forEach(c => {
                             let safeName = c.name.replace(/'/g, "\\'"); 
@@ -438,7 +434,7 @@ function checkRequired(id, wrapId) {
                         catContainer.innerHTML = `<div style="text-align:center; color:#d9534f; font-weight:bold;">Kategori belum diatur oleh panitia.</div>`;
                     }
                 }
-            } catch (err) { console.log("Gagal memuat pengaturan"); }
+            } catch (err) { console.log("Gagal memuat pengaturan", err); }
         }
         fetchSettings();
 
