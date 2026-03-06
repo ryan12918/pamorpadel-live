@@ -183,12 +183,6 @@
                             <hr style="border:0; border-top:1px dashed #ccc; margin:2px 0;">
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#1565c0;"><input type="checkbox" id="reg-multi-wa"> Izinkan 1 WA Mendaftar Banyak Tim</label>
                         </div>
-                            <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-club"> Tampilkan Input Asal Klub</label>
-                            <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-ig"> Tampilkan Input Akun Instagram</label>
-                            <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-jersey"> Tampilkan Input Ukuran Jersey</label>
-                            <hr style="border:0; border-top:1px dashed #ccc; margin:5px 0;">
-                            <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#1565c0;"><input type="checkbox" id="reg-multi-wa"> Izinkan 1 WA Mendaftar Banyak Tim</label>
-                        </div>
 
                         <div class="section-title">3. DAFTAR KATEGORI & HARGA</div>
                         <div id="category-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
@@ -529,7 +523,8 @@
         <div class="modal-box" style="width: 450px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h3 style="margin:0; color:#1a237e;">⚙️ KELOLA PESERTA</h3>
-                <div style="cursor:pointer; font-weight:bold; color:#aaa;" onclick="closeScanner()">✕</div>
+                <div style="cursor:pointer; font-weight:bold; color:#aaa;" onclick="document.getElementById('modal-edit-reg').style.display='none'">✕</div>
+            </div>
             
             <input type="hidden" id="edit-reg-id">
             
@@ -1936,6 +1931,7 @@
             // Nyalakan Radar Realtime Cockpit setelah data awal dimuat
             setupRealtimeCockpit();
         }
+
     </script>
 </body>
 </html>

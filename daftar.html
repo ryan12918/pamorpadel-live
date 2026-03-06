@@ -429,6 +429,8 @@ function checkRequired(id, wrapId) {
                                 btnLanjut.innerText = "LIHAT RINGKASAN";
                                 btnLanjut.setAttribute('onclick', 'validateStep2Single()');
                             }
+                        } catch(e) {} 
+                    }
                     
                     // 4. RENDER KATEGORI DARI KOLOM BARU
                     const catContainer = document.getElementById('category-container');
