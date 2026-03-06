@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Registrasi Resmi - MatchLive Pro</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+    
+    <style>
+        .error-border { border-color: var(--danger) !important; background: #ffebee !important; }
+        .error-text { color: var(--danger); font-size: 11px; font-weight: 700; margin-top: 5px; display: none; }
+        
+        :root { 
+            --bg-color: #fdfbf7; 
+            --text-main: #222; 
+            --accent-gold: #c5a880; 
+            --card-bg: #ffffff;
+            --danger: #d9534f;
+            --success: #2e7d32;
+        }
+        
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: center;
+        }
+
+        .app-container { 
+            max-width: 480px; 
+            width: 100%; 
+            padding-bottom: 50px;
+        }
+
+        /* Sponsor Showcase */
+        .sponsor-showcase { 
+            text-align: center; 
+            margin-bottom: 30px; 
+            animation: fadeInDown 0.8s ease;
+        }
+        .sponsor-text { font-size: 10px; letter-spacing: 3px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
+        .sponsor-logo { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 20px; color: #d32f2f; letter-spacing: 1px; }
+
+        /* Judul Turnamen */
+        .header-title { text-align: center; margin-bottom: 40px; }
+        .header-title h1 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; margin: 0 0 5px 0; color: #111; }
+        .header-title p { font-size: 13px; color: #666; margin: 0; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
+        /* Multi-Step Wizard */
+        .step { display: none; animation: fadeIn 0.4s ease; }
+        .step.active { display: block; }
+        .step-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .step-number { background: var(--text-main); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+
+        /* Kartu Kategori (Premium Feel) */
+        .card { 
+            background: var(--card-bg); 
+            border-radius: 16px; 
+            padding: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.04); 
+            margin-bottom: 15px; 
+            cursor: pointer; 
+            border: 2px solid transparent; 
+            transition: all 0.3s ease; 
+        }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
+        .card.selected { border-color: var(--accent-gold); }
+        .cat-name { font-weight: 800; font-size: 16px; }
+        .cat-price { font-weight: 700; color: var(--accent-gold); font-size: 16px; }
+        .fomo-tag { color: var(--danger); font-size: 12px; font-weight: 700; margin-top: 8px; background: #ffebee; padding: 4px 10px; border-radius: 20px; display: inline-block; }
+
+        /* Floating Inputs */
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 8px; color: #888; text-transform: uppercase; letter-spacing: 1px;}
+        .form-control { 
+            width: 100%; padding: 15px; border: 1px solid #eee; border-radius: 12px; 
+            font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 600; 
+            box-sizing: border-box; background: #fafafa; transition: 0.3s;
+        }
+        .form-control:focus { outline: none; border-color: var(--accent-gold); background: #fff; box-shadow: 0 0 0 4px rgba(197, 168, 128, 0.1); }
+
+        /* Tombol & Invoice */
+        .btn-primary { 
+            width: 100%; padding: 18px; background: var(--text-main); color: #fff; 
+            border: none; border-radius: 12px; font-weight: 700; font-size: 14px; 
+            letter-spacing: 1px; cursor: pointer; transition: 0.3s; margin-top: 10px;
+        }
+        .btn-primary:hover { background: var(--accent-gold); transform: translateY(-2px); box-shadow: 0 10px 20px rgba(197, 168, 128, 0.3); }
+        
+        .invoice-box { background: #fff; padding: 20px; border-radius: 16px; border: 1px dashed #ccc; margin-bottom: 25px; }
+        .vip-flex { display: flex; gap: 10px; }
+        .btn-vip { padding: 0 20px; background: #111; color: #fff; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; }
+
+        .back-link { display: block; text-align: center; margin-top: 20px; color: #999; font-size: 12px; font-weight: 600; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Animasi */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <div class="sponsor-showcase" id="sponsor-wrap" style="display:none;">
+            <div class="sponsor-text" id="lbl-spon-txt">Official Supported By</div>
+            <div class="sponsor-logo" id="lbl-spon-logo">ROCKET CHICKEN</div>
+        </div>
+
+        <div class="header-title">
+            <h1 id="lbl-form-title">Registrasi Resmi</h1>
+            <p id="lbl-form-sub">Padel Anniversary Tournament</p>
+        </div>
+
+        <div id="step-1" class="step active">
+            <div class="step-title"><div class="step-number">1</div> <span id="lbl-form-step1">Amankan Slot Kategori</span></div>
+            
+            <div id="category-container">
+                <div style="text-align:center; padding:20px; color:#888;">⏳ Memuat kategori turnamen...</div>
+            </div>
+        </div>
+
+        <div id="step-2" class="step">
+            <div class="step-title"><div class="step-number">2</div> Identitas Tim & Pemain 1</div>
+            
+            <div class="form-group" id="wrap-team">
+                <label>Nama Tim</label>
+                <input type="text" id="teamName" class="form-control" placeholder="Contoh: Jagoan Padel">
+                <div class="error-text" id="err-teamName">⚠️ Wajib diisi!</div>
+            </div>
+            
+            <div class="form-group" id="wrap-club">
+                <label>Asal Klub / Komunitas</label>
+                <input type="text" id="clubName" class="form-control" placeholder="Nama komunitas padel Anda">
+                <div class="error-text" id="err-clubName">⚠️ Wajib diisi!</div>
+            </div>
+            
+            <hr style="border:0; border-top:1px dashed #ddd; margin:20px 0;">
+            
+            <div class="form-group">
+                <label>Nama Lengkap Pemain 1 (Perwakilan)</label>
+                <input type="text" id="captName" class="form-control" placeholder="Sesuai KTP">
+                <div class="error-text" id="err-captName">⚠️ Wajib diisi!</div>
+            </div>
+            <div class="form-group">
+                <label>Nomor WhatsApp Pemain 1</label>
+                <input type="tel" id="captWa" class="form-control" placeholder="E-Ticket dikirim ke nomor ini">
+                <div class="error-text" id="err-captWa">⚠️ Wajib diisi!</div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group" id="wrap-jersey-capt">
+                    <label>Ukuran Jersey Pemain 1</label>
+                    <select id="captJersey" class="form-control" style="cursor:pointer;">
+                        <option value="">Pilih Ukuran</option>
+                        <option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="XXL">XXL</option>
+                    </select>
+                    <div class="error-text" id="err-captJersey">⚠️ Wajib diisi!</div>
+                </div>
+                <div class="form-group" id="wrap-ig-capt">
+                    <label>Akun IG Pemain 1</label>
+                    <input type="text" id="captIg" class="form-control" placeholder="@username">
+                    <div class="error-text" id="err-captIg">⚠️ Wajib diisi!</div>
+                </div>
+            </div>
+            
+            <button class="btn-primary" onclick="validateStep2()">LANJUT KE DATA PEMAIN 2</button>
+            <a href="#" class="back-link" onclick="nextStep(1)">Kembali ke Kategori</a>
+        </div>
+
+        <div id="step-3" class="step">
+            <div class="step-title"><div class="step-number">3</div> Identitas Pemain 2</div>
+            <div style="font-size:11px; color:#888; margin-bottom:15px; font-weight:600;">*Kosongkan bagian ini jika Anda belum memiliki Partner bermain (Status TBA).</div>
+            
+            <div class="form-group">
+                <label>Nama Lengkap (Pemain 2)</label>
+                <input type="text" id="partnerName" class="form-control" placeholder="Sesuai KTP">
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group" id="wrap-jersey-partner">
+                    <label>Ukuran Jersey Pemain 2</label>
+                    <select id="partnerJersey" class="form-control" style="cursor:pointer;">
+                        <option value="">Pilih Ukuran</option>
+                        <option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="XXL">XXL</option>
+                    </select>
+                    <div class="error-text" id="err-partnerJersey">⚠️ Wajib diisi!</div>
+                </div>
+                <div class="form-group" id="wrap-ig-partner">
+                    <label>Akun IG Pemain 2</label>
+                    <input type="text" id="partnerIg" class="form-control" placeholder="@username">
+                    <div class="error-text" id="err-partnerIg">⚠️ Wajib diisi!</div>
+                </div>
+            </div>
+            
+            <button class="btn-primary" onclick="validateStep3()">LIHAT RINGKASAN</button>
+            <a href="#" class="back-link" onclick="nextStep(2)">Kembali ke Data Pemain 1</a>
+        </div>
+
+        <div id="step-4" class="step">
+            <div class="step-title"><div class="step-number">4</div> Konfirmasi & Pembayaran</div>
+            
+            <div class="invoice-box">
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:14px; font-weight:600;">
+                    <span style="color:#888;">Kategori</span>
+                    <span id="lbl-cat" style="color:#111;">-</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:14px; font-weight:600;">
+                    <span style="color:#888;">Nama Tim</span>
+                    <span id="lbl-team" style="color:#111;">-</span>
+                </div>
+                <hr style="border:0; border-top:1px dashed #ddd; margin:20px 0;">
+                <div style="display:flex; justify-content:space-between; font-size:18px; font-weight:800;">
+                    <span>Total Tagihan</span>
+                    <span id="lbl-price" style="color:var(--accent-gold);">Rp 0</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Punya Kode Undangan VIP?</label>
+                <div class="vip-flex">
+                    <input type="text" id="vipCode" class="form-control" placeholder="Masukkan kode VIP">
+                    <button class="btn-vip" onclick="applyVip()">TERAPKAN</button>
+                </div>
+                <div id="vip-msg" style="font-size: 11px; margin-top: 8px; font-weight: 600;"></div>
+            </div>
+
+            <button class="btn-primary" id="btn-submit" onclick="submitRegistration()">SELESAIKAN REGISTRASI</button>
+            <a href="#" class="back-link" onclick="nextStep(3)">Kembali ke Data Partner</a>
+        </div>
+
+    </div>
+
+    <div onclick="document.getElementById('modal-status').style.display='flex'" style="position:fixed; bottom:30px; right:30px; background:var(--text-main); color:white; padding:15px 25px; border-radius:30px; font-size:13px; font-weight:bold; cursor:pointer; box-shadow:0 10px 25px rgba(0,0,0,0.3); z-index:100; transition:0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        🎫 CEK E-TICKET
+    </div>
+
+    <div id="modal-status" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:999; justify-content:center; align-items:center; padding:20px; box-sizing:border-box; animation: fadeIn 0.3s ease;">
+        <div style="background:white; width:100%; max-width:400px; border-radius:20px; padding:30px; position:relative; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
+            <div style="position:absolute; top:15px; right:20px; cursor:pointer; font-weight:900; font-size:20px; color:#aaa;" onclick="document.getElementById('modal-status').style.display='none'">✕</div>
+            <h3 style="margin-top:0; color:#111; font-weight:800; font-size:20px;">🔍 Cek E-Ticket Anda</h3>
+            <p style="font-size:12px; color:#666; margin-bottom:20px; font-weight:600;">Masukkan nomor WhatsApp yang Anda gunakan saat mendaftar untuk melihat tiket dan status pembayaran.</p>
+            
+            <div class="form-group">
+                <input type="tel" id="checkWa" class="form-control" placeholder="Contoh: 08123456789" style="text-align:center; font-size:16px; letter-spacing:1px;">
+            </div>
+            <button class="btn-primary" id="btn-cek" onclick="checkStatus()">CARI E-TICKET</button>
+            
+            <div id="ticket-result" style="margin-top:20px;"></div>
+        </div>
+    </div>
+
+    <script>
+        let selectedCat = '';
+        let basePrice = 0;
+        let finalPrice = 0;
+        let isVip = false;
+
+        function selectCategory(catName, catPrice) {
+            selectedCat = catName;
+            basePrice = catPrice;
+            finalPrice = catPrice;
+            nextStep(2);
+        }
+
+function checkRequired(id, wrapId) {
+            let el = document.getElementById(id);
+            let wrap = wrapId ? document.getElementById(wrapId) : null;
+            let errEl = document.getElementById('err-' + id);
+            
+            // Jika container disembunyikan oleh saklar panitia, abaikan validasi!
+            if (wrap && wrap.style.display === 'none') {
+                el.classList.remove('error-border');
+                if (errEl) errEl.style.display = 'none';
+                return true;
+            }
+            
+            if (el.value.trim() === '') {
+                el.classList.add('error-border');
+                if (errEl) errEl.style.display = 'block';
+                return false;
+            } else {
+                el.classList.remove('error-border');
+                if (errEl) errEl.style.display = 'none';
+                return true;
+            }
+        }
+
+        function validateStep2() {
+            let isValid = true;
+            if (!checkRequired('teamName', 'wrap-team')) isValid = false;
+            if (!checkRequired('clubName', 'wrap-club')) isValid = false;
+            if (!checkRequired('captName', null)) isValid = false;
+            if (!checkRequired('captWa', null)) isValid = false;
+            if (!checkRequired('captJersey', 'wrap-jersey-capt')) isValid = false;
+            if (!checkRequired('captIg', 'wrap-ig-capt')) isValid = false;
+            
+            if (isValid) nextStep(3);
+        }
+
+        function validateStep3() {
+            let isValid = true;
+            let pName = document.getElementById('partnerName').value.trim();
+            
+            // Jika nama partner diisi (bukan TBA/Kosong), maka Jersey dan IG Partner wajib diisi
+            if (pName !== '' && pName.toUpperCase() !== 'TBA') {
+                if (!checkRequired('partnerJersey', 'wrap-jersey-partner')) isValid = false;
+                if (!checkRequired('partnerIg', 'wrap-ig-partner')) isValid = false;
+            } else {
+                // Bersihkan peringatan merah jika dikosongkan (TBA)
+                ['partnerJersey', 'partnerIg'].forEach(id => {
+                    let el = document.getElementById(id);
+                    let errEl = document.getElementById('err-' + id);
+                    if(el) el.classList.remove('error-border');
+                    if(errEl) errEl.style.display = 'none';
+                });
+            }
+            
+            if (isValid) goToCheckout();
+        }
+
+        function nextStep(step) {
+            document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+            document.getElementById('step-' + step).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function goToCheckout() {
+            let tName = document.getElementById('teamName').value;
+            if(!tName) tName = "Tanpa Nama";
+
+            document.getElementById('lbl-cat').innerText = selectedCat;
+            document.getElementById('lbl-team').innerText = tName;
+            
+            if(!isVip) {
+                document.getElementById('lbl-price').innerText = 'Rp ' + finalPrice.toLocaleString('id-ID');
+                document.getElementById('lbl-price').style.color = 'var(--accent-gold)';
+            }
+            nextStep(4);
+        }
+
+        function applyVip() {
+            const code = document.getElementById('vipCode').value;
+            const msg = document.getElementById('vip-msg');
+            if(code === 'RC-VIP-2026') {
+                finalPrice = 0;
+                isVip = true;
+                document.getElementById('lbl-price').innerText = 'Rp 0 (LUNAS)';
+                document.getElementById('lbl-price').style.color = 'var(--success)';
+                msg.innerText = "✓ KODE DITERIMA. BIAYA REGISTRASI DIGRATISKAN.";
+                msg.style.color = 'var(--success)';
+                document.getElementById('btn-submit').innerText = "KLAIM E-TICKET VIP";
+            } else {
+                msg.innerText = "❌ KODE TIDAK VALID ATAU KADALUARSA.";
+                msg.style.color = 'var(--danger)';
+            }
+        }
+
+        // --- MESIN PENGHUBUNG SUPABASE ---
+        const SUPABASE_URL = 'https://gubcvxiupehbdpigrdct.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_k1y6fNI2opEXhwqKMbGYcA__2nD0yT6';
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const TOURNAMENT_ID = urlParams.get('id') || 'demo-padel'; 
+        
+        // VARIABEL PENYIMPAN NOMOR WA KASIR & SAKLAR
+        let globalWaAdmin = "";
+        let globalMultiWa = false;
+
+        // SENSOR SAKLAR, WA KASIR, PEMBACA KATEGORI, & KUSTOM TEKS (ANTI-BUG)
+        async function fetchSettings() {
+            try {
+                const { data, error } = await db.from('partners')
+                    .select('form_jersey, form_club, wa_admin, categories_config, form_config')
+                    .eq('tournament_id', TOURNAMENT_ID)
+                    .single();
+                
+                if (data) {
+                    if (data.form_club === false) document.getElementById('wrap-club').style.display = 'none';
+                    if (data.form_jersey === false) {
+                        document.getElementById('wrap-jersey-capt').style.display = 'none';
+                        document.getElementById('wrap-jersey-partner').style.display = 'none';
+                    }
+                    globalWaAdmin = sanitizeWA(data.wa_admin || "");
+                    
+                    if(data.form_config) {
+                        try {
+                            let fc = JSON.parse(data.form_config);
+                            if(fc.sponTxt || fc.sponLog) {
+                                document.getElementById('lbl-spon-txt').innerText = fc.sponTxt || '';
+                                document.getElementById('lbl-spon-logo').innerText = fc.sponLog || '';
+                                document.getElementById('sponsor-wrap').style.display = 'block';
+                            } else {
+                                document.getElementById('sponsor-wrap').style.display = 'none';
+                            }
+                            document.getElementById('lbl-form-title').innerText = fc.title || 'Registrasi Resmi';
+                            document.getElementById('lbl-form-sub').innerText = fc.sub || 'Padel Anniversary Tournament';
+                            if (document.getElementById('lbl-form-step1')) document.getElementById('lbl-form-step1').innerText = fc.step1 || 'Amankan Slot Kategori';
+                            
+                            globalMultiWa = (fc.multiWa === true);
+                            
+                            // Menyembunyikan Nama Tim & IG sesuai pengaturan Cockpit
+                            if(fc.reqTeam === false && document.getElementById('wrap-team')) document.getElementById('wrap-team').style.display = 'none';
+                            if(fc.reqIg === false) {
+                                if(document.getElementById('wrap-ig-capt')) document.getElementById('wrap-ig-capt').style.display = 'none';
+                                if(document.getElementById('wrap-ig-partner')) document.getElementById('wrap-ig-partner').style.display = 'none';
+                            }
+                        } catch(e){}
+                    }
+                    
+                    const catContainer = document.getElementById('category-container');
+                    if (data.categories_config) {
+                        let cats = JSON.parse(data.categories_config);
+                        let html = '';
+                        cats.forEach(c => {
+                            let safeName = c.name.replace(/'/g, "\\'"); 
+                            html += `
+                            <div class="card" onclick="selectCategory('${safeName}', ${c.price})">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span class="cat-name">${c.name}</span>
+                                    <span class="cat-price">Rp ${c.price.toLocaleString('id-ID')}</span>
+                                </div>
+                                <div style="font-size: 11px; color: #666; margin-top: 8px; font-weight: 700;">
+                                    Batas Kuota: ${c.quota} Tim
+                                </div>
+                            </div>
+                            `;
+                        });
+                        catContainer.innerHTML = html;
+                    } else {
+                        catContainer.innerHTML = `<div style="text-align:center; color:#d9534f; font-weight:bold;">Kategori belum diatur oleh panitia.</div>`;
+                    }
+                }
+            } catch (err) { console.log("Gagal memuat pengaturan"); }
+        }
+        fetchSettings();
+
+        function sanitizeName(str) {
+            if (!str) return "";
+            let clean = str.replace(/[^\w\s\-]/gi, '').replace(/\s+/g, ' ').trim();
+            return clean.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
+        }
+
+        function sanitizeWA(str) {
+            if (!str) return "";
+            let num = str.replace(/\D/g, ''); 
+            if (num.startsWith('0')) return '62' + num.substring(1);
+            if (num.startsWith('8')) return '62' + num;
+            return num;
+        }
+
+        // --- MESIN PENCARI E-TICKET (MULTI-DATA & QR SCANNER READY) ---
+        let ticketRadar = null; // Variabel penyimpan radar
+        
+        async function checkStatus(isSilent = false) {
+            let rawWa = document.getElementById('checkWa').value;
+            let cleanWa = sanitizeWA(rawWa);
+            
+            if(!cleanWa || cleanWa.length < 9) {
+                alert("⚠️ Masukkan nomor WhatsApp yang valid (minimal 9 angka).");
+                return;
+            }
+            
+            let btn = document.getElementById('btn-cek');
+            if(!isSilent) {
+                btn.innerText = "⏳ MENCARI DATA..."; 
+                btn.style.pointerEvents = "none";
+            }
+            
+            try {
+                const { data, error } = await db.from('registrations')
+                    .select('*')
+                    .eq('tournament_id', TOURNAMENT_ID)
+                    .eq('capt_wa', cleanWa)
+                    .order('created_at', {ascending: false});
+                    
+                if(error) throw error;
+                
+                let res = document.getElementById('ticket-result');
+                
+                if(data && data.length > 0) {
+                    let html = `<div style="max-height:400px; overflow-y:auto; padding-right:5px;">`;
+                    html += `<div style="font-size:11px; color:#666; margin-bottom:15px; text-align:center; font-weight:800; background:#f5f5f5; padding:5px; border-radius:6px;">Ditemukan ${data.length} Tiket untuk nomor WA ini</div>`;
+                    
+                    data.forEach(t => {
+                        // 3 FASE WARNA DAN STATUS TIKET
+                        let bg = t.status === 'PENDING' ? '#fff3e0' : (t.status === 'HADIR' ? '#eceff1' : '#f1f8e9');
+                        let col = t.status === 'PENDING' ? '#e65100' : (t.status === 'HADIR' ? '#546e7a' : '#2e7d32');
+                        let icon = t.status === 'PENDING' ? '⏳ PENDING (BELUM BAYAR)' : (t.status === 'HADIR' ? '📍 CHECKED-IN (HADIR)' : '✅ LUNAS (SIAP TANDING)');
+                        let infoText = t.status === 'PENDING' ? 'Segera selesaikan pembayaran.' : (t.status === 'HADIR' ? 'Tiket sudah ditukarkan / dipakai.' : 'Tunjukkan QR Code ini ke Panitia.');
+                        
+                        // LOGIKA VISUAL: QR CODE ATAU STEMPEL HADIR
+                        let visualHTML = '';
+                        if (t.status === 'HADIR') {
+                            visualHTML = `
+                            <div style="margin:15px 0; text-align:center; background:#e0e0e0; padding:20px; border-radius:8px; border:2px dashed #999; position:relative; overflow:hidden;">
+                                <div style="font-size:18px; font-weight:900; letter-spacing:2px; color:#555; transform: rotate(-10deg); border: 4px solid #555; display:inline-block; padding:10px 20px; border-radius:10px; opacity:0.8;">📍 TICKET USED</div>
+                            </div>`;
+                        } else if (t.status === 'LUNAS') {
+                            visualHTML = `
+                            <div style="margin:15px 0; display:flex; flex-direction:column; align-items:center; background:white; padding:15px; border-radius:8px; border:1px solid rgba(0,0,0,0.05);">
+                                <div id="qr-${t.id}" style="padding:10px; background:white; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.1);"></div>
+                                <div style="font-size:11px; font-weight:900; letter-spacing:4px; color:#555; margin-top:10px;">${t.id.split('-')[0].toUpperCase()}</div>
+                            </div>`;
+                        }
+
+                        html += `
+                            <div style="background:${bg}; border:2px dashed ${col}; border-radius:16px; padding:20px; text-align:center; margin-bottom:15px; animation: fadeInDown 0.4s ease; position:relative;">
+                                <div style="font-size:10px; font-weight:900; color:${col}; margin-bottom:12px; background:white; display:inline-block; padding:6px 15px; border-radius:20px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">${icon}</div>
+                                <h2 style="margin:0 0 5px 0; color:#111; font-size:20px; font-weight:900;">${t.team_name}</h2>
+                                <div style="font-size:12px; color:#555; font-weight:800; text-transform:uppercase;">${t.category}</div>
+                                ${visualHTML}
+                                <hr style="border:0; border-top:1px dashed rgba(0,0,0,0.1); margin:15px 0;">
+                                <div style="font-size:11px; text-align:left; color:#444; line-height:1.6; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                                    <div><b>👨‍✈️ Pemain 1:</b><br>${t.capt_name}</div>
+                                    <div><b>🤝 Pemain 2:</b><br>${t.partner_name || 'TBA'}</div>
+                                </div>
+                                <div style="margin-top:15px; font-size:10px; font-weight:bold; color:${col}; opacity:0.8; border-top:1px solid rgba(0,0,0,0.05); padding-top:10px;">
+                                    *${infoText}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                    res.innerHTML = html;
+
+                    // EKSEKUSI PEMBUATAN GAMBAR QR CODE
+                    data.forEach(t => {
+                        if (t.status === 'LUNAS') {
+                            new QRCode(document.getElementById(`qr-${t.id}`), {
+                                text: t.id,
+                                width: 140,
+                                height: 140,
+                                colorDark : "#111111",
+                                colorLight : "#ffffff",
+                                correctLevel : QRCode.CorrectLevel.H
+                            });
+                        }
+                    });
+
+                    // SUNTIKAN RADAR MINI (Layar HP peserta otomatis berubah jika di-scan)
+                    if(ticketRadar) { db.removeChannel(ticketRadar); }
+                    ticketRadar = db.channel('public:registrations_ticket')
+                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'registrations', filter: `tournament_id=eq.${TOURNAMENT_ID}` }, (payload) => {
+                        // Saring di lokal: Jika yang diupdate adalah tiket milik nomor WA ini
+                        if(payload.new && payload.new.capt_wa === cleanWa) {
+                            checkStatus(true); // Refresh layar tiket diam-diam
+                        }
+                    }).subscribe();
+
+                } else {
+                    res.innerHTML = `<div style="padding:15px; background:#ffebee; color:#c62828; text-align:center; border-radius:8px; font-size:12px; font-weight:bold; animation: fadeIn 0.3s ease;">❌ Data tidak ditemukan. Pastikan nomor WA sudah benar.</div>`;
+                }
+            } catch(e) {
+                alert("Terjadi kesalahan: " + e.message);
+            }
+            
+            if(!isSilent) {
+                btn.innerText = "CARI E-TICKET"; 
+                btn.style.pointerEvents = "auto";
+            }
+        }
+
+        async function submitRegistration() {
+            let rawTeam = document.getElementById('teamName').value;
+            let rawCapt = document.getElementById('captName').value;
+            let rawWA = document.getElementById('captWa').value;
+            let rawPartner = document.getElementById('partnerName') ? document.getElementById('partnerName').value : '';
+            let vCode = document.getElementById('vipCode') ? document.getElementById('vipCode').value : '';
+            
+            let club = document.getElementById('clubName') ? document.getElementById('clubName').value.trim() : '';
+            
+            // LOGIKA PENGGABUNGAN 2 IG
+            let ig1 = document.getElementById('captIg') ? document.getElementById('captIg').value.trim() : '';
+            let ig2 = document.getElementById('partnerIg') ? document.getElementById('partnerIg').value.trim() : '';
+            let combinedIg = "";
+            if (ig1 && ig2) combinedIg = ig1 + " & " + ig2;
+            else combinedIg = ig1 || ig2;
+
+            let jCapt = document.getElementById('captJersey') ? document.getElementById('captJersey').value : '';
+            let jPartner = document.getElementById('partnerJersey') ? document.getElementById('partnerJersey').value : '';
+
+            let tName = sanitizeName(rawTeam) || "Tanpa Nama";
+            let cName = sanitizeName(rawCapt);
+            let cWa = sanitizeWA(rawWA);
+            let pName = sanitizeName(rawPartner) || "TBA"; 
+            
+            if (!cName || !cWa || cWa.length < 9) {
+                alert("⚠️ Nama Pemain 1 dan Nomor WhatsApp Aktif (minimal 9 angka) WAJIB DIISI!");
+                return;
+            }
+
+            // SENSOR 1: CEK NAMA GANDA (ANTI TYPO/ASAL ISI)
+            if (pName.toUpperCase() !== "TBA" && cName === pName) {
+                alert("⚠️ Peringatan: Nama Pemain 2 tidak boleh persis sama dengan Pemain 1.\n\nJika Anda belum memiliki partner, silakan kosongkan saja kolom Nama Pemain 2.");
+                return;
+            }
+
+            const btn = document.getElementById('btn-submit');
+            const oriText = btn.innerText;
+            btn.innerText = "⏳ MEMVALIDASI DATA...";
+            btn.style.pointerEvents = "none";
+
+            try {
+                // SENSOR 2: CEK SAKLAR MULTI-WA DARI COCKPIT
+                if (!globalMultiWa) {
+                    const { data: existing, error: errCheck } = await db.from('registrations')
+                        .select('id')
+                        .eq('tournament_id', TOURNAMENT_ID)
+                        .eq('capt_wa', cWa);
+                    
+                    if (errCheck) throw errCheck;
+                    
+                    if (existing && existing.length > 0) {
+                        alert("❌ PENDAFTARAN DITOLAK: Nomor WhatsApp ini sudah dipakai mendaftar di turnamen ini. Gunakan nomor lain.");
+                        btn.innerText = oriText;
+                        btn.style.pointerEvents = "auto";
+                        return;
+                    }
+                }
+
+                btn.innerText = "⏳ MENERBITKAN E-TICKET...";
+
+                const payload = {
+                    tournament_id: TOURNAMENT_ID,
+                    category: selectedCat,
+                    team_name: tName,
+                    capt_name: cName,
+                    capt_wa: cWa,
+                    partner_name: pName,
+                    price: finalPrice,
+                    status: isVip ? 'LUNAS' : 'PENDING',
+                    vip_code: vCode,
+                    asal_klub: club,
+                    instagram: combinedIg, // INI YANG KITA PERBAIKI
+                    jersey_capt: jCapt,
+                    jersey_partner: jPartner
+                };
+
+                const { error } = await db.from('registrations').insert([payload]);
+                if (error) throw error;
+
+                if (isVip) {
+                    alert('🎉 REGISTRASI VIP BERHASIL TERCATAT!\n\nStatus Anda: LUNAS. E-Ticket akan segera diproses oleh sistem.');
+                    location.reload(); 
+                } else {
+                    alert('✅ SLOT BERHASIL DIAMANKAN!\n\nKlik OK untuk melihat instruksi selanjutnya.');
+                    
+                    // CEK APAKAH PANITIA SUDAH MEMASUKKAN NOMOR WA MEREKA
+                    if (globalWaAdmin) {
+                        let textWA = `Halo Admin, ini konfirmasi pendaftaran turnamen:\n\nTim: *${tName}*\nKlub: *${club || '-'}*\nKategori: *${selectedCat}*\nKapten: *${cName}* (Jersey: ${jCapt || '-'}) \nPartner: *${pName}* (Jersey: ${jPartner || '-'}) \nTagihan: *Rp ${finalPrice.toLocaleString('id-ID')}*\n\nBerikut saya lampirkan bukti transfernya. Terima kasih.`;
+                        // Arahkan ke WA Panitia yang asli (Bukan nomor bohongan lagi)
+                        window.location.href = `https://wa.me/${globalWaAdmin}?text=${encodeURIComponent(textWA)}`;
+                    } else {
+                        // Jika Panitia lupa mengisi nomor WA di Cockpit
+                        alert('⚠️ E-Ticket Anda sudah masuk ke sistem kami (Status: PENDING).\n\nNamun, penyelenggara belum mengatur nomor WhatsApp Kasir. Silakan hubungi panitia melalui Instagram/Kontak yang tersedia untuk melakukan pembayaran.');
+                        location.reload();
+                    }
+                }
+            } catch (err) {
+                alert("❌ TERJADI KESALAHAN SISTEM: " + err.message);
+                btn.innerText = oriText;
+                btn.style.pointerEvents = "auto";
+            }
+        }
+    </script>
+</body>
+</html>

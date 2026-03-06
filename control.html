@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Courier+Prime&family=Lato:wght@400;700&family=Montserrat:wght@400;600;700;800&family=Oswald:wght@400;700&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;600;700;800&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     
@@ -119,6 +120,7 @@
         <div class="top-bar">
             <div><h3 style="margin:0; color:var(--primary); font-size:16px;">CONTROL PANEL</h3></div>
             <div>
+                <button class="nav-pill" onclick="switchTab('registrations', this)">DATA PENDAFTAR</button>
                 <button class="nav-pill active" onclick="switchTab('matches', this)">DATA MATCH</button>
                 <button class="nav-pill" onclick="switchTab('branding', this)">BRANDING & TAMPILAN</button>
                 <button class="nav-pill" onclick="switchTab('tv', this)">PENGATURAN TV LIVE SCORE</button>
@@ -127,6 +129,59 @@
         </div>
 
         <div class="view-container">
+<div id="view-registrations" class="view-section">
+                <div style="display: flex; height: 100%; flex-direction: row;">
+                    <div style="flex: 1; padding: 15px; display: flex; flex-direction: column; border-right: 1px solid #ccc; overflow: hidden;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+                            <b style="color: #1a237e; font-size: 14px;">📋 DATA PENDAFTAR MASUK</b>
+                            <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                                <button class="btn-action btn-purple" onclick="openScanner()">📷 SCAN KAMERA</button>
+                                <button class="btn-action btn-blue" onclick="showRegQR()">📝 QR PENDAFTARAN</button>
+                            </div>
+                        </div>
+                        <div class="table-wrap" style="flex: 1; overflow: auto;">
+                            <table style="width: 100%; min-width: 800px; text-align: left; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background:#263238; color:white; font-size:10px;">
+                                        <th style="padding:8px; position:sticky; top:0;">NO</th><th style="position:sticky; top:0;">WAKTU</th><th style="position:sticky; top:0;">NAMA TIM / KLUB</th><th style="position:sticky; top:0;">KATEGORI</th><th style="position:sticky; top:0;">KAPTEN (WA)</th><th style="position:sticky; top:0;">PARTNER</th><th style="position:sticky; top:0;">STATUS</th><th style="text-align:center; position:sticky; top:0;">AKSI</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbl-registrations" style="font-size:11px; background:white;"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div style="width: 350px; flex-shrink: 0; padding: 15px; background: white; overflow-y: auto;">
+                        <div class="section-title" style="margin-top:0;">1. STATUS & KONTAK</div>
+                        <div class="form-group">
+                            <label>Sistem Formulir Pendaftaran</label>
+                            <select id="reg-status" class="form-control" style="font-weight:bold; color:#1a237e;">
+                                <option value="true">🟢 BUKA (Menerima Pendaftar)</option>
+                                <option value="false">🔴 TUTUP (Pendaftaran Ditutup)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-top:10px;">
+                            <label>No. WhatsApp Kasir/Panitia</label>
+                            <input type="text" id="reg-wa" class="form-control" placeholder="Cth: 628123456... (Tanpa +)">
+                            <div style="font-size:9px; color:#888; margin-top:3px;">*Peserta akan diarahkan ke WA ini setelah mendaftar.</div>
+                        </div>
+
+                        <div class="section-title">2. KUSTOMISASI FORMULIR</div>
+                        <div style="background:#f4f6f8; padding:10px; border-radius:6px; border:1px solid #ddd; font-size:11px; font-weight:bold; color:#555; display:flex; flex-direction:column; gap:8px;">
+                            <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-team"> Tampilkan Input Nama Tim</label>
+                            <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-club"> Tampilkan Input Asal Klub</label>
+                            <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-ig"> Tampilkan Input Akun Instagram</label>
+                        </div>
+
+                        <div class="section-title">3. DAFTAR KATEGORI & HARGA</div>
+                        <div id="category-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
+                        <button class="btn-action btn-blue" onclick="addCategoryRow('', '', '')" style="width:100%; justify-content:center; margin-bottom:15px;">+ TAMBAH KATEGORI</button>
+
+                        <hr style="border:0; border-top:1px dashed #ccc; margin:15px 0;">
+                        <button class="btn-action btn-green" onclick="saveRegSettings()" style="width:100%; justify-content:center; padding:12px; font-size:12px;">💾 SIMPAN PENGATURAN</button>
+                    </div>
+                </div>
+            </div>
             <div id="view-matches" class="view-section active">
                 <div class="toolbar">
                     <button class="btn-action btn-blue" onclick="openModalMatch()">+ BARU</button>
@@ -444,6 +499,15 @@
             <button onclick="document.getElementById('modal-qr').style.display='none'" class="btn-action btn-grey">TUTUP</button>
         </div>
     </div>
+<div id="modal-scanner" class="modal">
+        <div class="modal-box" style="width: 400px; text-align: center;">
+            <h3 style="margin-top:0; color:#1565c0;">📷 SCAN QR E-TICKET</h3>
+            <p style="font-size:11px; color:#555;">Arahkan kamera ke QR Code di HP Peserta</p>
+            <div id="reader" style="width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 15px; border:2px solid #ccc;"></div>
+            <div id="scan-result" style="font-weight:900; font-size:14px; margin-bottom:15px; min-height:20px; color:#555;">Menunggu scan...</div>
+            <button onclick="stopScanner()" class="btn-action btn-red" style="width: 100%; padding: 12px; font-size: 14px;">TUTUP KAMERA</button>
+        </div>
+    </div>
 
     <script>
         const SUPABASE_URL = 'https://gubcvxiupehbdpigrdct.supabase.co';
@@ -501,7 +565,7 @@
                 if (error) throw error;
                 if (data) { 
                     ACTIVE_ID = data.tournament_id; document.getElementById('login-overlay').style.display = 'none'; document.getElementById('main-app').style.display = 'flex'; document.getElementById('lbl-user').innerText = ACTIVE_ID.toUpperCase(); 
-                    initUI(); loadSettings(data); await loadMatches(); subscribeControl(); 
+                    initUI(); loadSettings(data); await loadMatches(); subscribeControl(); loadRegistrations(); populateRegSettings(data);
                 } else { 
                     errEl.innerText = "Kredensial Salah! Pastikan ID & Password sesuai."; errEl.style.display = 'block'; btn.innerText = "MASUK DASHBOARD";
                 }
@@ -1615,6 +1679,119 @@
             btn.innerText = "💾 SIMPAN PENGATURAN TV";
         }
 
+// ==============================================================
+        // 🚀 INJEKSI MESIN PENDAFTARAN & ZERO-TOUCH CHECK-IN 🚀
+        // ==============================================================
+        let GLOBAL_REGISTRATIONS = []; let html5QrcodeScanner = null;
+
+        async function loadRegistrations() {
+            if(!ACTIVE_ID) return;
+            const { data } = await db.from('registrations').select('*').eq('tournament_id', ACTIVE_ID).order('created_at', {ascending: false});
+            GLOBAL_REGISTRATIONS = data || []; renderTableRegistrations();
+        }
+
+        function renderTableRegistrations() {
+            const tb = document.getElementById('tbl-registrations'); if(!tb) return;
+            let html = "";
+            GLOBAL_REGISTRATIONS.forEach((r, idx) => {
+                let d = new Date(r.created_at); let timeStr = ("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2) + " " + ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
+                let statCol = r.status === 'PENDING' ? '#ef6c00' : (r.status === 'LUNAS' ? '#2e7d32' : '#546e7a');
+                let actBtn = r.status === 'LUNAS' ? `<button class="badge" style="background:#6a1b9a; border:none; padding:5px 8px;" onclick="updateRegStatus('${r.id}', 'HADIR')">📍 HADIR</button>` : `<button class="badge" style="background:#2e7d32; border:none; padding:5px 8px;" onclick="updateRegStatus('${r.id}', 'LUNAS')">✅ LUNAS</button>`;
+                if(r.status === 'HADIR') actBtn = `<span class="badge" style="background:#90a4ae; padding:5px 8px;">USED</span>`;
+                
+                html += `<tr style="border-bottom:1px solid #ddd;">
+                    <td style="padding:8px;">${idx+1}</td><td style="padding:8px;">${timeStr}</td>
+                    <td style="padding:8px; font-weight:bold; color:#1a237e;">${r.team_name} <br><span style="font-size:9px; font-weight:normal; color:#888;">${r.asal_klub||'-'}</span></td>
+                    <td style="padding:8px;">${r.category}</td>
+                    <td style="padding:8px;">${r.capt_name} <br> <a href="https://wa.me/${r.capt_wa}" target="_blank" style="color:#0277bd; text-decoration:none; font-weight:bold;">${r.capt_wa}</a></td>
+                    <td style="padding:8px;">${r.partner_name || '-'}</td><td style="padding:8px; font-weight:bold; color:${statCol};">${r.status}</td>
+                    <td style="padding:8px; text-align:center;">
+                        <div style="display:flex; gap:4px; justify-content:center;">${actBtn} <button class="badge" style="background:#c62828; border:none; padding:5px 8px;" onclick="deleteReg('${r.id}')">🗑️</button></div>
+                    </td>
+                </tr>`;
+            });
+            tb.innerHTML = html;
+        }
+
+        async function updateRegStatus(id, newStatus) { if(!confirm(`Ubah status tiket ini menjadi ${newStatus}?`)) return; await db.from('registrations').update({status: newStatus}).eq('id', id); }
+        async function deleteReg(id) { if(!confirm("Yakin hapus data pendaftar ini permanen?")) return; await db.from('registrations').delete().eq('id', id); }
+
+        function showRegQR() {
+            let url = window.location.href.replace('control.html', 'daftar.html') + "?id=" + ACTIVE_ID;
+            if(url.includes('matchlivepro.netlify.app')) url = url.replace('matchlivepro.netlify.app', 'matchlivepro.com');
+            document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+            document.getElementById('qr-text').innerText = "LINK PENDAFTARAN"; document.getElementById('modal-qr').style.display='flex';
+        }
+
+        function addCategoryRow(name, price, quota) {
+            const container = document.getElementById('category-list'); const row = document.createElement('div');
+            row.style.cssText = 'background:#fff; padding:8px; border-radius:4px; border:1px solid #ffd54f; display:flex; gap:5px; align-items:center;';
+            row.innerHTML = `<input type="text" class="form-control cat-name" placeholder="Kategori (Maks 15 Huruf)" value="${name}" style="flex:2; font-weight:bold;">
+                <input type="number" class="form-control cat-price" placeholder="Harga (Rp)" value="${price}" style="flex:1;">
+                <input type="number" class="form-control cat-quota" placeholder="Kuota Tim" value="${quota}" style="flex:1;">
+                <button class="btn-action btn-red" onclick="this.parentElement.remove()" style="padding:6px 10px;">❌</button>`;
+            container.appendChild(row);
+        }
+
+        function getCatData() {
+            let data = [];
+            document.querySelectorAll('#category-list > div').forEach(r => {
+                let n = r.querySelector('.cat-name').value.trim(); let p = parseInt(r.querySelector('.cat-price').value) || 0; let q = parseInt(r.querySelector('.cat-quota').value) || 0;
+                if(n) data.push({name:n, price:p, quota:q});
+            }); return data;
+        }
+
+        async function saveRegSettings() {
+            const btn = document.querySelector('button[onclick="saveRegSettings()"]'); btn.innerText = "⏳ MENYIMPAN...";
+            const pl = {
+                is_registration_open: document.getElementById('reg-status').value === 'true',
+                wa_admin: document.getElementById('reg-wa').value.trim(),
+                form_settings: JSON.stringify({ reqTeam: document.getElementById('reg-req-team').checked, reqClub: document.getElementById('reg-req-club').checked, reqIg: document.getElementById('reg-req-ig').checked }),
+                categories: JSON.stringify(getCatData())
+            };
+            const {error} = await db.from('partners').update(pl).eq('tournament_id', ACTIVE_ID);
+            if(error) alert("Gagal menyimpan: " + error.message); else alert("Pengaturan Pendaftaran Tersimpan! ✅");
+            btn.innerText = "💾 SIMPAN PENGATURAN";
+        }
+
+        function populateRegSettings(d) {
+            if(!document.getElementById('reg-status')) return;
+            document.getElementById('reg-status').value = d.is_registration_open ? 'true' : 'false'; document.getElementById('reg-wa').value = d.wa_admin || '';
+            try {
+                let fs = JSON.parse(d.form_settings);
+                document.getElementById('reg-req-team').checked = fs.reqTeam === false ? false : true; document.getElementById('reg-req-club').checked = fs.reqClub === false ? false : true; document.getElementById('reg-req-ig').checked = fs.reqIg === false ? false : true;
+            } catch(e){ document.getElementById('reg-req-team').checked = true; document.getElementById('reg-req-club').checked = true; document.getElementById('reg-req-ig').checked = true; }
+            document.getElementById('category-list').innerHTML = '';
+            try { let cats = JSON.parse(d.categories); if(Array.isArray(cats)) { cats.forEach(c => addCategoryRow(c.name, c.price, c.quota)); } } catch(e) {}
+        }
+
+        // Radar Real-Time Pendaftar
+        db.channel('public:registrations_admin').on('postgres_changes', {event:'*', schema:'public', table:'registrations'}, (payload) => {
+            if(payload.new && payload.new.tournament_id === ACTIVE_ID) { loadRegistrations(); }
+            if(payload.old && !payload.new) { loadRegistrations(); }
+        }).subscribe();
+
+        // Otak Kamera Scanner
+        function openScanner() {
+            document.getElementById('modal-scanner').style.display = 'flex'; document.getElementById('scan-result').innerText = "Membaca kamera..."; document.getElementById('scan-result').style.color = "#555";
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+            html5QrcodeScanner.render(onScanSuccess, () => {});
+        }
+
+        async function onScanSuccess(decodedText, decodedResult) {
+            html5QrcodeScanner.pause(true);
+            if(!decodedText.includes('-')) { document.getElementById('scan-result').innerText = "❌ BUKAN TIKET MATCHLIVE PRO"; document.getElementById('scan-result').style.color = "#c62828"; setTimeout(() => html5QrcodeScanner.resume(), 2000); return; }
+            document.getElementById('scan-result').innerText = "⏳ MEMPROSES CHECK-IN..."; document.getElementById('scan-result').style.color = "#f57c00";
+            
+            const { error } = await db.from('registrations').update({ status: 'HADIR' }).eq('id', decodedText);
+            let beep = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg'); beep.play().catch(e=>{});
+            
+            if(error) { document.getElementById('scan-result').innerText = "❌ GAGAL: " + error.message; document.getElementById('scan-result').style.color = "#c62828"; } 
+            else { document.getElementById('scan-result').innerText = "✅ BERHASIL CHECK-IN!"; document.getElementById('scan-result').style.color = "#2e7d32"; }
+            setTimeout(() => { document.getElementById('scan-result').innerText = "Menunggu scan berikutnya..."; document.getElementById('scan-result').style.color = "#555"; html5QrcodeScanner.resume(); }, 2000);
+        }
+
+        function stopScanner() { if(html5QrcodeScanner) { html5QrcodeScanner.clear().catch(e => console.error(e)); } document.getElementById('modal-scanner').style.display = 'none'; }
     </script>
 </body>
 </html>
