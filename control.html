@@ -598,11 +598,24 @@
         function initUI() { const tc = document.getElementById('theme-container'); PRESETS.forEach(t => { tc.innerHTML += `<div class="theme-btn" onclick="applyTheme('${t.h1}','${t.h2}','${t.bg}','${t.neon}','${t.st}')">${t.n}</div>`; }); }
 
         async function login() {
+            // 1. RADAR PENEMBUS CACHE
+            alert("SYSTEM CHECK: Membaca file terbaru dari GitHub... OK!"); 
+
+            const id = document.getElementById('l-id').value.trim(); 
+            const pass = document.getElementById('l-pass').value.trim();
             const btn = document.querySelector('.btn-login');
             const errEl = document.getElementById('err-msg');
+
+            // 2. SENSOR KOLOM KOSONG
+            if (!id || !pass) {
+                errEl.innerText = "⚠️ ID dan Password tidak boleh kosong!";
+                errEl.style.display = 'block';
+                return; // Hentikan proses jika kosong agar tidak freeze
+            }
+
+            // 3. PROSES LOGIN UTAMA
             btn.innerText = "MEMUAT..."; errEl.style.display = 'none';
             try {
-                const id = document.getElementById('l-id').value.trim(); const pass = document.getElementById('l-pass').value.trim();
                 const { data, error } = await db.from('partners').select('*').eq('tournament_id', id).eq('password', pass).maybeSingle();
                 if (error) throw error;
                 if (data) { 
