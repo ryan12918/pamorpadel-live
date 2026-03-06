@@ -171,6 +171,9 @@
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-team"> Tampilkan Input Nama Tim</label>
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-club"> Tampilkan Input Asal Klub</label>
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-ig"> Tampilkan Input Akun Instagram</label>
+                            <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-jersey"> Tampilkan Input Ukuran Jersey</label>
+                            <hr style="border:0; border-top:1px dashed #ccc; margin:5px 0;">
+                            <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#1565c0;"><input type="checkbox" id="reg-multi-wa"> Izinkan 1 WA Mendaftar Banyak Tim</label>
                         </div>
 
                         <div class="section-title">3. DAFTAR KATEGORI & HARGA</div>
@@ -506,6 +509,37 @@
             <div id="reader" style="width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 15px; border:2px solid #ccc;"></div>
             <div id="scan-result" style="font-weight:900; font-size:14px; margin-bottom:15px; min-height:20px; color:#555;">Menunggu scan...</div>
             <button onclick="stopScanner()" class="btn-action btn-red" style="width: 100%; padding: 12px; font-size: 14px;">TUTUP KAMERA</button>
+        </div>
+    </div>
+<div id="modal-edit-reg" class="modal">
+        <div class="modal-box" style="width: 450px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin:0; color:#1a237e;">⚙️ KELOLA PESERTA</h3>
+                <div style="cursor:pointer; font-weight:bold; color:#aaa;" onclick="document.getElementById('modal-edit-reg').style.display='none'">✕</div>
+            </div>
+            
+            <input type="hidden" id="edit-reg-id">
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div class="form-group"><label>Nama Tim</label><input type="text" id="edit-reg-team" class="form-control"></div>
+                <div class="form-group"><label>Kategori</label><input type="text" id="edit-reg-cat" class="form-control" disabled style="background:#eee;"></div>
+            </div>
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div class="form-group"><label>Pemain 1</label><input type="text" id="edit-reg-p1" class="form-control"></div>
+                <div class="form-group"><label>Pemain 2</label><input type="text" id="edit-reg-p2" class="form-control"></div>
+            </div>
+            
+            <div class="form-group" style="margin-bottom:15px;"><label>Status Tiket</label>
+                <select id="edit-reg-status" class="form-control" style="font-weight:bold;">
+                    <option value="PENDING">⏳ PENDING (Belum Bayar)</option>
+                    <option value="LUNAS">✅ LUNAS (Siap Tanding)</option>
+                    <option value="HADIR">📍 HADIR (Sudah Check-in)</option>
+                </select>
+            </div>
+            
+            <button class="btn-action btn-green" onclick="saveEditReg()" style="width:100%; justify-content:center; padding:12px;">💾 SIMPAN PERUBAHAN</button>
+            <button class="btn-action btn-red" onclick="deleteRegMode()" style="width:100%; justify-content:center; padding:12px; margin-top:10px;">🗑️ HAPUS PESERTA INI</button>
         </div>
     </div>
 
@@ -1696,8 +1730,6 @@
             GLOBAL_REGISTRATIONS.forEach((r, idx) => {
                 let d = new Date(r.created_at); let timeStr = ("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2) + " " + ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
                 let statCol = r.status === 'PENDING' ? '#ef6c00' : (r.status === 'LUNAS' ? '#2e7d32' : '#546e7a');
-                let actBtn = r.status === 'LUNAS' ? `<button class="badge" style="background:#6a1b9a; border:none; padding:5px 8px;" onclick="updateRegStatus('${r.id}', 'HADIR')">📍 HADIR</button>` : `<button class="badge" style="background:#2e7d32; border:none; padding:5px 8px;" onclick="updateRegStatus('${r.id}', 'LUNAS')">✅ LUNAS</button>`;
-                if(r.status === 'HADIR') actBtn = `<span class="badge" style="background:#90a4ae; padding:5px 8px;">USED</span>`;
                 
                 html += `<tr style="border-bottom:1px solid #ddd;">
                     <td style="padding:8px;">${idx+1}</td><td style="padding:8px;">${timeStr}</td>
@@ -1706,15 +1738,43 @@
                     <td style="padding:8px;">${r.capt_name} <br> <a href="https://wa.me/${r.capt_wa}" target="_blank" style="color:#0277bd; text-decoration:none; font-weight:bold;">${r.capt_wa}</a></td>
                     <td style="padding:8px;">${r.partner_name || '-'}</td><td style="padding:8px; font-weight:bold; color:${statCol};">${r.status}</td>
                     <td style="padding:8px; text-align:center;">
-                        <div style="display:flex; gap:4px; justify-content:center;">${actBtn} <button class="badge" style="background:#c62828; border:none; padding:5px 8px;" onclick="deleteReg('${r.id}')">🗑️</button></div>
+                        <button class="badge" style="background:#1565c0; border:none; padding:5px 8px; cursor:pointer;" onclick='openEditReg(${JSON.stringify(r).replace(/'/g, "&#39;")})'>⚙️ KELOLA</button>
                     </td>
                 </tr>`;
             });
             tb.innerHTML = html;
         }
 
-        async function updateRegStatus(id, newStatus) { if(!confirm(`Ubah status tiket ini menjadi ${newStatus}?`)) return; await db.from('registrations').update({status: newStatus}).eq('id', id); }
-        async function deleteReg(id) { if(!confirm("Yakin hapus data pendaftar ini permanen?")) return; await db.from('registrations').delete().eq('id', id); }
+        function openEditReg(r) {
+            document.getElementById('edit-reg-id').value = r.id;
+            document.getElementById('edit-reg-team').value = r.team_name || '';
+            document.getElementById('edit-reg-cat').value = r.category || '';
+            document.getElementById('edit-reg-p1').value = r.capt_name || '';
+            document.getElementById('edit-reg-p2').value = r.partner_name || '';
+            document.getElementById('edit-reg-status').value = r.status || 'PENDING';
+            document.getElementById('modal-edit-reg').style.display = 'flex';
+        }
+
+        async function saveEditReg() {
+            if(!confirm("Simpan perubahan data ini?")) return;
+            let id = document.getElementById('edit-reg-id').value;
+            let payload = {
+                team_name: document.getElementById('edit-reg-team').value,
+                capt_name: document.getElementById('edit-reg-p1').value,
+                partner_name: document.getElementById('edit-reg-p2').value,
+                status: document.getElementById('edit-reg-status').value
+            };
+            const { error } = await db.from('registrations').update(payload).eq('id', id);
+            if(error) alert("Gagal edit: " + error.message);
+            else { document.getElementById('modal-edit-reg').style.display = 'none'; alert("Data tersimpan!"); }
+        }
+
+        async function deleteRegMode() {
+            let id = document.getElementById('edit-reg-id').value;
+            if(!confirm("YAKIN HAPUS DATA INI PERMANEN?")) return;
+            await db.from('registrations').delete().eq('id', id);
+            document.getElementById('modal-edit-reg').style.display = 'none';
+        }
 
         function showRegQR() {
             let url = window.location.href.replace('control.html', 'daftar.html') + "?id=" + ACTIVE_ID;
@@ -1746,7 +1806,13 @@
             const pl = {
                 is_registration_open: document.getElementById('reg-status').value === 'true',
                 wa_admin: document.getElementById('reg-wa').value.trim(),
-                form_settings: JSON.stringify({ reqTeam: document.getElementById('reg-req-team').checked, reqClub: document.getElementById('reg-req-club').checked, reqIg: document.getElementById('reg-req-ig').checked }),
+                form_settings: JSON.stringify({ 
+                    reqTeam: document.getElementById('reg-req-team').checked, 
+                    reqClub: document.getElementById('reg-req-club').checked, 
+                    reqIg: document.getElementById('reg-req-ig').checked,
+                    reqJersey: document.getElementById('reg-req-jersey').checked,
+                    multiWa: document.getElementById('reg-multi-wa').checked
+                }),
                 categories: JSON.stringify(getCatData())
             };
             const {error} = await db.from('partners').update(pl).eq('tournament_id', ACTIVE_ID);
@@ -1759,8 +1825,15 @@
             document.getElementById('reg-status').value = d.is_registration_open ? 'true' : 'false'; document.getElementById('reg-wa').value = d.wa_admin || '';
             try {
                 let fs = JSON.parse(d.form_settings);
-                document.getElementById('reg-req-team').checked = fs.reqTeam === false ? false : true; document.getElementById('reg-req-club').checked = fs.reqClub === false ? false : true; document.getElementById('reg-req-ig').checked = fs.reqIg === false ? false : true;
-            } catch(e){ document.getElementById('reg-req-team').checked = true; document.getElementById('reg-req-club').checked = true; document.getElementById('reg-req-ig').checked = true; }
+                document.getElementById('reg-req-team').checked = fs.reqTeam === false ? false : true; 
+                document.getElementById('reg-req-club').checked = fs.reqClub === false ? false : true; 
+                document.getElementById('reg-req-ig').checked = fs.reqIg === false ? false : true;
+                document.getElementById('reg-req-jersey').checked = fs.reqJersey === false ? false : true;
+                document.getElementById('reg-multi-wa').checked = fs.multiWa === true ? true : false;
+            } catch(e){ 
+                document.getElementById('reg-req-team').checked = true; document.getElementById('reg-req-club').checked = true; document.getElementById('reg-req-ig').checked = true; 
+                document.getElementById('reg-req-jersey').checked = true; document.getElementById('reg-multi-wa').checked = false; 
+            }
             document.getElementById('category-list').innerHTML = '';
             try { let cats = JSON.parse(d.categories); if(Array.isArray(cats)) { cats.forEach(c => addCategoryRow(c.name, c.price, c.quota)); } } catch(e) {}
         }

@@ -407,6 +407,16 @@ function checkRequired(id, wrapId) {
                                 if(document.getElementById('wrap-ig-capt')) document.getElementById('wrap-ig-capt').style.display = 'none';
                                 if(document.getElementById('wrap-ig-partner')) document.getElementById('wrap-ig-partner').style.display = 'none';
                             }
+                            if(fs.reqJersey === false) {
+                                if(document.getElementById('wrap-jersey-capt')) document.getElementById('wrap-jersey-capt').style.display = 'none';
+                                if(document.getElementById('wrap-jersey-partner')) document.getElementById('wrap-jersey-partner').style.display = 'none';
+                            }
+                            // Membaca aturan Multi-WA
+                            if(fs.multiWa === true) {
+                                globalMultiWa = true;
+                            } else {
+                                globalMultiWa = false;
+                            }
                         } catch(e){}
                     }
                     
