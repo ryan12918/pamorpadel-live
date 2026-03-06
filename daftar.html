@@ -263,10 +263,33 @@
         let finalPrice = 0;
         let isVip = false;
 
-        function selectCategory(catName, catPrice) {
+        function selectCategory(catName, catPrice, format) {
             selectedCat = catName;
             basePrice = catPrice;
             finalPrice = catPrice;
+            globalFormat = format || 'double'; // Simpan format khusus kategori ini
+
+            // ADAPTASI UI SEKETIKA (SINGLE / DOUBLE)
+            if (globalFormat === 'single') {
+                document.getElementById('lbl-step2-title').innerHTML = '<div class="step-number">2</div> Identitas Tim & Pemain';
+                document.getElementById('lbl-p1-name').innerText = 'Nama Lengkap Pemain';
+                if(document.getElementById('lbl-p1-jersey')) document.getElementById('lbl-p1-jersey').innerText = 'Ukuran Jersey Pemain';
+                if(document.getElementById('lbl-p1-ig')) document.getElementById('lbl-p1-ig').innerText = 'Akun IG Pemain';
+                
+                const btnLanjut = document.getElementById('btn-lanjut-step2');
+                btnLanjut.innerText = "LIHAT RINGKASAN";
+                btnLanjut.setAttribute('onclick', 'validateStep2Single()');
+            } else {
+                document.getElementById('lbl-step2-title').innerHTML = '<div class="step-number">2</div> Identitas Tim & Pemain 1';
+                document.getElementById('lbl-p1-name').innerText = 'Nama Lengkap Pemain 1 (Perwakilan)';
+                if(document.getElementById('lbl-p1-jersey')) document.getElementById('lbl-p1-jersey').innerText = 'Ukuran Jersey Pemain 1';
+                if(document.getElementById('lbl-p1-ig')) document.getElementById('lbl-p1-ig').innerText = 'Akun IG Pemain 1';
+                
+                const btnLanjut = document.getElementById('btn-lanjut-step2');
+                btnLanjut.innerText = "LANJUT KE DATA PEMAIN 2";
+                btnLanjut.setAttribute('onclick', 'validateStep2()');
+            }
+
             nextStep(2);
         }
 
@@ -414,21 +437,8 @@ function checkRequired(id, wrapId) {
                                 if(document.getElementById('wrap-jersey-capt')) document.getElementById('wrap-jersey-capt').style.display = 'none';
                                 if(document.getElementById('wrap-jersey-partner')) document.getElementById('wrap-jersey-partner').style.display = 'none';
                             }
-                            // Membaca aturan Multi-WA & Format Turnamen
+                            // Membaca aturan Multi-WA (Format Turnamen sekarang dibaca per kategori)
                             globalMultiWa = fs.multiWa === true;
-                            globalFormat = fs.reqFormat || 'double';
-
-                            // Jika Single, langsung adaptasi tampilan UI!
-                            if (globalFormat === 'single') {
-                                document.getElementById('lbl-step2-title').innerHTML = '<div class="step-number">2</div> Identitas Tim & Pemain';
-                                document.getElementById('lbl-p1-name').innerText = 'Nama Lengkap Pemain';
-                                document.getElementById('lbl-p1-jersey').innerText = 'Ukuran Jersey Pemain';
-                                document.getElementById('lbl-p1-ig').innerText = 'Akun IG Pemain';
-                                
-                                const btnLanjut = document.getElementById('btn-lanjut-step2');
-                                btnLanjut.innerText = "LIHAT RINGKASAN";
-                                btnLanjut.setAttribute('onclick', 'validateStep2Single()');
-                            }
                         } catch(e) {} 
                     }
                     
@@ -439,8 +449,10 @@ function checkRequired(id, wrapId) {
                         let html = '';
                         cats.forEach(c => {
                             let safeName = c.name.replace(/'/g, "\\'"); 
+                            let cFormat = c.format || 'double';
+                            
                             html += `
-                            <div class="card" onclick="selectCategory('${safeName}', ${c.price})">
+                            <div class="card" onclick="selectCategory('${safeName}', ${c.price}, '${cFormat}')">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <span class="cat-name">${c.name}</span>
                                     <span class="cat-price">Rp ${c.price.toLocaleString('id-ID')}</span>
@@ -503,8 +515,13 @@ function checkRequired(id, wrapId) {
                 
                 let res = document.getElementById('ticket-result');
                 
+                // --- JANGKAR MEMORI SCROLL ---
+                let currentScroll = 0;
+                let oldBox = document.getElementById('ticket-scroll-box');
+                if (isSilent && oldBox) currentScroll = oldBox.scrollTop;
+
                 if(data && data.length > 0) {
-                    let html = `<div style="max-height:400px; overflow-y:auto; padding-right:5px;">`;
+                    let html = `<div id="ticket-scroll-box" style="max-height:400px; overflow-y:auto; padding-right:5px; scroll-behavior: smooth;">`;
                     html += `<div style="font-size:11px; color:#666; margin-bottom:15px; text-align:center; font-weight:800; background:#f5f5f5; padding:5px; border-radius:6px;">Ditemukan ${data.length} Tiket untuk nomor WA ini</div>`;
                     
                     data.forEach(t => {
@@ -572,6 +589,14 @@ function checkRequired(id, wrapId) {
                             checkStatus(true); // Refresh layar tiket diam-diam
                         }
                     }).subscribe();
+
+                    // --- KEMBALIKAN POSISI SCROLL ---
+                    if (isSilent) {
+                        setTimeout(() => {
+                            let newBox = document.getElementById('ticket-scroll-box');
+                            if (newBox) newBox.scrollTop = currentScroll;
+                        }, 50); // Jeda milidetik agar render selesai dulu
+                    }
 
                 } else {
                     res.innerHTML = `<div style="padding:15px; background:#ffebee; color:#c62828; text-align:center; border-radius:8px; font-size:12px; font-weight:bold; animation: fadeIn 0.3s ease;">❌ Data tidak ditemukan. Pastikan nomor WA sudah benar.</div>`;
