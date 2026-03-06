@@ -277,7 +277,7 @@
         const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const urlParams = new URLSearchParams(window.location.search);
-        let TOURNAMENT_ID = urlParams.get('id') || 'demo';
+        let TOURNAMENT_ID = urlParams.get('id') || 'vip';
         
         let isTVMode = urlParams.get('tv') === 'live';
         let reqCourt = urlParams.get('court');
