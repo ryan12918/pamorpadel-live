@@ -168,7 +168,21 @@
 
                         <div class="section-title">2. KUSTOMISASI FORMULIR</div>
                         <div style="background:#f4f6f8; padding:10px; border-radius:6px; border:1px solid #ddd; font-size:11px; font-weight:bold; color:#555; display:flex; flex-direction:column; gap:8px;">
+                            <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#b71c1c;">
+                                🏆 Format Turnamen: 
+                                <select id="reg-format" style="padding:4px; border-radius:4px; border:1px solid #ccc; font-weight:bold; font-family:inherit;">
+                                    <option value="double">Ganda (Tim / Double)</option>
+                                    <option value="single">Tunggal (Individu / Single)</option>
+                                </select>
+                            </label>
+                            <hr style="border:0; border-top:1px dashed #ccc; margin:2px 0;">
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-team"> Tampilkan Input Nama Tim</label>
+                            <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-club"> Tampilkan Input Asal Klub</label>
+                            <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-ig"> Tampilkan Input Akun Instagram</label>
+                            <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-jersey"> Tampilkan Input Ukuran Jersey</label>
+                            <hr style="border:0; border-top:1px dashed #ccc; margin:2px 0;">
+                            <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#1565c0;"><input type="checkbox" id="reg-multi-wa"> Izinkan 1 WA Mendaftar Banyak Tim</label>
+                        </div>
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-club"> Tampilkan Input Asal Klub</label>
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-ig"> Tampilkan Input Akun Instagram</label>
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-jersey"> Tampilkan Input Ukuran Jersey</label>
@@ -515,8 +529,7 @@
         <div class="modal-box" style="width: 450px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h3 style="margin:0; color:#1a237e;">⚙️ KELOLA PESERTA</h3>
-                <div style="cursor:pointer; font-weight:bold; color:#aaa;" onclick="document.getElementById('modal-edit-reg').style.display='none'">✕</div>
-            </div>
+                <div style="cursor:pointer; font-weight:bold; color:#aaa;" onclick="closeScanner()">✕</div>
             
             <input type="hidden" id="edit-reg-id">
             
@@ -1724,34 +1737,66 @@
             GLOBAL_REGISTRATIONS = data || []; renderTableRegistrations();
         }
 
+        // --- REALTIME RADAR COCKPIT ---
+        let cockpitRadar = null;
+        function setupRealtimeCockpit() {
+            if(cockpitRadar) db.removeChannel(cockpitRadar);
+            cockpitRadar = db.channel('public:registrations_cockpit')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations', filter: `tournament_id=eq.${ACTIVE_ID}` }, (payload) => {
+                fetchRegistrations(); // Refresh data tanpa reload halaman!
+            }).subscribe();
+        }
+
+        // --- RENDER TABEL (DROPDOWN STATUS & EDIT LANGSUNG) ---
         function renderTableRegistrations() {
             const tb = document.getElementById('tbl-registrations'); if(!tb) return;
             let html = "";
             GLOBAL_REGISTRATIONS.forEach((r, idx) => {
                 let d = new Date(r.created_at); let timeStr = ("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2) + " " + ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
                 let statCol = r.status === 'PENDING' ? '#ef6c00' : (r.status === 'LUNAS' ? '#2e7d32' : '#546e7a');
+                let selP = r.status === 'PENDING' ? 'selected' : '';
+                let selL = r.status === 'LUNAS' ? 'selected' : '';
+                let selH = r.status === 'HADIR' ? 'selected' : '';
                 
                 html += `<tr style="border-bottom:1px solid #ddd;">
                     <td style="padding:8px;">${idx+1}</td><td style="padding:8px;">${timeStr}</td>
                     <td style="padding:8px; font-weight:bold; color:#1a237e;">${r.team_name} <br><span style="font-size:9px; font-weight:normal; color:#888;">${r.asal_klub||'-'}</span></td>
                     <td style="padding:8px;">${r.category}</td>
                     <td style="padding:8px;">${r.capt_name} <br> <a href="https://wa.me/${r.capt_wa}" target="_blank" style="color:#0277bd; text-decoration:none; font-weight:bold;">${r.capt_wa}</a></td>
-                    <td style="padding:8px;">${r.partner_name || '-'}</td><td style="padding:8px; font-weight:bold; color:${statCol};">${r.status}</td>
-                    <td style="padding:8px; text-align:center;">
-                        <button class="badge" style="background:#1565c0; border:none; padding:5px 8px; cursor:pointer;" onclick='openEditReg(${JSON.stringify(r).replace(/'/g, "&#39;")})'>⚙️ KELOLA</button>
+                    <td style="padding:8px;">${r.partner_name || '-'}</td>
+                    <td style="padding:8px;">
+                        <select onchange="updateRegStatus('${r.id}', this.value)" style="padding:5px; border-radius:6px; border:2px solid ${statCol}; color:${statCol}; font-weight:bold; cursor:pointer; outline:none; background:#fff;">
+                            <option value="PENDING" ${selP}>⏳ PENDING</option>
+                            <option value="LUNAS" ${selL}>✅ LUNAS</option>
+                            <option value="HADIR" ${selH}>📍 HADIR</option>
+                        </select>
+                    </td>
+                    <td style="padding:8px; text-align:center; display:flex; gap:5px; justify-content:center;">
+                        <button class="badge" style="background:#f39c12; border:none; padding:6px 10px; cursor:pointer; color:white; border-radius:4px;" onclick='openEditData(${JSON.stringify(r).replace(/'/g, "&#39;")})'>✏️ EDIT</button>
                     </td>
                 </tr>`;
             });
             tb.innerHTML = html;
         }
 
-        function openEditReg(r) {
+        // --- UPDATE STATUS VIA DROPDOWN ---
+        async function updateRegStatus(id, newStatus) {
+            const { error } = await db.from('registrations').update({ status: newStatus }).eq('id', id);
+            if(error) {
+                alert("Gagal merubah status: " + error.message);
+                fetchRegistrations(); // Kembalikan jika error
+            } // Jika sukses, radar Realtime akan otomatis merender ulang!
+        }
+
+        // --- EDIT DATA TEKS ---
+        function openEditData(r) {
             document.getElementById('edit-reg-id').value = r.id;
             document.getElementById('edit-reg-team').value = r.team_name || '';
             document.getElementById('edit-reg-cat').value = r.category || '';
             document.getElementById('edit-reg-p1').value = r.capt_name || '';
             document.getElementById('edit-reg-p2').value = r.partner_name || '';
-            document.getElementById('edit-reg-status').value = r.status || 'PENDING';
+            // Sembunyikan dropdown status dari modal (karena sudah langsung di tabel)
+            document.getElementById('edit-reg-status').parentElement.style.display = 'none';
             document.getElementById('modal-edit-reg').style.display = 'flex';
         }
 
@@ -1761,12 +1806,14 @@
             let payload = {
                 team_name: document.getElementById('edit-reg-team').value,
                 capt_name: document.getElementById('edit-reg-p1').value,
-                partner_name: document.getElementById('edit-reg-p2').value,
-                status: document.getElementById('edit-reg-status').value
+                partner_name: document.getElementById('edit-reg-p2').value
             };
+            const btn = document.querySelector('#modal-edit-reg .btn-green');
+            let ori = btn.innerText; btn.innerText = "⏳ MENYIMPAN...";
             const { error } = await db.from('registrations').update(payload).eq('id', id);
+            btn.innerText = ori;
             if(error) alert("Gagal edit: " + error.message);
-            else { document.getElementById('modal-edit-reg').style.display = 'none'; alert("Data tersimpan!"); }
+            else { document.getElementById('modal-edit-reg').style.display = 'none'; } 
         }
 
         async function deleteRegMode() {
@@ -1776,6 +1823,52 @@
             document.getElementById('modal-edit-reg').style.display = 'none';
         }
 
+        // --- SCANNER KAMERA (AUTO CLOSE) ---
+        let html5QrcodeScanner = null;
+        let isScanning = false;
+
+        function startScanner() {
+            document.getElementById('modal-scanner').style.display = 'flex';
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+            }
+        }
+
+        function closeScanner() {
+            if(html5QrcodeScanner) {
+                html5QrcodeScanner.clear().then(() => {
+                    html5QrcodeScanner = null; 
+                    document.getElementById('modal-scanner').style.display='none';
+                    isScanning = false;
+                }).catch(e => { console.log("Gagal menutup kamera", e); });
+            } else {
+                document.getElementById('modal-scanner').style.display='none';
+            }
+        }
+
+        async function onScanSuccess(decodedText, decodedResult) {
+            if(isScanning) return;
+            isScanning = true;
+            
+            // Tampilkan loading & matikan kamera agar tidak scan ganda
+            document.getElementById('reader').innerHTML = `<div style="padding:30px; text-align:center; font-weight:bold; color:#1565c0; font-size:16px;">⏳ MEMPROSES E-TICKET...</div>`;
+            
+            // Langsung Update DB ke HADIR
+            const { error } = await db.from('registrations').update({ status: 'HADIR' }).eq('id', decodedText).eq('tournament_id', ACTIVE_ID);
+            
+            if(error) {
+                alert("❌ Gagal merubah status: " + error.message);
+                closeScanner();
+            } else {
+                alert("✅ BERHASIL CHECK-IN!\n\nStatus tiket otomatis berubah menjadi HADIR di HP Peserta.");
+                closeScanner(); // Tutup modal setelah di-OK
+            }
+        }
+
+        function onScanFailure(error) {}
+
+        // --- QR LINK & SETTINGS ---
         function showRegQR() {
             let url = window.location.href.replace('control.html', 'daftar.html') + "?id=" + ACTIVE_ID;
             if(url.includes('matchlivepro.netlify.app')) url = url.replace('matchlivepro.netlify.app', 'matchlivepro.com');
@@ -1807,6 +1900,7 @@
                 is_registration_open: document.getElementById('reg-status').value === 'true',
                 wa_admin: document.getElementById('reg-wa').value.trim(),
                 form_settings: JSON.stringify({ 
+                    reqFormat: document.getElementById('reg-format').value,
                     reqTeam: document.getElementById('reg-req-team').checked, 
                     reqClub: document.getElementById('reg-req-club').checked, 
                     reqIg: document.getElementById('reg-req-ig').checked,
@@ -1825,46 +1919,23 @@
             document.getElementById('reg-status').value = d.is_registration_open ? 'true' : 'false'; document.getElementById('reg-wa').value = d.wa_admin || '';
             try {
                 let fs = JSON.parse(d.form_settings);
+                document.getElementById('reg-format').value = fs.reqFormat || 'double';
                 document.getElementById('reg-req-team').checked = fs.reqTeam === false ? false : true; 
                 document.getElementById('reg-req-club').checked = fs.reqClub === false ? false : true; 
                 document.getElementById('reg-req-ig').checked = fs.reqIg === false ? false : true;
                 document.getElementById('reg-req-jersey').checked = fs.reqJersey === false ? false : true;
                 document.getElementById('reg-multi-wa').checked = fs.multiWa === true ? true : false;
             } catch(e){ 
+                document.getElementById('reg-format').value = 'double';
                 document.getElementById('reg-req-team').checked = true; document.getElementById('reg-req-club').checked = true; document.getElementById('reg-req-ig').checked = true; 
                 document.getElementById('reg-req-jersey').checked = true; document.getElementById('reg-multi-wa').checked = false; 
             }
             document.getElementById('category-list').innerHTML = '';
             try { let cats = JSON.parse(d.categories); if(Array.isArray(cats)) { cats.forEach(c => addCategoryRow(c.name, c.price, c.quota)); } } catch(e) {}
-        }
-
-        // Radar Real-Time Pendaftar
-        db.channel('public:registrations_admin').on('postgres_changes', {event:'*', schema:'public', table:'registrations'}, (payload) => {
-            if(payload.new && payload.new.tournament_id === ACTIVE_ID) { loadRegistrations(); }
-            if(payload.old && !payload.new) { loadRegistrations(); }
-        }).subscribe();
-
-        // Otak Kamera Scanner
-        function openScanner() {
-            document.getElementById('modal-scanner').style.display = 'flex'; document.getElementById('scan-result').innerText = "Membaca kamera..."; document.getElementById('scan-result').style.color = "#555";
-            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
-            html5QrcodeScanner.render(onScanSuccess, () => {});
-        }
-
-        async function onScanSuccess(decodedText, decodedResult) {
-            html5QrcodeScanner.pause(true);
-            if(!decodedText.includes('-')) { document.getElementById('scan-result').innerText = "❌ BUKAN TIKET MATCHLIVE PRO"; document.getElementById('scan-result').style.color = "#c62828"; setTimeout(() => html5QrcodeScanner.resume(), 2000); return; }
-            document.getElementById('scan-result').innerText = "⏳ MEMPROSES CHECK-IN..."; document.getElementById('scan-result').style.color = "#f57c00";
             
-            const { error } = await db.from('registrations').update({ status: 'HADIR' }).eq('id', decodedText);
-            let beep = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg'); beep.play().catch(e=>{});
-            
-            if(error) { document.getElementById('scan-result').innerText = "❌ GAGAL: " + error.message; document.getElementById('scan-result').style.color = "#c62828"; } 
-            else { document.getElementById('scan-result').innerText = "✅ BERHASIL CHECK-IN!"; document.getElementById('scan-result').style.color = "#2e7d32"; }
-            setTimeout(() => { document.getElementById('scan-result').innerText = "Menunggu scan berikutnya..."; document.getElementById('scan-result').style.color = "#555"; html5QrcodeScanner.resume(); }, 2000);
+            // Nyalakan Radar Realtime Cockpit setelah data awal dimuat
+            setupRealtimeCockpit();
         }
-
-        function stopScanner() { if(html5QrcodeScanner) { html5QrcodeScanner.clear().catch(e => console.error(e)); } document.getElementById('modal-scanner').style.display = 'none'; }
     </script>
 </body>
 </html>

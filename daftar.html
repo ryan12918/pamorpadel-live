@@ -127,7 +127,7 @@
         </div>
 
         <div id="step-2" class="step">
-            <div class="step-title"><div class="step-number">2</div> Identitas Tim & Pemain 1</div>
+            <div class="step-title" id="lbl-step2-title"><div class="step-number">2</div> Identitas Tim & Pemain 1</div>
             
             <div class="form-group" id="wrap-team">
                 <label>Nama Tim</label>
@@ -144,7 +144,7 @@
             <hr style="border:0; border-top:1px dashed #ddd; margin:20px 0;">
             
             <div class="form-group">
-                <label>Nama Lengkap Pemain 1 (Perwakilan)</label>
+                <label id="lbl-p1-name">Nama Lengkap Pemain 1 (Perwakilan)</label>
                 <input type="text" id="captName" class="form-control" placeholder="Sesuai KTP">
                 <div class="error-text" id="err-captName">⚠️ Wajib diisi!</div>
             </div>
@@ -156,7 +156,7 @@
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div class="form-group" id="wrap-jersey-capt">
-                    <label>Ukuran Jersey Pemain 1</label>
+                    <label id="lbl-p1-jersey">Ukuran Jersey Pemain 1</label>
                     <select id="captJersey" class="form-control" style="cursor:pointer;">
                         <option value="">Pilih Ukuran</option>
                         <option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="XXL">XXL</option>
@@ -164,23 +164,24 @@
                     <div class="error-text" id="err-captJersey">⚠️ Wajib diisi!</div>
                 </div>
                 <div class="form-group" id="wrap-ig-capt">
-                    <label>Akun IG Pemain 1</label>
+                    <label id="lbl-p1-ig">Akun IG Pemain 1</label>
                     <input type="text" id="captIg" class="form-control" placeholder="@username">
                     <div class="error-text" id="err-captIg">⚠️ Wajib diisi!</div>
                 </div>
             </div>
             
-            <button class="btn-primary" onclick="validateStep2()">LANJUT KE DATA PEMAIN 2</button>
+            <button class="btn-primary" id="btn-lanjut-step2" onclick="validateStep2()">LANJUT KE DATA PEMAIN 2</button>
             <a href="#" class="back-link" onclick="nextStep(1)">Kembali ke Kategori</a>
         </div>
 
         <div id="step-3" class="step">
             <div class="step-title"><div class="step-number">3</div> Identitas Pemain 2</div>
-            <div style="font-size:11px; color:#888; margin-bottom:15px; font-weight:600;">*Kosongkan bagian ini jika Anda belum memiliki Partner bermain (Status TBA).</div>
+            <div style="font-size:11px; color:#d9534f; margin-bottom:15px; font-weight:700;">*Perhatian: Identitas Partner WAJIB diisi.</div>
             
             <div class="form-group">
                 <label>Nama Lengkap (Pemain 2)</label>
                 <input type="text" id="partnerName" class="form-control" placeholder="Sesuai KTP">
+                <div class="error-text" id="err-partnerName">⚠️ Wajib diisi!</div>
             </div>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -301,26 +302,27 @@ function checkRequired(id, wrapId) {
             if (!checkRequired('captJersey', 'wrap-jersey-capt')) isValid = false;
             if (!checkRequired('captIg', 'wrap-ig-capt')) isValid = false;
             
-            if (isValid) nextStep(3);
+            if (isValid) nextStep(3); // Masuk ke tahap Partner (Double)
+        }
+
+        function validateStep2Single() {
+            let isValid = true;
+            if (!checkRequired('teamName', 'wrap-team')) isValid = false;
+            if (!checkRequired('clubName', 'wrap-club')) isValid = false;
+            if (!checkRequired('captName', null)) isValid = false;
+            if (!checkRequired('captWa', null)) isValid = false;
+            if (!checkRequired('captJersey', 'wrap-jersey-capt')) isValid = false;
+            if (!checkRequired('captIg', 'wrap-ig-capt')) isValid = false;
+            
+            if (isValid) goToCheckout(); // Langsung lompat ke Checkout (Single)
         }
 
         function validateStep3() {
             let isValid = true;
-            let pName = document.getElementById('partnerName').value.trim();
-            
-            // Jika nama partner diisi (bukan TBA/Kosong), maka Jersey dan IG Partner wajib diisi
-            if (pName !== '' && pName.toUpperCase() !== 'TBA') {
-                if (!checkRequired('partnerJersey', 'wrap-jersey-partner')) isValid = false;
-                if (!checkRequired('partnerIg', 'wrap-ig-partner')) isValid = false;
-            } else {
-                // Bersihkan peringatan merah jika dikosongkan (TBA)
-                ['partnerJersey', 'partnerIg'].forEach(id => {
-                    let el = document.getElementById(id);
-                    let errEl = document.getElementById('err-' + id);
-                    if(el) el.classList.remove('error-border');
-                    if(errEl) errEl.style.display = 'none';
-                });
-            }
+            // Di format Double, semua data Partner kini WAJIB diisi!
+            if (!checkRequired('partnerName', null)) isValid = false;
+            if (!checkRequired('partnerJersey', 'wrap-jersey-partner')) isValid = false;
+            if (!checkRequired('partnerIg', 'wrap-ig-partner')) isValid = false;
             
             if (isValid) goToCheckout();
         }
@@ -373,6 +375,7 @@ function checkRequired(id, wrapId) {
         // VARIABEL PENYIMPAN NOMOR WA KASIR & SAKLAR
         let globalWaAdmin = "";
         let globalMultiWa = false;
+        let globalFormat = "double";
 
         // SENSOR SAKLAR, WA KASIR, PEMBACA KATEGORI, & JUDUL
         async function fetchSettings() {
@@ -411,14 +414,21 @@ function checkRequired(id, wrapId) {
                                 if(document.getElementById('wrap-jersey-capt')) document.getElementById('wrap-jersey-capt').style.display = 'none';
                                 if(document.getElementById('wrap-jersey-partner')) document.getElementById('wrap-jersey-partner').style.display = 'none';
                             }
-                            // Membaca aturan Multi-WA
-                            if(fs.multiWa === true) {
-                                globalMultiWa = true;
-                            } else {
-                                globalMultiWa = false;
+                            // Membaca aturan Multi-WA & Format Turnamen
+                            globalMultiWa = fs.multiWa === true;
+                            globalFormat = fs.reqFormat || 'double';
+
+                            // Jika Single, langsung adaptasi tampilan UI!
+                            if (globalFormat === 'single') {
+                                document.getElementById('lbl-step2-title').innerHTML = '<div class="step-number">2</div> Identitas Tim & Pemain';
+                                document.getElementById('lbl-p1-name').innerText = 'Nama Lengkap Pemain';
+                                document.getElementById('lbl-p1-jersey').innerText = 'Ukuran Jersey Pemain';
+                                document.getElementById('lbl-p1-ig').innerText = 'Akun IG Pemain';
+                                
+                                const btnLanjut = document.getElementById('btn-lanjut-step2');
+                                btnLanjut.innerText = "LIHAT RINGKASAN";
+                                btnLanjut.setAttribute('onclick', 'validateStep2Single()');
                             }
-                        } catch(e){}
-                    }
                     
                     // 4. RENDER KATEGORI DARI KOLOM BARU
                     const catContainer = document.getElementById('category-container');
@@ -596,16 +606,10 @@ function checkRequired(id, wrapId) {
             let tName = sanitizeName(rawTeam) || "Tanpa Nama";
             let cName = sanitizeName(rawCapt);
             let cWa = sanitizeWA(rawWA);
-            let pName = sanitizeName(rawPartner) || "TBA"; 
+            let pName = globalFormat === 'single' ? "" : sanitizeName(rawPartner); 
             
             if (!cName || !cWa || cWa.length < 9) {
                 alert("⚠️ Nama Pemain 1 dan Nomor WhatsApp Aktif (minimal 9 angka) WAJIB DIISI!");
-                return;
-            }
-
-            // SENSOR 1: CEK NAMA GANDA (ANTI TYPO/ASAL ISI)
-            if (pName.toUpperCase() !== "TBA" && cName === pName) {
-                alert("⚠️ Peringatan: Nama Pemain 2 tidak boleh persis sama dengan Pemain 1.\n\nJika Anda belum memiliki partner, silakan kosongkan saja kolom Nama Pemain 2.");
                 return;
             }
 
