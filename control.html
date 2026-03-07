@@ -2010,8 +2010,14 @@
         async function deleteRegMode() {
             let id = document.getElementById('edit-reg-id').value;
             if(!confirm("YAKIN HAPUS DATA INI PERMANEN?")) return;
-            await db.from('registrations').delete().eq('id', id);
+            
+            // 1. Hapus dari memori lokal & tutup modal seketika (Zero Delay)
+            GLOBAL_REGISTRATIONS = GLOBAL_REGISTRATIONS.filter(r => r.id !== id);
             document.getElementById('modal-edit-reg').style.display = 'none';
+            renderTableRegistrations(); // Render ulang tabel & indikator kuota
+            
+            // 2. Hapus dari database secara background
+            await db.from('registrations').delete().eq('id', id);
         }
 
         // --- SCANNER KAMERA (AUTO CLOSE) ---

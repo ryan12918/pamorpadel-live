@@ -710,6 +710,24 @@
 
                 btn.innerText = "⏳ MENERBITKAN E-TICKET...";
 
+                // --- DOUBLE VALIDATION (SATPAM ANTI-BOCOR KUOTA) ---
+                const { data: catData } = await db.from('partners').select('categories').eq('tournament_id', TOURNAMENT_ID).single();
+                let quotaLimit = 9999;
+                if (catData && catData.categories) {
+                    let cats = JSON.parse(catData.categories);
+                    let targetCat = cats.find(c => c.name === selectedCat);
+                    if (targetCat) quotaLimit = parseInt(targetCat.quota) || 0;
+                }
+                const { data: currentRegs } = await db.from('registrations').select('id').eq('tournament_id', TOURNAMENT_ID).eq('category', selectedCat);
+                let currentFill = currentRegs ? currentRegs.length : 0;
+                
+                if (currentFill >= quotaLimit) {
+                    alert("🔴 MOHON MAAF!\n\nSlot terakhir untuk kategori ini baru saja diambil oleh pendaftar lain beberapa detik yang lalu.\n\nSilakan klik OK untuk merefresh halaman.");
+                    location.reload();
+                    return;
+                }
+                // --- END SATPAM ANTI-BOCOR ---
+
                 const payload = {
                     tournament_id: TOURNAMENT_ID,
                     category: selectedCat,
