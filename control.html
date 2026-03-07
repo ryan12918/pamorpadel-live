@@ -132,9 +132,23 @@
 <div id="view-registrations" class="view-section">
                 <div style="display: flex; height: 100%; flex-direction: row;">
                     <div style="flex: 1; padding: 15px; display: flex; flex-direction: column; border-right: 1px solid #ccc; overflow: hidden;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
-                            <b style="color: #1a237e; font-size: 14px;">📋 DATA PENDAFTAR MASUK</b>
-                            <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; background: white; padding: 10px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                            <div style="display:flex; flex-direction:column;">
+                                <b style="color: #1a237e; font-size: 14px;">📋 DATA PENDAFTAR MASUK</b>
+                                <span id="lbl-reg-stats" style="font-size:10px; color:#e91e63; font-weight:800; margin-top:4px;">Memuat data...</span>
+                            </div>
+                            <div style="display:flex; gap:5px; flex-wrap:wrap; align-items:center;">
+                                <input type="text" id="reg-search" class="form-control" style="width:150px; padding:6px; font-size:10px;" placeholder="🔍 Cari Nama / WA..." onkeyup="renderTableRegistrations()">
+                                <select id="reg-filter-cat" class="form-control" style="width:130px; padding:6px; font-size:10px; font-weight:bold; cursor:pointer;" onchange="renderTableRegistrations()">
+                                    <option value="ALL">Semua Kategori</option>
+                                </select>
+                                <select id="reg-filter-stat" class="form-control" style="width:110px; padding:6px; font-size:10px; font-weight:bold; cursor:pointer;" onchange="renderTableRegistrations()">
+                                    <option value="ALL">Semua Status</option>
+                                    <option value="PENDING">PENDING</option>
+                                    <option value="LUNAS">LUNAS</option>
+                                    <option value="HADIR">HADIR</option>
+                                </select>
+                                <button class="btn-action btn-green" onclick="exportRegToExcel()">📊 REKAP EXCEL</button>
                                 <button class="btn-action btn-purple" onclick="startScanner()">📷 SCAN KAMERA</button>
                                 <button class="btn-action btn-blue" onclick="showRegQR()">📝 QR PENDAFTARAN</button>
                             </div>
@@ -1734,7 +1748,19 @@
         async function loadRegistrations() {
             if(!ACTIVE_ID) return;
             const { data } = await db.from('registrations').select('*').eq('tournament_id', ACTIVE_ID).order('created_at', {ascending: false});
-            GLOBAL_REGISTRATIONS = data || []; renderTableRegistrations();
+            GLOBAL_REGISTRATIONS = data || []; 
+            populateRegCategoryFilter();
+            renderTableRegistrations();
+        }
+
+        function populateRegCategoryFilter() {
+            const filterCat = document.getElementById('reg-filter-cat'); if(!filterCat) return;
+            let currentVal = filterCat.value;
+            let cats = [...new Set(GLOBAL_REGISTRATIONS.map(r => r.category))].filter(Boolean);
+            let html = '<option value="ALL">Semua Kategori</option>';
+            cats.forEach(c => { html += `<option value="${c}">${c}</option>`; });
+            filterCat.innerHTML = html;
+            if(cats.includes(currentVal)) filterCat.value = currentVal;
         }
 
         // --- REALTIME RADAR COCKPIT ---
@@ -1747,23 +1773,40 @@
             }).subscribe();
         }
 
-        // --- RENDER TABEL (DROPDOWN STATUS & EDIT LANGSUNG) ---
+        // --- RENDER TABEL (FILTER, SEARCH, IG, JERSEY) ---
         function renderTableRegistrations() {
             const tb = document.getElementById('tbl-registrations'); if(!tb) return;
-            let html = "";
-            GLOBAL_REGISTRATIONS.forEach((r, idx) => {
+            const sText = (document.getElementById('reg-search') ? document.getElementById('reg-search').value.toLowerCase() : '');
+            const fCat = (document.getElementById('reg-filter-cat') ? document.getElementById('reg-filter-cat').value : 'ALL');
+            const fStat = (document.getElementById('reg-filter-stat') ? document.getElementById('reg-filter-stat').value : 'ALL');
+
+            let html = ""; let lunasHadirCount = 0;
+            let filteredData = GLOBAL_REGISTRATIONS.filter(r => {
+                let matchSearch = (r.team_name||'').toLowerCase().includes(sText) || (r.capt_name||'').toLowerCase().includes(sText) || (r.partner_name||'').toLowerCase().includes(sText) || (r.capt_wa||'').includes(sText);
+                let matchCat = (fCat === 'ALL') || (r.category === fCat);
+                let matchStat = (fStat === 'ALL') || (r.status === fStat);
+                return matchSearch && matchCat && matchStat;
+            });
+
+            filteredData.forEach((r, idx) => {
+                if(r.status === 'LUNAS' || r.status === 'HADIR') lunasHadirCount++;
                 let d = new Date(r.created_at); let timeStr = ("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2) + " " + ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
                 let statCol = r.status === 'PENDING' ? '#ef6c00' : (r.status === 'LUNAS' ? '#2e7d32' : '#546e7a');
                 let selP = r.status === 'PENDING' ? 'selected' : '';
                 let selL = r.status === 'LUNAS' ? 'selected' : '';
                 let selH = r.status === 'HADIR' ? 'selected' : '';
                 
+                // Bedge Jersey & Instagram
+                let jC = r.jersey_capt ? `<span style="background:#e0f7fa; color:#006064; padding:2px 4px; border-radius:3px; font-size:8px; margin-left:3px; font-weight:800; border:1px solid #b2ebf2;">👕 ${r.jersey_capt}</span>` : '';
+                let jP = r.jersey_partner ? `<span style="background:#e0f7fa; color:#006064; padding:2px 4px; border-radius:3px; font-size:8px; margin-left:3px; font-weight:800; border:1px solid #b2ebf2;">👕 ${r.jersey_partner}</span>` : '';
+                let igText = r.instagram ? `<div style="font-size:9px; color:#d81b60; margin-top:3px; font-weight:bold;">📸 ${r.instagram}</div>` : '';
+
                 html += `<tr style="border-bottom:1px solid #ddd;">
                     <td style="padding:8px;">${idx+1}</td><td style="padding:8px;">${timeStr}</td>
-                    <td style="padding:8px; font-weight:bold; color:#1a237e;">${r.team_name} <br><span style="font-size:9px; font-weight:normal; color:#888;">${r.asal_klub||'-'}</span></td>
+                    <td style="padding:8px; font-weight:bold; color:#1a237e;">${r.team_name} <br><span style="font-size:9px; font-weight:normal; color:#888;">${r.asal_klub||'-'}</span>${igText}</td>
                     <td style="padding:8px;">${r.category}</td>
-                    <td style="padding:8px;">${r.capt_name} <br> <a href="https://wa.me/${r.capt_wa}" target="_blank" style="color:#0277bd; text-decoration:none; font-weight:bold;">${r.capt_wa}</a></td>
-                    <td style="padding:8px;">${r.partner_name || '-'}</td>
+                    <td style="padding:8px;">${r.capt_name} ${jC} <br> <a href="https://wa.me/${r.capt_wa}" target="_blank" style="color:#0277bd; text-decoration:none; font-weight:bold;">${r.capt_wa}</a></td>
+                    <td style="padding:8px;">${r.partner_name || '-'} ${jP}</td>
                     <td style="padding:8px;">
                         <select onchange="updateRegStatus('${r.id}', this.value)" style="padding:5px; border-radius:6px; border:2px solid ${statCol}; color:${statCol}; font-weight:bold; cursor:pointer; outline:none; background:#fff;">
                             <option value="PENDING" ${selP}>⏳ PENDING</option>
@@ -1777,6 +1820,37 @@
                 </tr>`;
             });
             tb.innerHTML = html;
+            
+            // Update Indikator Statistik
+            let statsEl = document.getElementById('lbl-reg-stats');
+            if(statsEl) statsEl.innerText = `Tampil: ${filteredData.length} Tim | Lunas & Hadir: ${lunasHadirCount} Tim`;
+        }
+        
+        // --- EXPORT PENDAFTAR KE EXCEL ---
+        function exportRegToExcel() {
+            if (!GLOBAL_REGISTRATIONS || GLOBAL_REGISTRATIONS.length === 0) { alert("⚠️ Tidak ada data pendaftar untuk diekspor!"); return; }
+            
+            let dataArr = [
+                ["WAKTU DAFTAR", "NAMA TIM", "KLUB", "KATEGORI", "NAMA KAPTEN", "WA KAPTEN", "JERSEY KAPTEN", "NAMA PARTNER", "JERSEY PARTNER", "INSTAGRAM", "STATUS", "KODE TIKET"]
+            ];
+
+            GLOBAL_REGISTRATIONS.forEach(r => {
+                let d = new Date(r.created_at); let timeStr = ("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2) + " " + ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
+                dataArr.push([
+                    timeStr, r.team_name || "", r.asal_klub || "-", r.category || "", 
+                    r.capt_name || "", r.capt_wa || "", r.jersey_capt || "-", 
+                    r.partner_name || "-", r.jersey_partner || "-", r.instagram || "-", 
+                    r.status || "", r.id || ""
+                ]);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(dataArr);
+            ws['!cols'] = [{ wch: 15 }, { wch: 20 }, { wch: 15 }, { wch: 20 }, { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 20 }, { wch: 12 }, { wch: 20 }, { wch: 12 }, { wch: 35 }];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Rekap Pendaftar");
+
+            let dateObj = new Date(); let timestamp = dateObj.getFullYear() + "-" + String(dateObj.getMonth() + 1).padStart(2, '0') + "-" + String(dateObj.getDate()).padStart(2, '0');
+            XLSX.writeFile(wb, `PENDAFTAR_${ACTIVE_ID.toUpperCase()}_${timestamp}.xlsx`);
         }
 
         // --- UPDATE STATUS VIA DROPDOWN ---
