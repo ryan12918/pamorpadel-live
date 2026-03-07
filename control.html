@@ -102,21 +102,25 @@
         #rich-editor li { margin-bottom: 4px; }
         #rich-editor h1, #rich-editor h2, #rich-editor h3 { margin: 15px 0 8px 0; font-weight: 800; line-height: 1.2; }
         #rich-editor hr { margin: 15px 0; border: 0; border-top: 1px solid #ddd; }
-/* --- OTOMATISASI LAYOUT HP (RESPONSIVE) --- */
-        @media (max-width: 768px) {
-            /* Menumpuk area pendaftar dan pengaturan (Atas-Bawah) */
+/* --- OTOMATISASI LAYOUT HP (POTRET / BERDIRI) --- */
+        @media (max-width: 768px) and (orientation: portrait) {
             .reg-layout-wrapper { flex-direction: column !important; overflow-y: auto !important; }
             .reg-table-panel { border-right: none !important; border-bottom: 5px solid #ccc !important; flex: none !important; height: 65vh !important; padding: 10px !important; }
             .reg-settings-panel { width: 100% !important; flex: none !important; height: auto !important; padding: 10px !important; overflow: visible !important; }
-            
-            /* Merapikan Toolbar Atas (Menu Navigasi) */
             .top-bar { flex-direction: column; gap: 8px; text-align: center; height: auto !important; padding: 10px; }
             .top-bar > div { width: 100%; display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; }
             .nav-pill { margin: 0; flex: 1; min-width: 45%; }
-            
-            /* Mengamankan area Scanner dan Tabel */
             #modal-scanner .modal-box { width: 90% !important; }
             .table-wrap { -webkit-overflow-scrolling: touch; }
+        }
+
+        /* --- OTOMATISASI LAYOUT HP (LANDSCAPE / MIRING) : KANVAS BEBAS --- */
+        @media (max-width: 950px) and (orientation: landscape) {
+            /* Buka gembok layar agar bisa dicubit & digeser (Pinch & Pan) */
+            body, html { overflow: auto !important; height: auto !important; min-height: 100%; }
+            /* Paksa lebar aplikasi menyerupai laptop agar tabel tidak tergencet */
+            #main-app { min-width: 1200px !important; overflow: visible !important; }
+            .view-container { overflow: visible !important; height: auto !important; min-height: 100vh; }
         }
     </style>
 </head>
@@ -141,7 +145,10 @@
                 <button class="nav-pill" onclick="switchTab('branding', this)">BRANDING & TAMPILAN</button>
                 <button class="nav-pill" onclick="switchTab('tv', this)">PENGATURAN TV LIVE SCORE</button>
             </div>
-            <div style="font-size:10px; text-align:right;">ID: <b id="lbl-user">...</b><br><a href="#" onclick="location.reload()" style="color:red; text-decoration:none;">Keluar</a></div>
+            <div style="display:flex; align-items:center; gap:15px; text-align:right;">
+                <button class="btn-action" style="background:#212121; padding:6px 10px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.2);" onclick="toggleFullScreen()">🔲 FULL SCREEN</button>
+                <div style="font-size:10px; line-height:1.4;">ID: <b id="lbl-user">...</b><br><a href="#" onclick="location.reload()" style="color:red; text-decoration:none; font-weight:bold;">Keluar</a></div>
+            </div>
         </div>
 
         <div class="view-container">
@@ -2179,6 +2186,19 @@
             
             // Nyalakan Radar Realtime Cockpit setelah data awal dimuat
             setupRealtimeCockpit();
+        }
+
+	// --- FITUR FULL SCREEN INSTAN ---
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    alert("Gagal mengaktifkan Full Screen: " + err.message);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
         }
 
     </script>
