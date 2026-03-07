@@ -175,7 +175,7 @@
                             <div style="display:flex; flex-direction:column; flex:1;">
                                 <b style="color: #1a237e; font-size: 14px;">📋 DATA PENDAFTAR MASUK</b>
                                 <span id="lbl-reg-stats" style="font-size:10px; color:#e91e63; font-weight:800; margin-top:4px;">Memuat data...</span>
-                                <div id="quota-monitor"></div>
+                                
                             </div>
                             <div style="display:flex; gap:5px; flex-wrap:wrap; align-items:center;">
                                 <input type="text" id="reg-search" class="form-control" style="width:130px; padding:6px; font-size:10px;" placeholder="🔍 Cari Nama / WA..." onkeyup="renderTableRegistrations()">
@@ -193,6 +193,7 @@
                                 <button class="btn-action btn-purple" onclick="startScanner()">📷 SCAN KAMERA</button>
                                 <button class="btn-action btn-blue" onclick="showRegQR()">📝 QR PENDAFTARAN</button>
                             </div>
+                            <div id="quota-monitor" style="width: 100%; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 10px;"></div>
                         </div>
                         <div class="table-wrap" style="flex: 1; overflow: auto;">
                             <table style="width: 100%; min-width: 800px; text-align: left; border-collapse: collapse;">
@@ -561,7 +562,16 @@
         <div class="modal-box" style="width: 400px; text-align: center;">
             <h3 style="margin-top:0; color:#1565c0;">📷 SCAN QR E-TICKET</h3>
             <p style="font-size:11px; color:#555;">Arahkan kamera ke QR Code di HP Peserta</p>
-            <div id="reader" style="width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 15px; border:2px solid #ccc;"></div>
+            
+            <div style="position: relative; width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 15px; border:2px solid #ccc; background: #000; min-height: 250px;">
+                <div id="reader" style="width: 100%;"></div>
+                
+                <div id="scan-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index:10; flex-direction:column; justify-content:center; align-items:center; padding:20px; backdrop-filter:blur(3px);">
+                    <div id="scan-overlay-content"></div>
+                    <button onclick="resumeScan()" class="btn-action btn-blue" style="margin-top:15px; padding:12px 20px; font-size:14px; font-weight:bold; border-radius:30px; box-shadow:0 4px 10px rgba(0,0,0,0.2);">✅ OK, LANJUT SCAN</button>
+                </div>
+            </div>
+            
             <div id="scan-result" style="font-weight:900; font-size:14px; margin-bottom:15px; min-height:20px; color:#555;">Menunggu scan...</div>
             <button onclick="closeScanner()" class="btn-action btn-red" style="width: 100%; padding: 12px; font-size: 14px;">TUTUP KAMERA</button>
         </div>
@@ -2109,25 +2119,34 @@
 
         async function onScanSuccess(decodedText, decodedResult) {
             if(isScanning) return;
-            isScanning = true; // Kunci sensor kamera agar tidak dobel scan
+            isScanning = true; // Kunci sensor
+            
+            if(html5QrcodeScanner) html5QrcodeScanner.pause(); // Bekukan gambar kamera
             
             let resEl = document.getElementById('scan-result');
+            let overlayEl = document.getElementById('scan-overlay');
+            let overlayContent = document.getElementById('scan-overlay-content');
+            
             resEl.innerHTML = `<div style="color:#f39c12; padding:10px; font-size:14px;">⏳ MEMPROSES TIKET...</div>`;
             
             const { error } = await db.from('registrations').update({ status: 'HADIR' }).eq('id', decodedText).eq('tournament_id', ACTIVE_ID);
             
             if(error) {
-                resEl.innerHTML = `<div style="color:#c62828; padding:10px;">❌ Gagal: ${error.message}</div>
-                <button onclick="resumeScan()" class="btn-action btn-grey" style="width:100%; padding:10px; font-size:12px;">🔄 COBA SCAN LAGI</button>`;
+                resEl.innerHTML = `<div style="color:#c62828;">❌ Gagal memproses</div>`;
+                overlayContent.innerHTML = `<div style="font-size:60px; margin-bottom:10px;">❌</div><div style="color:#c62828; font-weight:900; font-size:18px;">GAGAL CHECK-IN</div><div style="font-size:12px; margin-top:5px; color:#555;">${error.message}</div>`;
+                overlayEl.style.display = 'flex'; // Turunkan tirai
             } else {
-                resEl.innerHTML = `<div style="background:#e8f5e9; padding:10px; border-radius:6px; border:1px solid #2e7d32; color:#2e7d32; margin-bottom:10px;">✅ <b>BERHASIL CHECK-IN!</b><br><span style="font-size:11px;">Tiket telah diupdate ke HADIR.</span></div>
-                <button onclick="resumeScan()" class="btn-action btn-blue" style="width:100%; padding:10px; font-size:12px; font-weight:bold;">📷 SCAN PESERTA BERIKUTNYA</button>`;
+                resEl.innerHTML = `<div style="color:#2e7d32;">✅ TIKET SAH!</div>`;
+                overlayContent.innerHTML = `<div style="font-size:60px; margin-bottom:10px; text-shadow:0 4px 10px rgba(46,125,50,0.3);">✅</div><div style="color:#2e7d32; font-weight:900; font-size:20px; text-transform:uppercase;">BERHASIL!</div><div style="font-size:12px; margin-top:5px; color:#555; font-weight:bold;">Status Tiket = HADIR</div>`;
+                overlayEl.style.display = 'flex'; // Turunkan tirai
             }
         }
 
         function resumeScan() {
+            document.getElementById('scan-overlay').style.display = 'none'; // Angkat tirai
             document.getElementById('scan-result').innerHTML = "Menunggu scan...";
-            isScanning = false; // Buka kembali kunci sensor kamera
+            if(html5QrcodeScanner) html5QrcodeScanner.resume(); // Lanjutkan rekaman kamera
+            isScanning = false; 
         }
 
         function onScanFailure(error) {}
