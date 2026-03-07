@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>MASTER CONTROL PRO (COCKPIT)</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.2, maximum-scale=3.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.1, maximum-scale=3.0, user-scalable=yes">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
@@ -102,39 +102,41 @@
         #rich-editor li { margin-bottom: 4px; }
         #rich-editor h1, #rich-editor h2, #rich-editor h3 { margin: 15px 0 8px 0; font-weight: 800; line-height: 1.2; }
         #rich-editor hr { margin: 15px 0; border: 0; border-top: 1px solid #ddd; }
-/* --- OTOMATISASI LAYOUT HP (POTRET / BERDIRI) --- */
+	/* --- OTOMATISASI LAYOUT HP (POTRET / BERDIRI) --- */
         @media (max-width: 768px) and (orientation: portrait) {
-            .reg-layout-wrapper { flex-direction: column !important; overflow-y: auto !important; }
-            .reg-table-panel { border-right: none !important; border-bottom: 5px solid #ccc !important; flex: none !important; height: 65vh !important; padding: 10px !important; }
-            .reg-settings-panel { width: 100% !important; flex: none !important; height: auto !important; padding: 10px !important; overflow: visible !important; }
+            /* 1. Perapian Menu Atas (Top Bar) */
             .top-bar { flex-direction: column; gap: 8px; text-align: center; height: auto !important; padding: 10px; }
             .top-bar > div { width: 100%; display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; }
             .nav-pill { margin: 0; flex: 1; min-width: 45%; }
-            #modal-scanner .modal-box { width: 90% !important; }
-            .table-wrap { -webkit-overflow-scrolling: touch; }
-        }
-
-        /* --- OTOMATISASI LAYOUT HP (POTRET / BERDIRI) --- */
-        @media (max-width: 768px) and (orientation: portrait) {
+            
+            /* 2. Tab Data Pendaftar */
             .reg-layout-wrapper { flex-direction: column !important; overflow-y: auto !important; }
             .reg-table-panel { border-right: none !important; border-bottom: 5px solid #ccc !important; flex: none !important; height: 65vh !important; padding: 10px !important; }
             .reg-settings-panel { width: 100% !important; flex: none !important; height: auto !important; padding: 10px !important; overflow: visible !important; }
-            .top-bar { flex-direction: column; gap: 8px; text-align: center; height: auto !important; padding: 10px; }
-            .top-bar > div { width: 100%; display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; }
-            .nav-pill { margin: 0; flex: 1; min-width: 45%; }
-            #modal-scanner .modal-box { width: 90% !important; }
+            
+            /* 3. Tab Branding & TV */
+            #view-branding.active, #view-tv.active { flex-direction: column !important; overflow-y: auto !important; }
+            .branding-panel { border-right: none !important; border-bottom: 5px solid #ccc !important; flex: none !important; width: 100% !important; height: auto !important; overflow: visible !important; }
+            .preview-panel { width: 100% !important; flex: none !important; height: auto !important; min-height: 50vh; padding: 20px 10px !important; overflow: hidden !important; }
+            
+            /* Penyesuaian Skala Preview HP agar pas di layar berdiri */
+            .phone-wrapper { transform: scale(0.65); transform-origin: top center; margin-top: 20px; }
+            
+            /* 4. Tab Data Match */
+            .toolbar { justify-content: center; }
+            #search-box { margin-left: 0 !important; width: 100% !important; margin-top: 5px; }
             .table-wrap { -webkit-overflow-scrolling: touch; }
-            #btn-fs { display: none !important; } /* Sembunyikan tombol FS di HP */
+            
+            #modal-scanner .modal-box { width: 90% !important; }
         }
 
         /* --- OTOMATISASI LAYOUT HP (LANDSCAPE / MIRING) : KANVAS BEBAS --- */
         @media (max-width: 950px) and (orientation: landscape) {
             /* Buka gembok layar agar bisa dicubit & digeser (Pinch & Pan) */
             body, html { overflow: auto !important; height: auto !important; min-height: 100%; }
-            /* Paksa lebar aplikasi menjadi raksasa (2500px) agar zoom out bisa sangat jauh */
-            #main-app { min-width: 2500px !important; overflow: visible !important; }
+            /* Kanvas dikembalikan ke ukuran stabil, zoom out diatur oleh viewport 0.1 */
+            #main-app { min-width: 1200px !important; overflow: visible !important; }
             .view-container { overflow: visible !important; height: auto !important; min-height: 100vh; }
-            #btn-fs { display: none !important; } /* Sembunyikan tombol FS di HP */
         }
     </style>
 </head>
