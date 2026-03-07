@@ -516,6 +516,17 @@
             } catch (err) { console.log("Gagal memuat pengaturan", err); }
         }
         fetchSettings();
+// --- RADAR REAL-TIME SISI PENDAFTAR (SINKRONISASI KUOTA INSTAN) ---
+        let publicRadar = null;
+        function setupRealtimeRadar() {
+            if(publicRadar) db.removeChannel(publicRadar);
+            publicRadar = db.channel('public:registrations_public')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations', filter: `tournament_id=eq.${TOURNAMENT_ID}` }, (payload) => {
+                // Render ulang kartu kategori & kuota secara diam-diam saat ada perubahan di database
+                fetchSettings();
+            }).subscribe();
+        }
+        setupRealtimeRadar();
 
         function sanitizeName(str) {
             if (!str) return "";
