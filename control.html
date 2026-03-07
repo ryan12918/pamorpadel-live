@@ -2130,8 +2130,7 @@
 
         // --- QR LINK & SETTINGS ---
         function showRegQR() {
-            let url = window.location.href.replace('control.html', 'daftar.html') + "?id=" + ACTIVE_ID;
-            if(url.includes('matchlivepro.netlify.app')) url = url.replace('matchlivepro.netlify.app', 'matchlivepro.com');
+            let url = `https://matchlivepro.com/daftar.html?id=${ACTIVE_ID}`;
             document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
             document.getElementById('qr-text').innerText = "LINK PENDAFTARAN"; document.getElementById('modal-qr').style.display='flex';
         }
