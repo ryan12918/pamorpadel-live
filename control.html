@@ -111,8 +111,10 @@
             
             /* 2. Tab Data Pendaftar */
             .reg-layout-wrapper { flex-direction: column !important; overflow-y: auto !important; }
-            .reg-table-panel { border-right: none !important; border-bottom: 5px solid #ccc !important; flex: none !important; height: 65vh !important; padding: 10px !important; }
+            .reg-table-panel { border-right: none !important; border-bottom: 5px solid #ccc !important; flex: none !important; height: 85vh !important; padding: 10px !important; }
             .reg-settings-panel { width: 100% !important; flex: none !important; height: auto !important; padding: 10px !important; overflow: visible !important; }
+            /* Efek zoom out 15% khusus tabel pendaftar di layar HP berdiri */
+            .reg-table-panel .table-wrap table { zoom: 0.85; }
             
             /* 3. Tab Branding & TV */
             #view-branding.active, #view-tv.active { flex-direction: column !important; overflow-y: auto !important; }
