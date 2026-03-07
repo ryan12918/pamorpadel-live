@@ -528,29 +528,39 @@
         </div>
     </div>
 <div id="modal-edit-reg" class="modal">
-        <div class="modal-box" style="width: 450px;">
+        <div class="modal-box" style="width: 550px; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="margin:0; color:#1a237e;">⚙️ KELOLA PESERTA</h3>
-                <div style="cursor:pointer; font-weight:bold; color:#aaa;" onclick="document.getElementById('modal-edit-reg').style.display='none'">✕</div>
+                <h3 style="margin:0; color:#1a237e;">⚙️ KELOLA PESERTA (GOD MODE)</h3>
+                <div style="cursor:pointer; font-weight:bold; color:#aaa; font-size:18px;" onclick="document.getElementById('modal-edit-reg').style.display='none'">✕</div>
             </div>
             
             <input type="hidden" id="edit-reg-id">
             
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                 <div class="form-group"><label>Nama Tim</label><input type="text" id="edit-reg-team" class="form-control"></div>
-                <div class="form-group"><label>Kategori</label><input type="text" id="edit-reg-cat" class="form-control" disabled style="background:#eee;"></div>
+                <div class="form-group"><label>Kategori</label><input type="text" id="edit-reg-cat" class="form-control" style="font-weight:bold; color:#1a237e;"></div>
             </div>
             
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div class="form-group"><label>Asal Klub</label><input type="text" id="edit-reg-club" class="form-control"></div>
+                <div class="form-group"><label>Akun Instagram</label><input type="text" id="edit-reg-ig" class="form-control"></div>
+            </div>
+
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                 <div class="form-group"><label>Pemain 1</label><input type="text" id="edit-reg-p1" class="form-control"></div>
                 <div class="form-group"><label>Pemain 2</label><input type="text" id="edit-reg-p2" class="form-control"></div>
             </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+                <div class="form-group"><label>Jersey P1</label><input type="text" id="edit-reg-jc" class="form-control"></div>
+                <div class="form-group"><label>Jersey P2</label><input type="text" id="edit-reg-jp" class="form-control"></div>
+            </div>
             
-            <div class="form-group" style="margin-bottom:15px;"><label>Status Tiket</label>
+            <div class="form-group" style="margin-bottom:15px; display:none;"><label>Status Tiket</label>
                 <select id="edit-reg-status" class="form-control" style="font-weight:bold;">
-                    <option value="PENDING">⏳ PENDING (Belum Bayar)</option>
-                    <option value="LUNAS">✅ LUNAS (Siap Tanding)</option>
-                    <option value="HADIR">📍 HADIR (Sudah Check-in)</option>
+                    <option value="PENDING">⏳ PENDING</option>
+                    <option value="LUNAS">✅ LUNAS</option>
+                    <option value="HADIR">📍 HADIR</option>
                 </select>
             </div>
             
@@ -1984,10 +1994,15 @@
             document.getElementById('edit-reg-id').value = r.id;
             document.getElementById('edit-reg-team').value = r.team_name || '';
             document.getElementById('edit-reg-cat').value = r.category || '';
+            document.getElementById('edit-reg-club').value = r.asal_klub || '';
+            document.getElementById('edit-reg-ig').value = r.instagram || '';
             document.getElementById('edit-reg-p1').value = r.capt_name || '';
             document.getElementById('edit-reg-p2').value = r.partner_name || '';
-            // Sembunyikan dropdown status dari modal (karena sudah langsung di tabel)
-            document.getElementById('edit-reg-status').parentElement.style.display = 'none';
+            document.getElementById('edit-reg-jc').value = r.jersey_capt || '';
+            document.getElementById('edit-reg-jp').value = r.jersey_partner || '';
+            
+            let statusContainer = document.getElementById('edit-reg-status');
+            if(statusContainer && statusContainer.parentElement) statusContainer.parentElement.style.display = 'none';
             document.getElementById('modal-edit-reg').style.display = 'flex';
         }
 
@@ -1996,15 +2011,24 @@
             let id = document.getElementById('edit-reg-id').value;
             let payload = {
                 team_name: document.getElementById('edit-reg-team').value,
+                category: document.getElementById('edit-reg-cat').value,
+                asal_klub: document.getElementById('edit-reg-club').value,
+                instagram: document.getElementById('edit-reg-ig').value,
                 capt_name: document.getElementById('edit-reg-p1').value,
-                partner_name: document.getElementById('edit-reg-p2').value
+                partner_name: document.getElementById('edit-reg-p2').value,
+                jersey_capt: document.getElementById('edit-reg-jc').value,
+                jersey_partner: document.getElementById('edit-reg-jp').value
             };
             const btn = document.querySelector('#modal-edit-reg .btn-green');
             let ori = btn.innerText; btn.innerText = "⏳ MENYIMPAN...";
             const { error } = await db.from('registrations').update(payload).eq('id', id);
             btn.innerText = ori;
-            if(error) alert("Gagal edit: " + error.message);
-            else { document.getElementById('modal-edit-reg').style.display = 'none'; } 
+            if(error) { 
+                alert("Gagal edit: " + error.message); 
+            } else { 
+                document.getElementById('modal-edit-reg').style.display = 'none'; 
+                // Karena Radar Cockpit sudah Real-time, tabel akan berkedip refresh secara otomatis!
+            } 
         }
 
         async function deleteRegMode() {
