@@ -516,16 +516,20 @@
             } catch (err) { console.log("Gagal memuat pengaturan", err); }
         }
         fetchSettings();
-// --- RADAR REAL-TIME SISI PENDAFTAR (SINKRONISASI KUOTA INSTAN) ---
+// --- RADAR REAL-TIME SISI PENDAFTAR (SINKRONISASI KUOTA & PENGATURAN) ---
         let publicRadar = null;
         function setupRealtimeRadar() {
             if(publicRadar) db.removeChannel(publicRadar);
             publicRadar = db.channel('public:registrations_public')
-            // FILTER TURNAMEN DIHAPUS AGAR BISA MENANGKAP SINYAL 'DELETE' DARI COCKPIT
+            // ANTENA 1: Memantau pergerakan tiket/kuota (Wide-Scan)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations' }, (payload) => {
-                // Render ulang kartu kategori & kuota secara diam-diam saat ada perubahan di database
                 fetchSettings();
-            }).subscribe();
+            })
+            // ANTENA 2: Memantau perubahan pengaturan dari Cockpit (Buka/Tutup, Kategori, Harga)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'partners', filter: `tournament_id=eq.${TOURNAMENT_ID}` }, (payload) => {
+                fetchSettings();
+            })
+            .subscribe();
         }
         setupRealtimeRadar();
 
