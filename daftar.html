@@ -521,7 +521,8 @@
         function setupRealtimeRadar() {
             if(publicRadar) db.removeChannel(publicRadar);
             publicRadar = db.channel('public:registrations_public')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations', filter: `tournament_id=eq.${TOURNAMENT_ID}` }, (payload) => {
+            // FILTER TURNAMEN DIHAPUS AGAR BISA MENANGKAP SINYAL 'DELETE' DARI COCKPIT
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations' }, (payload) => {
                 // Render ulang kartu kategori & kuota secara diam-diam saat ada perubahan di database
                 fetchSettings();
             }).subscribe();
