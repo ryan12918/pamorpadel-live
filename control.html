@@ -114,13 +114,27 @@
             .table-wrap { -webkit-overflow-scrolling: touch; }
         }
 
+        /* --- OTOMATISASI LAYOUT HP (POTRET / BERDIRI) --- */
+        @media (max-width: 768px) and (orientation: portrait) {
+            .reg-layout-wrapper { flex-direction: column !important; overflow-y: auto !important; }
+            .reg-table-panel { border-right: none !important; border-bottom: 5px solid #ccc !important; flex: none !important; height: 65vh !important; padding: 10px !important; }
+            .reg-settings-panel { width: 100% !important; flex: none !important; height: auto !important; padding: 10px !important; overflow: visible !important; }
+            .top-bar { flex-direction: column; gap: 8px; text-align: center; height: auto !important; padding: 10px; }
+            .top-bar > div { width: 100%; display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; }
+            .nav-pill { margin: 0; flex: 1; min-width: 45%; }
+            #modal-scanner .modal-box { width: 90% !important; }
+            .table-wrap { -webkit-overflow-scrolling: touch; }
+            #btn-fs { display: none !important; } /* Sembunyikan tombol FS di HP */
+        }
+
         /* --- OTOMATISASI LAYOUT HP (LANDSCAPE / MIRING) : KANVAS BEBAS --- */
         @media (max-width: 950px) and (orientation: landscape) {
             /* Buka gembok layar agar bisa dicubit & digeser (Pinch & Pan) */
             body, html { overflow: auto !important; height: auto !important; min-height: 100%; }
-            /* Paksa lebar aplikasi menyerupai laptop agar tabel tidak tergencet */
-            #main-app { min-width: 1200px !important; overflow: visible !important; }
+            /* Paksa lebar aplikasi menjadi raksasa (2500px) agar zoom out bisa sangat jauh */
+            #main-app { min-width: 2500px !important; overflow: visible !important; }
             .view-container { overflow: visible !important; height: auto !important; min-height: 100vh; }
+            #btn-fs { display: none !important; } /* Sembunyikan tombol FS di HP */
         }
     </style>
 </head>
@@ -146,7 +160,7 @@
                 <button class="nav-pill" onclick="switchTab('tv', this)">PENGATURAN TV LIVE SCORE</button>
             </div>
             <div style="display:flex; align-items:center; gap:15px; text-align:right;">
-                <button class="btn-action" style="background:#212121; padding:6px 10px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.2);" onclick="toggleFullScreen()">🔲 FULL SCREEN</button>
+                <button id="btn-fs" class="btn-action" style="background:#212121; padding:6px 10px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.2);" onclick="toggleFullScreen()">🔲 FULL SCREEN</button>
                 <div style="font-size:10px; line-height:1.4;">ID: <b id="lbl-user">...</b><br><a href="#" onclick="location.reload()" style="color:red; text-decoration:none; font-weight:bold;">Keluar</a></div>
             </div>
         </div>
