@@ -237,6 +237,22 @@
                         <div class="section-title">3. DAFTAR KATEGORI & HARGA</div>
                         <div id="category-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
                         <button class="btn-action btn-blue" onclick="addCategoryRow('', '', '')" style="width:100%; justify-content:center; margin-bottom:15px;">+ TAMBAH KATEGORI</button>
+			<div class="section-title">4. TAMPILAN & KONTEN FORM</div>
+                        <div style="background:#f4f6f8; padding:10px; border-radius:6px; border:1px solid #ddd; font-size:11px; font-weight:bold; color:#555; display:flex; flex-direction:column; gap:8px;">
+                            <div class="form-group"><label>Judul Utama (Atas)</label><input type="text" id="reg-title" class="form-control" placeholder="Cth: REGISTRASI RESMI"></div>
+                            <div class="form-group"><label>Sub-Judul Turnamen</label>
+                                <div class="input-with-color">
+                                    <input type="text" id="reg-sub" class="form-control" placeholder="Cth: Padel Anniversary Tournament">
+                                    <input type="color" id="reg-sub-col" class="color-btn" value="#d81b60">
+                                </div>
+                            </div>
+                            <div class="form-group"><label>Tanggal & Lokasi</label><input type="text" id="reg-date" class="form-control" placeholder="Cth: 24-26 April 2026 | Gor Padel"></div>
+                            <div class="form-group"><label>Teks Ajakan Kategori</label><input type="text" id="reg-cat-title" class="form-control" placeholder="Cth: AMANKAN SLOT KATEGORI"></div>
+                            <div class="form-group"><label>Nama Organizer (Pojok Kanan)</label><input type="text" id="reg-org" class="form-control" placeholder="Cth: Organized by PaMor Padel Club"></div>
+                            <hr style="border:0; border-top:1px dashed #ccc; margin:5px 0;">
+                            <div class="form-group"><label>Teks Sponsor</label><input type="text" id="reg-sponsor-text" class="form-control" placeholder="Cth: Official Partners"></div>
+                            <div class="form-group"><label>Link Logo Sponsor (URL)</label><input type="text" id="reg-sponsor-logo" class="form-control" placeholder="https://..."></div>
+                        </div>
 
                         <hr style="border:0; border-top:1px dashed #ccc; margin:15px 0;">
                         <button class="btn-action btn-green" onclick="saveRegSettings()" style="width:100%; justify-content:center; padding:12px; font-size:12px;">💾 SIMPAN PENGATURAN</button>
@@ -2196,7 +2212,15 @@
                     reqClub: document.getElementById('reg-req-club').checked, 
                     reqIg: document.getElementById('reg-req-ig').checked,
                     reqJersey: document.getElementById('reg-req-jersey').checked,
-                    multiWa: document.getElementById('reg-multi-wa').checked
+                    multiWa: document.getElementById('reg-multi-wa').checked,
+                    regTitle: document.getElementById('reg-title') ? document.getElementById('reg-title').value : '',
+                    regSub: document.getElementById('reg-sub') ? document.getElementById('reg-sub').value : '',
+                    regSubCol: document.getElementById('reg-sub-col') ? document.getElementById('reg-sub-col').value : '#d81b60',
+                    regDate: document.getElementById('reg-date') ? document.getElementById('reg-date').value : '',
+                    regCatTitle: document.getElementById('reg-cat-title') ? document.getElementById('reg-cat-title').value : '',
+                    regOrg: document.getElementById('reg-org') ? document.getElementById('reg-org').value : '',
+                    regSponsorText: document.getElementById('reg-sponsor-text') ? document.getElementById('reg-sponsor-text').value : '',
+                    regSponsorLogo: document.getElementById('reg-sponsor-logo') ? document.getElementById('reg-sponsor-logo').value : ''
                 }),
                 categories: JSON.stringify(getCatData())
             };
@@ -2210,21 +2234,27 @@
             document.getElementById('reg-status').value = d.is_registration_open ? 'true' : 'false'; document.getElementById('reg-wa').value = d.wa_admin || '';
             try {
                 let fs = JSON.parse(d.form_settings);
-                // Hilangkan pembacaan reg-format lama
                 document.getElementById('reg-req-team').checked = fs.reqTeam === false ? false : true; 
                 document.getElementById('reg-req-club').checked = fs.reqClub === false ? false : true; 
                 document.getElementById('reg-req-ig').checked = fs.reqIg === false ? false : true;
                 document.getElementById('reg-req-jersey').checked = fs.reqJersey === false ? false : true;
                 document.getElementById('reg-multi-wa').checked = fs.multiWa === true ? true : false;
+                
+                if(document.getElementById('reg-title')) document.getElementById('reg-title').value = fs.regTitle || '';
+                if(document.getElementById('reg-sub')) document.getElementById('reg-sub').value = fs.regSub || '';
+                if(document.getElementById('reg-sub-col')) document.getElementById('reg-sub-col').value = fs.regSubCol || '#d81b60';
+                if(document.getElementById('reg-date')) document.getElementById('reg-date').value = fs.regDate || '';
+                if(document.getElementById('reg-cat-title')) document.getElementById('reg-cat-title').value = fs.regCatTitle || '';
+                if(document.getElementById('reg-org')) document.getElementById('reg-org').value = fs.regOrg || '';
+                if(document.getElementById('reg-sponsor-text')) document.getElementById('reg-sponsor-text').value = fs.regSponsorText || '';
+                if(document.getElementById('reg-sponsor-logo')) document.getElementById('reg-sponsor-logo').value = fs.regSponsorLogo || '';
             } catch(e){ 
                 document.getElementById('reg-req-team').checked = true; document.getElementById('reg-req-club').checked = true; document.getElementById('reg-req-ig').checked = true; 
                 document.getElementById('reg-req-jersey').checked = true; document.getElementById('reg-multi-wa').checked = false; 
             }
             document.getElementById('category-list').innerHTML = '';
-            // Load format kategori dari database
             try { let cats = JSON.parse(d.categories); if(Array.isArray(cats)) { cats.forEach(c => addCategoryRow(c.name, c.price, c.quota, c.format)); } } catch(e) {}
             
-            // Nyalakan Radar Realtime Cockpit setelah data awal dimuat
             setupRealtimeCockpit();
         }
 
