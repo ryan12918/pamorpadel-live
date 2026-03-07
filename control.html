@@ -1901,15 +1901,15 @@
                 let catCounts = {};
                 GLOBAL_REGISTRATIONS.forEach(r => { catCounts[r.category] = (catCounts[r.category] || 0) + 1; });
                 
-                let html = '<div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">';
+                let html = '<div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">';
                 cats.forEach(c => {
                     let fill = catCounts[c.name] || 0;
                     let q = parseInt(c.quota) || 0;
                     let sisa = q - fill;
-                    // Logika Warna Pintar (Merah = Penuh, Orange = Menipis, Hijau = Aman)
                     let color = sisa <= 0 ? '#c62828' : (sisa <= 5 ? '#e65100' : '#2e7d32');
                     let bg = sisa <= 0 ? '#ffebee' : (sisa <= 5 ? '#fff3e0' : '#e8f5e9');
-                    html += `<div style="background:${bg}; border:1px solid ${color}; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; color:${color};">🏆 ${c.name}: Terisi ${fill}/${q} (Sisa ${sisa})</div>`;
+                    // Perubahan ada di display:inline-flex dan white-space:nowrap
+                    html += `<div style="display:inline-flex; align-items:center; background:${bg}; border:1px solid ${color}; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; color:${color}; white-space:nowrap;">🏆 ${c.name}: Terisi ${fill}/${q} (Sisa ${sisa})</div>`;
                 });
                 html += '</div>';
                 monEl.innerHTML = html;
@@ -2109,21 +2109,25 @@
 
         async function onScanSuccess(decodedText, decodedResult) {
             if(isScanning) return;
-            isScanning = true;
+            isScanning = true; // Kunci sensor kamera agar tidak dobel scan
             
-            // Tampilkan loading & matikan kamera agar tidak scan ganda
-            document.getElementById('reader').innerHTML = `<div style="padding:30px; text-align:center; font-weight:bold; color:#1565c0; font-size:16px;">⏳ MEMPROSES E-TICKET...</div>`;
+            let resEl = document.getElementById('scan-result');
+            resEl.innerHTML = `<div style="color:#f39c12; padding:10px; font-size:14px;">⏳ MEMPROSES TIKET...</div>`;
             
-            // Langsung Update DB ke HADIR
             const { error } = await db.from('registrations').update({ status: 'HADIR' }).eq('id', decodedText).eq('tournament_id', ACTIVE_ID);
             
             if(error) {
-                alert("❌ Gagal merubah status: " + error.message);
-                closeScanner();
+                resEl.innerHTML = `<div style="color:#c62828; padding:10px;">❌ Gagal: ${error.message}</div>
+                <button onclick="resumeScan()" class="btn-action btn-grey" style="width:100%; padding:10px; font-size:12px;">🔄 COBA SCAN LAGI</button>`;
             } else {
-                alert("✅ BERHASIL CHECK-IN!\n\nStatus tiket otomatis berubah menjadi HADIR di HP Peserta.");
-                closeScanner(); // Tutup modal setelah di-OK
+                resEl.innerHTML = `<div style="background:#e8f5e9; padding:10px; border-radius:6px; border:1px solid #2e7d32; color:#2e7d32; margin-bottom:10px;">✅ <b>BERHASIL CHECK-IN!</b><br><span style="font-size:11px;">Tiket telah diupdate ke HADIR.</span></div>
+                <button onclick="resumeScan()" class="btn-action btn-blue" style="width:100%; padding:10px; font-size:12px; font-weight:bold;">📷 SCAN PESERTA BERIKUTNYA</button>`;
             }
+        }
+
+        function resumeScan() {
+            document.getElementById('scan-result').innerHTML = "Menunggu scan...";
+            isScanning = false; // Buka kembali kunci sensor kamera
         }
 
         function onScanFailure(error) {}
