@@ -100,6 +100,7 @@
         /* Animasi */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
+	@keyframes pulse-fomo { 0% { transform: scale(1); background: #ffebee; } 100% { transform: scale(1.03); background: #ffcdd2; box-shadow: 0 4px 10px rgba(217,83,79,0.2); } }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -293,7 +294,19 @@
             nextStep(2);
         }
 
-function checkRequired(id, wrapId) {
+	// --- JALUR WAITING LIST MANUAL ---
+        function showWaitingList() {
+            let textWA = "Halo Panitia, saya melihat pendaftaran untuk turnamen ini sudah penuh. Apakah saya bisa masuk ke Daftar Tunggu (Waiting List) jika ada peserta yang batal/belum bayar? Terima kasih.";
+            if(confirm("🔴 KATEGORI INI SUDAH PENUH\n\nApakah Anda ingin menghubungi WhatsApp Panitia untuk masuk ke Daftar Tunggu (Waiting List)?")) {
+                if (globalWaAdmin) {
+                    window.open(`https://wa.me/${globalWaAdmin}?text=${encodeURIComponent(textWA)}`, '_blank');
+                } else {
+                    alert("Nomor WA Panitia belum diatur.");
+                }
+            }
+        }
+
+	function checkRequired(id, wrapId) {
             let el = document.getElementById(id);
             let wrap = wrapId ? document.getElementById(wrapId) : null;
             let errEl = document.getElementById('err-' + id);
@@ -409,6 +422,16 @@ function checkRequired(id, wrapId) {
                     .eq('tournament_id', TOURNAMENT_ID)
                     .single();
                 
+                // MENGAMBIL DATA REGISTRASI UNTUK MENGHITUNG SISA KUOTA
+                const { data: regData } = await db.from('registrations')
+                    .select('category')
+                    .eq('tournament_id', TOURNAMENT_ID);
+                
+                let catCounts = {};
+                if (regData) {
+                    regData.forEach(r => { catCounts[r.category] = (catCounts[r.category] || 0) + 1; });
+                }
+
                 if (data) {
                     // 1. SINKRONISASI JUDUL DARI COCKPIT KE FORM PENDAFTARAN
                     if (data.event_name) document.getElementById('lbl-form-title').innerText = data.event_name;
@@ -426,7 +449,6 @@ function checkRequired(id, wrapId) {
                     if(data.form_settings) {
                         try {
                             let fs = JSON.parse(data.form_settings);
-                            // Menyembunyikan elemen jika dimatikan di Cockpit
                             if(fs.reqTeam === false && document.getElementById('wrap-team')) document.getElementById('wrap-team').style.display = 'none';
                             if(fs.reqClub === false && document.getElementById('wrap-club')) document.getElementById('wrap-club').style.display = 'none';
                             if(fs.reqIg === false) {
@@ -437,12 +459,11 @@ function checkRequired(id, wrapId) {
                                 if(document.getElementById('wrap-jersey-capt')) document.getElementById('wrap-jersey-capt').style.display = 'none';
                                 if(document.getElementById('wrap-jersey-partner')) document.getElementById('wrap-jersey-partner').style.display = 'none';
                             }
-                            // Membaca aturan Multi-WA (Format Turnamen sekarang dibaca per kategori)
                             globalMultiWa = fs.multiWa === true;
                         } catch(e) {} 
                     }
                     
-                    // 4. RENDER KATEGORI DARI KOLOM BARU
+                    // 4. RENDER KATEGORI & RADAR KUOTA FOMO
                     const catContainer = document.getElementById('category-container');
                     if (data.categories && data.categories !== "[]") {
                         let cats = JSON.parse(data.categories);
@@ -451,17 +472,41 @@ function checkRequired(id, wrapId) {
                             let safeName = c.name.replace(/'/g, "\\'"); 
                             let cFormat = c.format || 'double';
                             
-                            html += `
-                            <div class="card" onclick="selectCategory('${safeName}', ${c.price}, '${cFormat}')">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span class="cat-name">${c.name}</span>
-                                    <span class="cat-price">Rp ${c.price.toLocaleString('id-ID')}</span>
+                            // MESIN PENGHITUNG SISA SLOT
+                            let currentCount = catCounts[c.name] || 0;
+                            let quota = parseInt(c.quota) || 0;
+                            let sisa = quota - currentCount;
+                            
+                            if (sisa <= 0) {
+                                // AUTO-LOCK (KUNCI OTOMATIS JIKA PENUH)
+                                html += `
+                                <div class="card" style="background:#f5f5f5; border-color:#e0e0e0; cursor:not-allowed; opacity:0.8;" onclick="showWaitingList()">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span class="cat-name" style="color:#999;">${c.name}</span>
+                                        <span class="cat-price" style="color:#d9534f; font-weight:900;">🔴 SLOT PENUH</span>
+                                    </div>
+                                    <div style="font-size: 11px; color: #999; margin-top: 8px; font-weight: 700;">
+                                        Batas Kuota: ${c.quota} Tim (Terisi Penuh)
+                                    </div>
                                 </div>
-                                <div style="font-size: 11px; color: #666; margin-top: 8px; font-weight: 700;">
-                                    Batas Kuota: ${c.quota} Tim
+                                `;
+                            } else {
+                                // FOMO RADAR
+                                let fomoHtml = `<div class="fomo-tag" style="animation: pulse-fomo 1.2s infinite alternate ease-in-out;">🔥 Sisa Kuota: ${sisa} Tim Lagi!</div>`;
+                                
+                                html += `
+                                <div class="card" onclick="selectCategory('${safeName}', ${c.price}, '${cFormat}')">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span class="cat-name">${c.name}</span>
+                                        <span class="cat-price">Rp ${c.price.toLocaleString('id-ID')}</span>
+                                    </div>
+                                    <div style="font-size: 11px; color: #666; margin-top: 8px; font-weight: 700;">
+                                        Batas Kuota: ${c.quota} Tim
+                                    </div>
+                                    ${fomoHtml}
                                 </div>
-                            </div>
-                            `;
+                                `;
+                            }
                         });
                         catContainer.innerHTML = html;
                     } else {

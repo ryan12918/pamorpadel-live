@@ -132,13 +132,14 @@
 <div id="view-registrations" class="view-section">
                 <div style="display: flex; height: 100%; flex-direction: row;">
                     <div style="flex: 1; padding: 15px; display: flex; flex-direction: column; border-right: 1px solid #ccc; overflow: hidden;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; background: white; padding: 10px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                            <div style="display:flex; flex-direction:column;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; background: white; padding: 10px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                            <div style="display:flex; flex-direction:column; flex:1;">
                                 <b style="color: #1a237e; font-size: 14px;">📋 DATA PENDAFTAR MASUK</b>
                                 <span id="lbl-reg-stats" style="font-size:10px; color:#e91e63; font-weight:800; margin-top:4px;">Memuat data...</span>
+                                <div id="quota-monitor"></div>
                             </div>
                             <div style="display:flex; gap:5px; flex-wrap:wrap; align-items:center;">
-                                <input type="text" id="reg-search" class="form-control" style="width:150px; padding:6px; font-size:10px;" placeholder="🔍 Cari Nama / WA..." onkeyup="renderTableRegistrations()">
+                                <input type="text" id="reg-search" class="form-control" style="width:130px; padding:6px; font-size:10px;" placeholder="🔍 Cari Nama / WA..." onkeyup="renderTableRegistrations()">
                                 <select id="reg-filter-cat" class="form-control" style="width:130px; padding:6px; font-size:10px; font-weight:bold; cursor:pointer;" onchange="renderTableRegistrations()">
                                     <option value="ALL">Semua Kategori</option>
                                 </select>
@@ -148,6 +149,7 @@
                                     <option value="LUNAS">LUNAS</option>
                                     <option value="HADIR">HADIR</option>
                                 </select>
+                                <button class="btn-action" style="background:#f39c12; color:white; font-weight:bold;" onclick="openBlastModal()">📢 BLAST PENAGIHAN</button>
                                 <button class="btn-action btn-green" onclick="exportRegToExcel()">📊 REKAP EXCEL</button>
                                 <button class="btn-action btn-purple" onclick="startScanner()">📷 SCAN KAMERA</button>
                                 <button class="btn-action btn-blue" onclick="showRegQR()">📝 QR PENDAFTARAN</button>
@@ -557,6 +559,17 @@
         </div>
     </div>
 
+<div id="modal-blast" class="modal">
+        <div class="modal-box" style="width: 500px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin:0; color:#1a237e;">📢 MESIN BLAST PENAGIHAN</h3>
+                <div style="cursor:pointer; font-weight:bold; color:#aaa; font-size:18px;" onclick="document.getElementById('modal-blast').style.display='none'">✕</div>
+            </div>
+            <p style="font-size:11px; color:#555; margin-bottom:15px; line-height:1.4;">Daftar tim berstatus <b>PENDING</b>. Klik tombol "KIRIM WA" berurutan dari atas ke bawah. <br><span style="color:#d32f2f;">*Tombol otomatis terkunci <b>5 menit</b> setelah diklik untuk mencegah Spamming ke peserta.</span></p>
+            <div id="blast-list" style="max-height: 350px; overflow-y: auto; background: #f5f5f5; padding: 10px; border-radius: 8px; border: 1px solid #ddd; display: flex; flex-direction: column; gap: 8px;">
+                </div>
+        </div>
+    </div>
     <script>
         const SUPABASE_URL = 'https://gubcvxiupehbdpigrdct.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_k1y6fNI2opEXhwqKMbGYcA__2nD0yT6';
@@ -1824,28 +1837,132 @@
             // Update Indikator Statistik
             let statsEl = document.getElementById('lbl-reg-stats');
             if(statsEl) statsEl.innerText = `Tampil: ${filteredData.length} Tim | Lunas & Hadir: ${lunasHadirCount} Tim`;
+            
+            updateQuotaMonitor(); // <-- SUNTIKAN BARU
+        }
+// --- MESIN MONITOR KUOTA & BLAST PENAGIHAN ---
+        let cooldownTimers = {}; // Memori Gembok Waktu
+
+        function updateQuotaMonitor() {
+            const monEl = document.getElementById('quota-monitor');
+            if(!monEl) return;
+            if(!window.RAW_DB_DATA || !window.RAW_DB_DATA.categories) { monEl.innerHTML = ''; return; }
+            try {
+                let cats = JSON.parse(window.RAW_DB_DATA.categories);
+                let catCounts = {};
+                GLOBAL_REGISTRATIONS.forEach(r => { catCounts[r.category] = (catCounts[r.category] || 0) + 1; });
+                
+                let html = '<div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">';
+                cats.forEach(c => {
+                    let fill = catCounts[c.name] || 0;
+                    let q = parseInt(c.quota) || 0;
+                    let sisa = q - fill;
+                    // Logika Warna Pintar (Merah = Penuh, Orange = Menipis, Hijau = Aman)
+                    let color = sisa <= 0 ? '#c62828' : (sisa <= 5 ? '#e65100' : '#2e7d32');
+                    let bg = sisa <= 0 ? '#ffebee' : (sisa <= 5 ? '#fff3e0' : '#e8f5e9');
+                    html += `<div style="background:${bg}; border:1px solid ${color}; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; color:${color};">🏆 ${c.name}: Terisi ${fill}/${q} (Sisa ${sisa})</div>`;
+                });
+                html += '</div>';
+                monEl.innerHTML = html;
+            } catch(e) {}
+        }
+
+        function openBlastModal() {
+            let pendingList = GLOBAL_REGISTRATIONS.filter(r => r.status === 'PENDING');
+            let container = document.getElementById('blast-list');
+            if(pendingList.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:20px; color:#2e7d32; font-weight:bold;">🎉 Yey! Tidak ada peserta berstatus PENDING.</div>`;
+            } else {
+                let html = '';
+                let now = Date.now();
+                pendingList.forEach((r, i) => {
+                    // Deteksi apakah sedang kena gembok waktu (5 Menit = 300.000 ms)
+                    let isCooldown = cooldownTimers[r.id] && (now - cooldownTimers[r.id] < 300000); 
+                    let btnHtml = isCooldown 
+                        ? `<button class="btn-action btn-grey" style="opacity:0.7; cursor:not-allowed;" disabled>✅ TERKIRIM (Tunggu)</button>` 
+                        : `<button class="btn-action btn-green" id="btn-blast-${r.id}" onclick="sendBlast('${r.id}')">💬 KIRIM WA</button>`;
+
+                    html += `
+                    <div style="background:white; padding:10px; border-radius:6px; border:1px solid #ccc; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="font-size:11px; font-weight:bold; color:#1a237e; line-height:1.4;">
+                            ${i+1}. ${r.team_name} <br>
+                            <span style="font-size:9px; color:#666;">${r.category} | 📱 ${r.capt_wa}</span><br>
+                            <span style="font-size:9px; color:#d81b60;">👥 ${r.capt_name} ${r.partner_name && r.partner_name !== '-' ? '& ' + r.partner_name : ''}</span>
+                        </div>
+                        <div>${btnHtml}</div>
+                    </div>`;
+                });
+                container.innerHTML = html;
+            }
+            document.getElementById('modal-blast').style.display = 'flex';
+        }
+
+        function sendBlast(id) {
+            let r = GLOBAL_REGISTRATIONS.find(x => x.id === id);
+            if(!r) return;
+            
+            // Logika Deteksi Single / Double Cerdas
+            let pName = r.partner_name && r.partner_name !== '-' && r.partner_name.toLowerCase() !== 'tba' ? " dan Kak " + r.partner_name : "";
+            
+            let textWA = `Halo Kak ${r.capt_name}${pName},\n\nKami dari Panitia Turnamen menginformasikan bahwa pendaftaran Anda untuk kategori *${r.category}* (Tim: ${r.team_name}) masih berstatus *PENDING*.\n\nSisa kuota kami saat ini sangat terbatas. Mohon segera menyelesaikan pembayaran dan mengirimkan bukti transfer agar slot Anda tidak kami berikan kepada tim di daftar tunggu (Waiting List).\n\nTerima kasih atas partisipasinya!`;
+
+            // Pasang Gembok Waktu 5 Menit
+            cooldownTimers[id] = Date.now();
+            
+            // Kunci tombol seketika di layar
+            let btn = document.getElementById(`btn-blast-${id}`);
+            if(btn) {
+                btn.className = "btn-action btn-grey";
+                btn.style.opacity = "0.7";
+                btn.style.cursor = "not-allowed";
+                btn.innerText = "✅ TERKIRIM (Tunggu)";
+                btn.disabled = true;
+            }
+
+            // Buka Jendela WhatsApp
+            window.open(`https://wa.me/${r.capt_wa}?text=${encodeURIComponent(textWA)}`, '_blank');
         }
         
-        // --- EXPORT PENDAFTAR KE EXCEL ---
+        // --- EXPORT PENDAFTAR KE EXCEL (PINTAR & RAPI) ---
         function exportRegToExcel() {
             if (!GLOBAL_REGISTRATIONS || GLOBAL_REGISTRATIONS.length === 0) { alert("⚠️ Tidak ada data pendaftar untuk diekspor!"); return; }
             
             let dataArr = [
-                ["WAKTU DAFTAR", "NAMA TIM", "KLUB", "KATEGORI", "NAMA KAPTEN", "WA KAPTEN", "JERSEY KAPTEN", "NAMA PARTNER", "JERSEY PARTNER", "INSTAGRAM", "STATUS", "KODE TIKET"]
+                ["NO", "WAKTU DAFTAR", "STATUS", "KATEGORI", "NAMA TIM", "ASAL KLUB", "NAMA KAPTEN", "WA KAPTEN", "JERSEY KAPTEN", "NAMA PARTNER", "JERSEY PARTNER", "INSTAGRAM", "KODE TIKET"]
             ];
 
-            GLOBAL_REGISTRATIONS.forEach(r => {
+            GLOBAL_REGISTRATIONS.forEach((r, idx) => {
                 let d = new Date(r.created_at); let timeStr = ("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2) + " " + ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
                 dataArr.push([
-                    timeStr, r.team_name || "", r.asal_klub || "-", r.category || "", 
+                    idx + 1, timeStr, r.status || "", r.category || "", r.team_name || "", r.asal_klub || "-", 
                     r.capt_name || "", r.capt_wa || "", r.jersey_capt || "-", 
                     r.partner_name || "-", r.jersey_partner || "-", r.instagram || "-", 
-                    r.status || "", r.id || ""
+                    r.id || ""
                 ]);
             });
 
             const ws = XLSX.utils.aoa_to_sheet(dataArr);
-            ws['!cols'] = [{ wch: 15 }, { wch: 20 }, { wch: 15 }, { wch: 20 }, { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 20 }, { wch: 12 }, { wch: 20 }, { wch: 12 }, { wch: 35 }];
+            
+            // Mengatur Lebar Kolom agar Rapi saat dibuka
+            ws['!cols'] = [
+                { wch: 5 },  // NO
+                { wch: 15 }, // WAKTU
+                { wch: 12 }, // STATUS
+                { wch: 25 }, // KATEGORI
+                { wch: 20 }, // TIM
+                { wch: 15 }, // KLUB
+                { wch: 20 }, // KAPTEN
+                { wch: 15 }, // WA
+                { wch: 15 }, // JERSEY 1
+                { wch: 20 }, // PARTNER
+                { wch: 15 }, // JERSEY 2
+                { wch: 20 }, // IG
+                { wch: 35 }  // KODE TIKET
+            ];
+            
+            // INJEKSI AUTO-FILTER PINTAR DI BARIS PERTAMA (A1 sampai M1)
+            ws['!autofilter'] = { ref: "A1:M" + (GLOBAL_REGISTRATIONS.length + 1) };
+
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Rekap Pendaftar");
 
