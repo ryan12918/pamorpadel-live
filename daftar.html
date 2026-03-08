@@ -101,23 +101,30 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
 	@keyframes pulse-fomo { 0% { transform: scale(1); background: #ffebee; } 100% { transform: scale(1.03); background: #ffcdd2; box-shadow: 0 4px 10px rgba(217,83,79,0.2); } }
-/* --- HEADER DINAMIS DARI COCKPIT --- */
-        .dyn-header { text-align: center; margin-bottom: 30px; animation: fadeInDown 0.8s ease; }
-        .dyn-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; margin: 0 0 5px 0; color: #111; text-transform: uppercase; }
-        .dyn-sub { font-size: 13px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 15px 0; }
-        .dyn-date { background: #fdfbf7; border: 1px dashed #ccc; display: inline-block; padding: 6px 15px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #555; margin-bottom: 10px; }
+/* --- HEADER DINAMIS DARI COCKPIT (LUXURY REDESIGN) --- */
+        .dyn-header { text-align: center; margin-bottom: 35px; animation: fadeInDown 0.8s ease; padding: 25px 20px; background: #fff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #f9f9f9; }
         
-        .dyn-sponsor-deck { display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #eee; padding-top: 20px; margin-top: 10px; flex-wrap: wrap; gap: 20px; }
-        .dyn-org-box { text-align: left; flex: 1; min-width: 120px; }
-        .dyn-spon-box { text-align: right; flex: 1; min-width: 120px; }
-        .dyn-label { font-size: 9px; color: #aaa; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; display: block; margin-bottom: 5px; }
-        .dyn-org-text { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 15px; color: #333; }
-        .dyn-spon-logo { max-height: 45px; max-width: 150px; object-fit: contain; }
+        /* 1. Organizer (Paling Atas) */
+        .dyn-org { margin-bottom: 15px; }
+        .dyn-org span { font-size: 10px; font-weight: 800; color: #a38a6d; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #eaddcf; padding-bottom: 4px; display: inline-block; }
+        
+        /* 2. Judul Utama (Eyebrow - Kecil, Spasi Lebar) */
+        .dyn-title { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 800; color: #888; text-transform: uppercase; letter-spacing: 4px; margin: 0 0 8px 0; }
+        
+        /* 3. Sub-Judul (Nama Turnamen - Besar & Megah) */
+        .dyn-sub { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 900; color: #111; margin: 0 0 15px 0; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        
+        /* 4. Tanggal & Lokasi */
+        .dyn-date { background: #fafafa; border: 1px solid #eaeaea; display: inline-block; padding: 8px 18px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #555; margin-bottom: 20px; letter-spacing: 0.5px; }
+        
+        /* 5. Sponsor (Paling Bawah) */
+        .dyn-spon-box { margin-top: 10px; padding-top: 20px; border-top: 1px dashed #eee; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+        .dyn-spon-label { font-size: 9px; color: #aaa; text-transform: uppercase; font-weight: 800; letter-spacing: 2px; }
+        .dyn-spon-logo { max-height: 55px; max-width: 180px; object-fit: contain; }
 
         @media (max-width: 600px) {
-            .dyn-sponsor-deck { flex-direction: column; text-align: center; justify-content: center; gap: 25px; }
-            .dyn-org-box, .dyn-spon-box { text-align: center; }
-            .dyn-title { font-size: 24px; }
+            .dyn-sub { font-size: 28px; }
+            .dyn-header { padding: 20px 15px; }
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -128,19 +135,19 @@
     <div class="app-container">
         
         <div class="dyn-header">
-            <h1 id="dyn-title" class="dyn-title">Memuat...</h1>
-            <p id="dyn-sub" class="dyn-sub">Tunggu sebentar</p>
+            <div id="box-org" class="dyn-org" style="display:none;">
+                <span id="dyn-org-text"></span>
+            </div>
+            
+            <h2 id="dyn-title" class="dyn-title" style="display:none;">Memuat...</h2>
+            
+            <h1 id="dyn-sub" class="dyn-sub" style="display:none;">Tunggu sebentar</h1>
+            
             <div id="dyn-date" class="dyn-date" style="display:none;"></div>
             
-            <div class="dyn-sponsor-deck">
-                <div class="dyn-org-box" id="box-org" style="display:none;">
-                    <span class="dyn-label">Organized By</span>
-                    <div id="dyn-org-text" class="dyn-org-text"></div>
-                </div>
-                <div class="dyn-spon-box" id="box-spon" style="display:none;">
-                    <span class="dyn-label" id="dyn-spon-label">Official Sponsor</span>
-                    <img id="dyn-spon-logo" src="" alt="Sponsor" class="dyn-spon-logo">
-                </div>
+            <div id="box-spon" class="dyn-spon-box" style="display:none;">
+                <span class="dyn-spon-label" id="dyn-spon-label" style="display:none;"></span>
+                <img id="dyn-spon-logo" src="" alt="Sponsor" class="dyn-spon-logo" style="display:none;">
             </div>
         </div>
 
@@ -482,28 +489,49 @@
                                 if(document.getElementById('wrap-jersey-partner')) document.getElementById('wrap-jersey-partner').style.display = 'none';
                             }
                             globalMultiWa = fs.multiWa === true;
-// --- SUNTIKAN 7 FITUR COCKPIT ---
-                            if(fs.regTitle) document.getElementById('dyn-title').innerText = fs.regTitle;
-                            if(fs.regSub) {
+// --- SUNTIKAN 7 FITUR COCKPIT (LUXURY AUTO-HIDE) ---
+                            // 1. Judul Utama (Eyebrow)
+                            if(fs.regTitle && fs.regTitle.trim() !== '') {
+                                document.getElementById('dyn-title').innerText = fs.regTitle;
+                                document.getElementById('dyn-title').style.display = 'block';
+                            } else { document.getElementById('dyn-title').style.display = 'none'; }
+                            
+                            // 2. Sub-Judul (Main Event Name)
+                            if(fs.regSub && fs.regSub.trim() !== '') {
                                 document.getElementById('dyn-sub').innerText = fs.regSub;
                                 if(fs.regSubCol) document.getElementById('dyn-sub').style.color = fs.regSubCol;
-                            }
-                            if(fs.regDate) {
+                                document.getElementById('dyn-sub').style.display = 'block';
+                            } else { document.getElementById('dyn-sub').style.display = 'none'; }
+                            
+                            // 3. Tanggal & Lokasi
+                            if(fs.regDate && fs.regDate.trim() !== '') {
                                 document.getElementById('dyn-date').innerText = fs.regDate;
                                 document.getElementById('dyn-date').style.display = 'inline-block';
-                            }
-                            if(fs.regCatTitle) document.getElementById('lbl-form-step1').innerText = fs.regCatTitle;
+                            } else { document.getElementById('dyn-date').style.display = 'none'; }
                             
-                            if(fs.regOrg) {
+                            // 4. Teks Ajakan Kategori
+                            if(fs.regCatTitle && fs.regCatTitle.trim() !== '') {
+                                document.getElementById('lbl-form-step1').innerText = fs.regCatTitle;
+                            }
+                            
+                            // 5. Nama Organizer
+                            if(fs.regOrg && fs.regOrg.trim() !== '') {
                                 document.getElementById('dyn-org-text').innerText = fs.regOrg;
                                 document.getElementById('box-org').style.display = 'block';
-                            }
-                            if(fs.regSponsorLogo) {
+                            } else { document.getElementById('box-org').style.display = 'none'; }
+                            
+                            // 6 & 7. Sponsor Logo & Text
+                            if(fs.regSponsorLogo && fs.regSponsorLogo.trim() !== '') {
                                 document.getElementById('dyn-spon-logo').src = fs.regSponsorLogo;
-                                document.getElementById('box-spon').style.display = 'block';
-                                if(fs.regSponsorText) document.getElementById('dyn-spon-label').innerText = fs.regSponsorText;
-                            }
-                        } catch(e) {} 
+                                document.getElementById('dyn-spon-logo').style.display = 'block';
+                                document.getElementById('box-spon').style.display = 'flex';
+                                
+                                if(fs.regSponsorText && fs.regSponsorText.trim() !== '') {
+                                    document.getElementById('dyn-spon-label').innerText = fs.regSponsorText;
+                                    document.getElementById('dyn-spon-label').style.display = 'block';
+                                } else { document.getElementById('dyn-spon-label').style.display = 'none'; }
+                            } else { document.getElementById('box-spon').style.display = 'none'; }
+                        } catch(e) { console.log(e); } 
                     }
                     
                     // 4. RENDER KATEGORI & RADAR KUOTA FOMO
