@@ -8,99 +8,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
     
     <style>
-        .error-border { border-color: var(--danger) !important; background: #ffebee !important; }
-        .error-text { color: var(--danger); font-size: 11px; font-weight: 700; margin-top: 5px; display: none; }
-        
-        :root { 
-            --bg-color: #fdfbf7; 
-            --text-main: #222; 
-            --accent-gold: #c5a880; 
-            --card-bg: #ffffff;
-            --danger: #d9534f;
-            --success: #2e7d32;
+        /* --- CSS SPONSOR DINAMIS --- */
+        .sponsor-container { display: flex; justify-content: center; align-items: center; gap: 30px; margin-top: 20px; }
+        .sponsor-box { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .sponsor-label { font-size: 10px; color: #888; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
+        .sponsor-logo { max-width: 120px; height: auto; object-fit: contain; }
+        @media (max-width: 600px) {
+            .sponsor-container { flex-direction: column; gap: 20px; }
+            .sponsor-logo { max-width: 150px; }
         }
-        
-        body { 
-            font-family: 'Montserrat', sans-serif; 
-            background-color: var(--bg-color); 
-            color: var(--text-main); 
-            margin: 0; 
-            padding: 20px; 
-            display: flex; 
-            justify-content: center;
-        }
-
-        .app-container { 
-            max-width: 480px; 
-            width: 100%; 
-            padding-bottom: 50px;
-        }
-
-        /* Sponsor Showcase */
-        .sponsor-showcase { 
-            text-align: center; 
-            margin-bottom: 30px; 
-            animation: fadeInDown 0.8s ease;
-        }
-        .sponsor-text { font-size: 10px; letter-spacing: 3px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
-        .sponsor-logo { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 20px; color: #d32f2f; letter-spacing: 1px; }
-
-        /* Judul Turnamen */
-        .header-title { text-align: center; margin-bottom: 40px; }
-        .header-title h1 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; margin: 0 0 5px 0; color: #111; }
-        .header-title p { font-size: 13px; color: #666; margin: 0; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
-
-        /* Multi-Step Wizard */
-        .step { display: none; animation: fadeIn 0.4s ease; }
-        .step.active { display: block; }
-        .step-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-        .step-number { background: var(--text-main); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
-
-        /* Kartu Kategori (Premium Feel) */
-        .card { 
-            background: var(--card-bg); 
-            border-radius: 16px; 
-            padding: 20px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.04); 
-            margin-bottom: 15px; 
-            cursor: pointer; 
-            border: 2px solid transparent; 
-            transition: all 0.3s ease; 
-        }
-        .card:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
-        .card.selected { border-color: var(--accent-gold); }
-        .cat-name { font-weight: 800; font-size: 16px; }
-        .cat-price { font-weight: 700; color: var(--accent-gold); font-size: 16px; }
-        .fomo-tag { color: var(--danger); font-size: 12px; font-weight: 700; margin-top: 8px; background: #ffebee; padding: 4px 10px; border-radius: 20px; display: inline-block; }
-
-        /* Floating Inputs */
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 8px; color: #888; text-transform: uppercase; letter-spacing: 1px;}
-        .form-control { 
-            width: 100%; padding: 15px; border: 1px solid #eee; border-radius: 12px; 
-            font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 600; 
-            box-sizing: border-box; background: #fafafa; transition: 0.3s;
-        }
-        .form-control:focus { outline: none; border-color: var(--accent-gold); background: #fff; box-shadow: 0 0 0 4px rgba(197, 168, 128, 0.1); }
-
-        /* Tombol & Invoice */
-        .btn-primary { 
-            width: 100%; padding: 18px; background: var(--text-main); color: #fff; 
-            border: none; border-radius: 12px; font-weight: 700; font-size: 14px; 
-            letter-spacing: 1px; cursor: pointer; transition: 0.3s; margin-top: 10px;
-        }
-        .btn-primary:hover { background: var(--accent-gold); transform: translateY(-2px); box-shadow: 0 10px 20px rgba(197, 168, 128, 0.3); }
-        
-        .invoice-box { background: #fff; padding: 20px; border-radius: 16px; border: 1px dashed #ccc; margin-bottom: 25px; }
-        .vip-flex { display: flex; gap: 10px; }
-        .btn-vip { padding: 0 20px; background: #111; color: #fff; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; }
-
-        .back-link { display: block; text-align: center; margin-top: 20px; color: #999; font-size: 12px; font-weight: 600; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; }
-
-        /* Animasi */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
-	@keyframes pulse-fomo { 0% { transform: scale(1); background: #ffebee; } 100% { transform: scale(1.03); background: #ffcdd2; box-shadow: 0 4px 10px rgba(217,83,79,0.2); } }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -109,14 +25,18 @@
 
     <div class="app-container">
         
-        <div class="sponsor-showcase" id="sponsor-wrap" style="display:none;">
-            <div class="sponsor-text" id="lbl-spon-txt">Official Supported By</div>
-            <div class="sponsor-logo" id="lbl-spon-logo">ROCKET CHICKEN</div>
-        </div>
+        <div style="text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px dashed #ddd;">
+            <p id="lbl-form-sub" style="font-size: 12px; font-weight: 800; color: #e91e63; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 5px;">Memuat...</p>
+            <h1 id="lbl-form-title" style="font-size: 28px; font-weight: 900; color: #1a237e; margin: 0 0 10px 0; text-transform: uppercase;">Memuat...</h1>
+            <div id="lbl-form-date" style="font-size: 15px; font-weight: 600; color: #555; margin-bottom: 20px;"></div>
 
-        <div class="header-title">
-            <h1 id="lbl-form-title">Registrasi Resmi</h1>
-            <p id="lbl-form-sub">Padel Anniversary Tournament</p>
+            <div class="sponsor-container" id="sponsor-area">
+                <div class="sponsor-box" id="box-logo1" style="display:none;">
+                    <span class="sponsor-label" id="lbl-spon-txt">Organized by</span>
+                    <img id="logo1-img" src="" alt="Sponsor" class="sponsor-logo" style="display:none;">
+                    <div id="lbl-spon-logo" style="font-weight:900; font-size:18px; color:#111;"></div>
+                </div>
+            </div>
         </div>
 
         <div id="step-1" class="step active">
@@ -445,10 +365,11 @@
 
                     globalWaAdmin = sanitizeWA(data.wa_admin || "");
                     
-                    // 3. BACA PENGATURAN KUSTOMISASI FORM 
+                    // 3. BACA PENGATURAN KUSTOMISASI FORM & SPONSOR COCKPIT
                     if(data.form_settings) {
                         try {
                             let fs = JSON.parse(data.form_settings);
+                            // Saklar Input Form
                             if(fs.reqTeam === false && document.getElementById('wrap-team')) document.getElementById('wrap-team').style.display = 'none';
                             if(fs.reqClub === false && document.getElementById('wrap-club')) document.getElementById('wrap-club').style.display = 'none';
                             if(fs.reqIg === false) {
@@ -460,6 +381,27 @@
                                 if(document.getElementById('wrap-jersey-partner')) document.getElementById('wrap-jersey-partner').style.display = 'none';
                             }
                             globalMultiWa = fs.multiWa === true;
+
+                            // SINKRONISASI LOGO & SPONSOR DARI COCKPIT
+                            if(fs.regSponsorText) {
+                                document.getElementById('lbl-spon-txt').innerText = fs.regSponsorText;
+                                document.getElementById('box-logo1').style.display = 'flex';
+                            }
+                            if(fs.regSponsorLogo && fs.regSponsorLogo.startsWith('http')) {
+                                document.getElementById('logo1-img').src = fs.regSponsorLogo;
+                                document.getElementById('logo1-img').style.display = 'block';
+                                document.getElementById('lbl-spon-logo').style.display = 'none';
+                            } else if (fs.regSponsorLogo) {
+                                document.getElementById('lbl-spon-logo').innerText = fs.regSponsorLogo;
+                                document.getElementById('lbl-spon-logo').style.display = 'block';
+                                document.getElementById('logo1-img').style.display = 'none';
+                            }
+                            // Membaca Tanggal Event jika ada
+                            if(fs.regDate) {
+                                document.getElementById('lbl-form-date').innerText = fs.regDate;
+                            } else {
+                                document.getElementById('lbl-form-date').style.display = 'none';
+                            }
                         } catch(e) {} 
                     }
                     
