@@ -109,18 +109,14 @@
 
     <div class="app-container">
         
-        <div id="lbl-org" style="position:absolute; top:20px; right:20px; font-size:10px; font-weight:800; color:#9e9e9e; text-transform:uppercase; letter-spacing:1px; display:none; background:rgba(0,0,0,0.03); padding:5px 10px; border-radius:20px; border:1px solid rgba(0,0,0,0.05);"></div>
-
         <div class="sponsor-showcase" id="sponsor-wrap" style="display:none;">
-            <div class="sponsor-text" id="lbl-spon-txt"></div>
-            <img id="img-spon-logo" style="max-height: 40px; margin-top:5px; display:none; filter: grayscale(100%) opacity(70%); transition: 0.4s; cursor:pointer;" onmouseover="this.style.filter='none'" onmouseout="this.style.filter='grayscale(100%) opacity(70%)'">
-            <div class="sponsor-logo" id="lbl-spon-logo" style="display:none;"></div>
+            <div class="sponsor-text" id="lbl-spon-txt">Official Supported By</div>
+            <div class="sponsor-logo" id="lbl-spon-logo">ROCKET CHICKEN</div>
         </div>
 
         <div class="header-title">
             <h1 id="lbl-form-title">Registrasi Resmi</h1>
-            <p id="lbl-form-sub" style="transition: color 0.3s;">Padel Anniversary Tournament</p>
-            <div id="lbl-form-date" style="font-size:11px; margin-top:10px; color:#888; font-weight:700; display:none; text-transform:uppercase; letter-spacing:1px;"></div>
+            <p id="lbl-form-sub">Padel Anniversary Tournament</p>
         </div>
 
         <div id="step-1" class="step active">
@@ -464,41 +460,6 @@
                                 if(document.getElementById('wrap-jersey-partner')) document.getElementById('wrap-jersey-partner').style.display = 'none';
                             }
                             globalMultiWa = fs.multiWa === true;
-                            
-                            // --- INJEKSI TEKS & TAMPILAN DINAMIS DARI COCKPIT ---
-                            if(fs.regTitle) document.getElementById('lbl-form-title').innerText = fs.regTitle;
-                            if(fs.regSub) {
-                                document.getElementById('lbl-form-sub').innerText = fs.regSub;
-                                if(fs.regSubCol) document.getElementById('lbl-form-sub').style.color = fs.regSubCol;
-                            }
-                            if(fs.regDate) {
-                                document.getElementById('lbl-form-date').innerText = '📅 ' + fs.regDate;
-                                document.getElementById('lbl-form-date').style.display = 'block';
-                            }
-                            if(fs.regCatTitle) document.getElementById('lbl-form-step1').innerText = fs.regCatTitle;
-                            
-                            if(fs.regOrg) {
-                                document.getElementById('lbl-org').innerText = fs.regOrg;
-                                document.getElementById('lbl-org').style.display = 'block';
-                            }
-
-                            // Logika Cerdas Sponsor (Gambar vs Teks)
-                            if(fs.regSponsorText || fs.regSponsorLogo) {
-                                document.getElementById('sponsor-wrap').style.display = 'block';
-                                if(fs.regSponsorText) document.getElementById('lbl-spon-txt').innerText = fs.regSponsorText;
-                                
-                                if(fs.regSponsorLogo) {
-                                    if(fs.regSponsorLogo.startsWith('http')) {
-                                        document.getElementById('img-spon-logo').src = fs.regSponsorLogo;
-                                        document.getElementById('img-spon-logo').style.display = 'inline-block';
-                                        document.getElementById('lbl-spon-logo').style.display = 'none';
-                                    } else {
-                                        document.getElementById('lbl-spon-logo').innerText = fs.regSponsorLogo;
-                                        document.getElementById('lbl-spon-logo').style.display = 'block';
-                                        document.getElementById('img-spon-logo').style.display = 'none';
-                                    }
-                                }
-                            }
                         } catch(e) {} 
                     }
                     
