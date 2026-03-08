@@ -101,6 +101,24 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
 	@keyframes pulse-fomo { 0% { transform: scale(1); background: #ffebee; } 100% { transform: scale(1.03); background: #ffcdd2; box-shadow: 0 4px 10px rgba(217,83,79,0.2); } }
+/* --- HEADER DINAMIS DARI COCKPIT --- */
+        .dyn-header { text-align: center; margin-bottom: 30px; animation: fadeInDown 0.8s ease; }
+        .dyn-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; margin: 0 0 5px 0; color: #111; text-transform: uppercase; }
+        .dyn-sub { font-size: 13px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 15px 0; }
+        .dyn-date { background: #fdfbf7; border: 1px dashed #ccc; display: inline-block; padding: 6px 15px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #555; margin-bottom: 10px; }
+        
+        .dyn-sponsor-deck { display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #eee; padding-top: 20px; margin-top: 10px; flex-wrap: wrap; gap: 20px; }
+        .dyn-org-box { text-align: left; flex: 1; min-width: 120px; }
+        .dyn-spon-box { text-align: right; flex: 1; min-width: 120px; }
+        .dyn-label { font-size: 9px; color: #aaa; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; display: block; margin-bottom: 5px; }
+        .dyn-org-text { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 15px; color: #333; }
+        .dyn-spon-logo { max-height: 45px; max-width: 150px; object-fit: contain; }
+
+        @media (max-width: 600px) {
+            .dyn-sponsor-deck { flex-direction: column; text-align: center; justify-content: center; gap: 25px; }
+            .dyn-org-box, .dyn-spon-box { text-align: center; }
+            .dyn-title { font-size: 24px; }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -109,14 +127,21 @@
 
     <div class="app-container">
         
-        <div class="sponsor-showcase" id="sponsor-wrap" style="display:none;">
-            <div class="sponsor-text" id="lbl-spon-txt">Official Supported By</div>
-            <div class="sponsor-logo" id="lbl-spon-logo">ROCKET CHICKEN</div>
-        </div>
-
-        <div class="header-title">
-            <h1 id="lbl-form-title">Registrasi Resmi</h1>
-            <p id="lbl-form-sub">Padel Anniversary Tournament</p>
+        <div class="dyn-header">
+            <h1 id="dyn-title" class="dyn-title">Memuat...</h1>
+            <p id="dyn-sub" class="dyn-sub">Tunggu sebentar</p>
+            <div id="dyn-date" class="dyn-date" style="display:none;"></div>
+            
+            <div class="dyn-sponsor-deck">
+                <div class="dyn-org-box" id="box-org" style="display:none;">
+                    <span class="dyn-label">Organized By</span>
+                    <div id="dyn-org-text" class="dyn-org-text"></div>
+                </div>
+                <div class="dyn-spon-box" id="box-spon" style="display:none;">
+                    <span class="dyn-label" id="dyn-spon-label">Official Sponsor</span>
+                    <img id="dyn-spon-logo" src="" alt="Sponsor" class="dyn-spon-logo">
+                </div>
+            </div>
         </div>
 
         <div id="step-1" class="step active">
@@ -433,9 +458,6 @@
                 }
 
                 if (data) {
-                    // 1. SINKRONISASI JUDUL DARI COCKPIT KE FORM PENDAFTARAN
-                    if (data.event_name) document.getElementById('lbl-form-title').innerText = data.event_name;
-                    if (data.event_subtitle) document.getElementById('lbl-form-sub').innerText = data.event_subtitle;
 
                     // 2. CEK SAKLAR PENDAFTARAN BUKA/TUTUP
                     if (data.is_registration_open === false) {
@@ -460,6 +482,27 @@
                                 if(document.getElementById('wrap-jersey-partner')) document.getElementById('wrap-jersey-partner').style.display = 'none';
                             }
                             globalMultiWa = fs.multiWa === true;
+// --- SUNTIKAN 7 FITUR COCKPIT ---
+                            if(fs.regTitle) document.getElementById('dyn-title').innerText = fs.regTitle;
+                            if(fs.regSub) {
+                                document.getElementById('dyn-sub').innerText = fs.regSub;
+                                if(fs.regSubCol) document.getElementById('dyn-sub').style.color = fs.regSubCol;
+                            }
+                            if(fs.regDate) {
+                                document.getElementById('dyn-date').innerText = fs.regDate;
+                                document.getElementById('dyn-date').style.display = 'inline-block';
+                            }
+                            if(fs.regCatTitle) document.getElementById('lbl-form-step1').innerText = fs.regCatTitle;
+                            
+                            if(fs.regOrg) {
+                                document.getElementById('dyn-org-text').innerText = fs.regOrg;
+                                document.getElementById('box-org').style.display = 'block';
+                            }
+                            if(fs.regSponsorLogo) {
+                                document.getElementById('dyn-spon-logo').src = fs.regSponsorLogo;
+                                document.getElementById('box-spon').style.display = 'block';
+                                if(fs.regSponsorText) document.getElementById('dyn-spon-label').innerText = fs.regSponsorText;
+                            }
                         } catch(e) {} 
                     }
                     
