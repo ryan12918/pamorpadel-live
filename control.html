@@ -251,10 +251,16 @@
                             <div class="form-group"><label>Nama Organizer (Pojok Kanan)</label><input type="text" id="reg-org" class="form-control" placeholder="Cth: Organized by PaMor Padel Club"></div>
                             <hr style="border:0; border-top:1px dashed #ccc; margin:5px 0;">
                             <div class="form-group"><label>Teks Sponsor</label><input type="text" id="reg-sponsor-text" class="form-control" placeholder="Cth: Official Partners"></div>
-                            <div class="form-group"><label>Link Logo Sponsor (URL)</label><input type="text" id="reg-sponsor-logo" class="form-control" placeholder="https://..."></div>
+                            <div class="form-group"><label>Link Logo Sponsor (URL)</label><input type="text" id="reg-sponsor-logo" class="form-control" placeholder="https://...">
+<div style="margin-top: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
+                                    <label style="font-size: 11px; font-weight: 700; color: #555; text-transform: uppercase;">Skala Ukuran Logo Sponsor</label>
+                                    <div style="display: flex; align-items: center; gap: 15px; margin-top: 8px;">
+                                        <input type="range" id="reg-sponsor-size" min="50" max="400" value="180" style="flex: 1; cursor: pointer;" oninput="document.getElementById('val-size').innerText = this.value + 'px'">
+                                        <div style="background: #111; color: #fff; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; min-width: 45px; text-align: center;" id="val-size">180px</div>
+                                    </div>
+                                </div>
                         </div>
-
-                        <hr style="border:0; border-top:1px dashed #ccc; margin:15px 0;">
+                        </div> <hr style="border:0; border-top:1px dashed #ccc; margin:15px 0;">
                         <button class="btn-action btn-green" onclick="saveRegSettings()" style="width:100%; justify-content:center; padding:12px; font-size:12px;">💾 SIMPAN PENGATURAN</button>
                     </div>
                 </div>
@@ -2219,8 +2225,9 @@
                     regDate: document.getElementById('reg-date') ? document.getElementById('reg-date').value : '',
                     regCatTitle: document.getElementById('reg-cat-title') ? document.getElementById('reg-cat-title').value : '',
                     regOrg: document.getElementById('reg-org') ? document.getElementById('reg-org').value : '',
-                    regSponsorText: document.getElementById('reg-sponsor-text') ? document.getElementById('reg-sponsor-text').value : '',
-                    regSponsorLogo: document.getElementById('reg-sponsor-logo') ? document.getElementById('reg-sponsor-logo').value : ''
+                    regSponsorText: document.getElementById('reg-sponsor-text').value,
+                    regSponsorLogo: document.getElementById('reg-sponsor-logo').value,
+                    regSponsorSize: document.getElementById('reg-sponsor-size').value
                 }),
                 categories: JSON.stringify(getCatData())
             };
@@ -2248,6 +2255,10 @@
                 if(document.getElementById('reg-org')) document.getElementById('reg-org').value = fs.regOrg || '';
                 if(document.getElementById('reg-sponsor-text')) document.getElementById('reg-sponsor-text').value = fs.regSponsorText || '';
                 if(document.getElementById('reg-sponsor-logo')) document.getElementById('reg-sponsor-logo').value = fs.regSponsorLogo || '';
+if(document.getElementById('reg-sponsor-size')) {
+                    document.getElementById('reg-sponsor-size').value = fs.regSponsorSize || 180;
+                    document.getElementById('val-size').innerText = (fs.regSponsorSize || 180) + 'px';
+                }
             } catch(e){ 
                 document.getElementById('reg-req-team').checked = true; document.getElementById('reg-req-club').checked = true; document.getElementById('reg-req-ig').checked = true; 
                 document.getElementById('reg-req-jersey').checked = true; document.getElementById('reg-multi-wa').checked = false; 

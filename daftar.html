@@ -120,7 +120,13 @@
         /* 5. Sponsor (Paling Bawah) */
         .dyn-spon-box { margin-top: 10px; padding-top: 20px; border-top: 1px dashed #eee; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
         .dyn-spon-label { font-size: 9px; color: #aaa; text-transform: uppercase; font-weight: 800; letter-spacing: 2px; }
-        .dyn-spon-logo { max-height: 55px; max-width: 180px; object-fit: contain; }
+        .dyn-spon-logo { 
+            width: 180px; /* Default awal */
+            max-width: 100%; 
+            object-fit: contain; 
+            filter: drop-shadow(0px 3px 6px rgba(0,0,0,0.5)); /* 🔥 Efek bayangan gelap agar logo putih menyala */
+            transition: width 0.3s ease; 
+        }
 
         @media (max-width: 600px) {
             .dyn-sub { font-size: 28px; }
@@ -523,6 +529,7 @@
                             // 6 & 7. Sponsor Logo & Text
                             if(fs.regSponsorLogo && fs.regSponsorLogo.trim() !== '') {
                                 document.getElementById('dyn-spon-logo').src = fs.regSponsorLogo;
+				document.getElementById('dyn-spon-logo').style.width = (fs.regSponsorSize || 180) + 'px';
                                 document.getElementById('dyn-spon-logo').style.display = 'block';
                                 document.getElementById('box-spon').style.display = 'flex';
                                 
