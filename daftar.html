@@ -101,24 +101,6 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
 	@keyframes pulse-fomo { 0% { transform: scale(1); background: #ffebee; } 100% { transform: scale(1.03); background: #ffcdd2; box-shadow: 0 4px 10px rgba(217,83,79,0.2); } }
-	/* --- KUSTOMISASI HEADER TURNAMEN --- */
-        .event-header { text-align: center; margin-bottom: 35px; padding-bottom: 25px; border-bottom: 1px dashed #ddd; animation: fadeInDown 0.8s ease; }
-        .event-eyebrow { font-size: 11px; font-weight: 800; color: #e91e63; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 8px; display: block; }
-        .event-title { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 900; color: #1a237e; margin: 0 0 15px 0; line-height: 1.2; text-transform: uppercase; }
-        .event-meta-box { background: #f8f9fa; border-radius: 12px; padding: 15px; margin-bottom: 20px; display: inline-block; border: 1px solid #eee; }
-        .event-meta-text { font-size: 13px; font-weight: 700; color: #555; margin: 5px 0; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        
-        .sponsor-deck { display: flex; justify-content: center; align-items: center; gap: 40px; margin-top: 20px; flex-wrap: wrap; }
-        .sponsor-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .sponsor-label { font-size: 10px; color: #888; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; }
-        .sponsor-logo-img { max-width: 120px; height: auto; object-fit: contain; }
-        .sponsor-text-only { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 18px; color: #111; letter-spacing: 1px; }
-
-        @media (max-width: 600px) {
-            .event-title { font-size: 26px; }
-            .sponsor-deck { flex-direction: column; gap: 20px; }
-            .sponsor-logo-img { max-width: 140px; }
-        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -127,29 +109,18 @@
 
     <div class="app-container">
         
-        <header class="event-header">
-            <span class="event-eyebrow">Registrasi Turnamen Resmi</span>
-            <h1 class="event-title">Padel Anniversary<br>Tournament</h1>
-            
-            <div class="event-meta-box">
-                <div class="event-meta-text">🗓️ Akhir April 2026</div>
-                <div class="event-meta-text">📍 Premium Padel Courts - Godean, Sleman</div>
-            </div>
+        <div class="sponsor-showcase" id="sponsor-wrap" style="display:none;">
+            <div class="sponsor-text" id="lbl-spon-txt">Official Supported By</div>
+            <div class="sponsor-logo" id="lbl-spon-logo">ROCKET CHICKEN</div>
+        </div>
 
-            <div class="sponsor-deck">
-                <div class="sponsor-item">
-                    <span class="sponsor-label">Organized By</span>
-                    <div class="sponsor-text-only">PAMOR PADEL</div>
-                </div>
-                <div class="sponsor-item">
-                    <span class="sponsor-label">Official Sponsor</span>
-                    <img src="https://via.placeholder.com/150x50?text=LOGO+SPONSOR" alt="Sponsor Utama" class="sponsor-logo-img">
-                </div>
-            </div>
-        </header>
+        <div class="header-title">
+            <h1 id="lbl-form-title">Registrasi Resmi</h1>
+            <p id="lbl-form-sub">Padel Anniversary Tournament</p>
+        </div>
 
         <div id="step-1" class="step active">
-            <div class="step-title"><div class="step-number">1</div> <span id="lbl-form-step1">Pilih Kategori & Amankan Slot Anda!</span></div>
+            <div class="step-title"><div class="step-number">1</div> <span id="lbl-form-step1">Amankan Slot Kategori</span></div>
             
             <div id="category-container">
                 <div style="text-align:center; padding:20px; color:#888;">⏳ Memuat kategori turnamen...</div>
