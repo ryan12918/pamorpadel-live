@@ -308,6 +308,7 @@
                         </div>
                     </div>
                 </div>
+		<datalist id="list-pemain-grup"></datalist>
 
                 <div id="group-matrix-container" class="table-wrap" style="background: transparent; box-shadow: none; padding: 0; display: flex; gap: 15px; overflow-x: auto; align-items: flex-start; height: 100%; padding-bottom: 20px;">
                     </div>
@@ -1121,31 +1122,43 @@
             renderGroupMatrix();
         }
 
+        // 🔥 WADAH DROPDOWN KUSTOM (DIBUAT OTOMATIS OLEH MESIN)
+        if (!document.getElementById('smart-dropdown')) {
+            const style = document.createElement('style');
+            style.innerHTML = `
+                #smart-dropdown { position: absolute; background: white; border: 1px solid #c5cae9; border-radius: 6px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); z-index: 99999; max-height: 220px; overflow-y: auto; display: none; min-width: 250px; }
+                .sd-item { padding: 10px 12px; font-size: 11px; font-weight: bold; color: #1a237e; cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: 0.2s; }
+                .sd-item:hover { background: #e8eaf6; padding-left: 16px; color: #d81b60; }
+                .sd-empty { padding: 10px 12px; font-size: 10px; color: #888; font-style: italic; text-align: center; }
+            `;
+            document.head.appendChild(style);
+            const drop = document.createElement('div'); drop.id = 'smart-dropdown'; document.body.appendChild(drop);
+            document.addEventListener('click', function(e) {
+                if (!e.target.classList.contains('group-slot-input') && !e.target.classList.contains('sd-item')) {
+                    document.getElementById('smart-dropdown').style.display = 'none';
+                }
+            });
+        }
+
         function renderGroupMatrix() {
             const cat = document.getElementById('group-cat-select').value;
             const container = document.getElementById('group-matrix-container');
             const actionBtns = document.getElementById('group-action-btns');
             if(!cat) return;
 
-            let html = '';
-            
-            // 🔥 MODE TAMPILKAN SEMUA KATEGORI
             if (cat === 'ALL') {
                 if(actionBtns) actionBtns.style.display = 'none'; 
-                container.style.overflowY = 'auto'; // Buka gembok scroll vertikal
+                container.style.overflowY = 'auto'; 
                 container.style.flexDirection = 'column';
-                
                 let allCats = Array.from(document.getElementById('group-cat-select').options).map(opt => opt.value).filter(v => v !== 'ALL' && v !== '');
-                
+                let html = '';
                 allCats.forEach(cName => { html += buildCategoryMatrixHTML(cName, true); });
-                // Bantalan bawah 120px agar kategori terakhir tidak tenggelam
                 container.innerHTML = `<div style="display:flex; flex-direction:column; gap:25px; width:100%; padding-bottom:120px;">${html}</div>`;
                 return;
             }
 
-            // 🔥 MODE 1 KATEGORI (EDIT MODE)
             if(actionBtns) actionBtns.style.display = 'flex';
-            container.style.overflowY = 'hidden'; // Kunci kembali scroll vertikal
+            container.style.overflowY = 'hidden'; 
             container.style.flexDirection = 'row';
             
             if(!window.GLOBAL_GROUP_DATA[cat]) {
@@ -1155,7 +1168,6 @@
                 ];
                 triggerGroupSave();
             }
-            
             container.innerHTML = buildCategoryMatrixHTML(cat, false);
         }
 
@@ -1176,8 +1188,12 @@
             groups.forEach((g, gIndex) => {
                 let slotsHtml = '';
                 g.teams.forEach((team, tIndex) => {
-                    // 🔥 Perlebar kolom & optimasi padding agar muat nama super panjang
-                    slotsHtml += `<input type="text" class="form-control" placeholder="Slot ${tIndex+1}" value="${safeHTML(team)}" oninput="updateGroupSlot('${safeJS(catName)}', ${gIndex}, ${tIndex}, this.value)" style="font-weight: bold; text-align: center; border: 1px dashed #aaa; color: #1a237e; font-size: 11px; padding: 8px 4px;" ${isAllMode ? 'readonly' : ''}>`;
+                    // 🔥 SENSOR SMART DROPDOWN DIPASANG DI SINI
+                    slotsHtml += `<input type="text" class="form-control group-slot-input" placeholder="Slot ${tIndex+1}" value="${safeHTML(team)}" 
+                    onfocus="openSmartDropdown(this, '${safeJS(catName)}', ${gIndex}, ${tIndex})" 
+                    onkeyup="filterSmartDropdown(this.value)"
+                    oninput="updateGroupSlot('${safeJS(catName)}', ${gIndex}, ${tIndex}, this.value)" 
+                    style="font-weight: bold; text-align: center; border: 1px dashed #aaa; color: #1a237e; font-size: 11px; padding: 8px 4px;" ${isAllMode ? 'readonly' : ''}>`;
                 });
 
                 html += `
@@ -1196,11 +1212,84 @@
             return html;
         }
 
+        // 🔥 MESIN SMART DROPDOWN KUSTOM (PENGGANTI DATALIST)
+        let currentDropdownData = [];
+        let currentDropInput = null;
+        let currentDropCat = '';
+        let currentDropG = 0;
+        let currentDropT = 0;
+
+        function openSmartDropdown(inputEl, catName, gIndex, tIndex) {
+            currentDropInput = inputEl; currentDropCat = catName; currentDropG = gIndex; currentDropT = tIndex;
+            let usedNames = [];
+            if (window.GLOBAL_GROUP_DATA[catName]) {
+                window.GLOBAL_GROUP_DATA[catName].forEach(g => {
+                    g.teams.forEach(t => { if(t.trim() !== '') usedNames.push(t.trim().toLowerCase()); });
+                });
+            }
+
+            currentDropdownData = [];
+            
+            // 🔥 KOREKSI FATAL: Menghapus "window." agar mesin bisa membaca data pendaftar yang benar!
+            if (typeof GLOBAL_REGISTRATIONS !== 'undefined') {
+                GLOBAL_REGISTRATIONS.forEach(r => {
+                    // 🔥 KOREKSI KEBAL SPASI: Memastikan nama kategori dan status 100% cocok meskipun ada spasi nyasar
+                    let catMatch = r.category && r.category.trim().toLowerCase() === catName.trim().toLowerCase();
+                    let statMatch = r.status && (r.status.trim().toUpperCase() === 'LUNAS' || r.status.trim().toUpperCase() === 'HADIR');
+                    
+                    if (catMatch && statMatch) {
+                        let p1 = r.capt_name ? r.capt_name.trim() : '';
+                        let p2 = (r.partner_name && r.partner_name.trim() !== '-' && r.partner_name.trim().toLowerCase() !== 'tba') ? r.partner_name.trim() : '';
+                        let combinedName = p1; if (p2 !== '') combinedName += ' / ' + p2;
+                        
+                        if (!usedNames.includes(combinedName.toLowerCase()) || combinedName.toLowerCase() === inputEl.value.trim().toLowerCase()) {
+                            currentDropdownData.push(combinedName);
+                        }
+                    }
+                });
+            }
+
+            renderSmartDropdown(inputEl.value);
+
+            const drop = document.getElementById('smart-dropdown');
+            const rect = inputEl.getBoundingClientRect();
+            drop.style.left = rect.left + 'px';
+            drop.style.top = (rect.bottom + window.scrollY + 2) + 'px';
+            drop.style.width = Math.max(rect.width, 250) + 'px';
+            drop.style.display = 'block';
+        }
+
+        function filterSmartDropdown(keyword) { renderSmartDropdown(keyword); }
+
+        function renderSmartDropdown(keyword) {
+            const drop = document.getElementById('smart-dropdown');
+            let html = '';
+            let filtered = currentDropdownData.filter(name => name.toLowerCase().includes(keyword.toLowerCase()));
+            
+            if (filtered.length === 0) {
+                html = '<div class="sd-empty">Tidak ada saran nama (Ketik manual jika peserta dadakan)</div>';
+            } else {
+                filtered.forEach(name => { html += `<div class="sd-item" onclick="selectSmartName('${safeJS(name)}')">🎾 ${safeHTML(name)}</div>`; });
+            }
+            drop.innerHTML = html;
+        }
+
+        function selectSmartName(selectedName) {
+            if(currentDropInput) {
+                currentDropInput.value = selectedName;
+                updateGroupSlot(currentDropCat, currentDropG, currentDropT, selectedName);
+            }
+            document.getElementById('smart-dropdown').style.display = 'none';
+        }
+
         function updateGroupSlot(cat, gIndex, tIndex, value) {
             if(!window.GLOBAL_GROUP_DATA[cat]) return;
             window.GLOBAL_GROUP_DATA[cat][gIndex].teams[tIndex] = value;
             triggerGroupSave();
         }
+        
+        // (Fungsi kosong agar kode injeksi sebelumnya tidak error)
+        function updateDatalist(cat) {}
 
         function updateGroupName(cat, gIndex, value) {
             if(!window.GLOBAL_GROUP_DATA[cat]) return;
@@ -2129,6 +2218,12 @@
             GLOBAL_REGISTRATIONS = data || []; 
             populateRegCategoryFilter();
             renderTableRegistrations();
+            
+            // 🔥 SUNTIKAN PENGHUBUNG: Isi daftar Group Stage tepat setelah data Supabase mendarat!
+            const catSelect = document.getElementById('group-cat-select');
+            if (catSelect && typeof updateDatalist === 'function') {
+                updateDatalist(catSelect.value);
+            }
         }
 
         function populateRegCategoryFilter() {
