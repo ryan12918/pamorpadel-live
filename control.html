@@ -160,6 +160,8 @@
             <div>
                 <button class="nav-pill" onclick="switchTab('registrations', this)">DATA PENDAFTAR</button>
                 <button class="nav-pill active" onclick="switchTab('matches', this)">DATA MATCH</button>
+                <button class="nav-pill" onclick="switchTab('group', this)">GROUP STAGE</button>
+                <button class="nav-pill" onclick="switchTab('oop', this)">ORDER OF PLAY</button>
                 <button class="nav-pill" onclick="switchTab('branding', this)">BRANDING & TAMPILAN</button>
                 <button class="nav-pill" onclick="switchTab('tv', this)">PENGATURAN TV LIVE SCORE</button>
             </div>
@@ -290,6 +292,87 @@
                 </div>
             </div>
 
+<div id="view-group" class="view-section">
+                <div class="toolbar" style="background: white; padding: 12px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px;">
+                    <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
+                        <b style="color: #1a237e; font-size: 14px;">🗂️ MATRIKS GROUP STAGE</b>
+                        <span id="group-save-status" style="font-size: 11px; font-weight: 800; margin-left: 10px; display: none;"></span>
+                        
+                        <select id="group-cat-select" class="form-control" style="width: 200px; font-weight: bold; margin-left: auto; cursor: pointer; background: #e8eaf6; border: 1px solid #c5cae9;" onchange="renderGroupMatrix()">
+                            </select>
+                        <button class="btn-action btn-blue" style="font-size: 11px; padding: 8px 15px;" onclick="addGroup()">+ TAMBAH GRUP (KOLOM)</button>
+                        <button class="btn-action btn-green" style="font-size: 11px; padding: 8px 15px;" onclick="addSlot()">+ TAMBAH SLOT (BARIS)</button>
+                    </div>
+                </div>
+
+                <div id="group-matrix-container" class="table-wrap" style="background: transparent; box-shadow: none; padding: 0; display: flex; gap: 15px; overflow-x: auto; align-items: flex-start; height: 100%; padding-bottom: 20px;">
+                    </div>
+            </div>
+
+            <div id="view-oop" class="view-section">
+                <div class="toolbar" style="background: white; padding: 12px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px;">
+                    <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
+                        <b style="color: #e65100; font-size: 14px;">📋 PAPAN ORDER OF PLAY (OOP)</b>
+                        <button class="btn-action btn-blue" style="margin-left: auto; font-size: 11px; padding: 8px 15px;">+ TAMBAH COURT (KOLOM)</button>
+                        <button class="btn-action btn-green" style="font-size: 11px; padding: 8px 15px;">+ TAMBAH MATCH (BARIS)</button>
+                    </div>
+                </div>
+
+                <div class="table-wrap" style="flex: 1; overflow: auto; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 15px;">
+                    <table style="width: 100%; min-width: 1000px; border-collapse: collapse; text-align: center;">
+                        <thead>
+                            <tr>
+                                <th style="background: #263238; color: white; padding: 12px; width: 80px; position: sticky; top: 0; z-index: 10; border-right: 2px solid #fff;">URUTAN</th>
+                                <th style="background: #e65100; color: white; padding: 12px; font-size: 14px; position: sticky; top: 0; z-index: 10; border-right: 2px solid #fff;">COURT 1</th>
+                                <th style="background: #e65100; color: white; padding: 12px; font-size: 14px; position: sticky; top: 0; z-index: 10; border-right: 2px solid #fff;">COURT 2</th>
+                                <th style="background: #e65100; color: white; padding: 12px; font-size: 14px; position: sticky; top: 0; z-index: 10;">COURT 3</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="background: #eceff1; font-weight: 900; font-size: 14px; border-bottom: 2px solid #ddd; border-right: 2px solid #ddd;">M1</td>
+                                <td style="border-bottom: 2px solid #ddd; border-right: 2px solid #ddd; padding: 15px; vertical-align: top; background: #fafafa;">
+                                    <input type="text" class="form-control" placeholder="Kategori (Otomatis)" style="margin-bottom: 5px; font-size: 10px; text-align: center; background: #eee; border: none;">
+                                    <input type="text" class="form-control" placeholder="Babak (Otomatis)" style="margin-bottom: 12px; font-size: 10px; text-align: center; background: #eee; border: none;">
+                                    <input type="text" class="form-control" placeholder="[Pilih Slot A1]" style="font-weight: 800; text-align: center; color: #1a237e; border: 2px solid #bbdefb; background: #e3f2fd; cursor: pointer;">
+                                    <div style="font-size: 10px; font-weight: 900; color: #888; margin: 6px 0;">VS</div>
+                                    <input type="text" class="form-control" placeholder="[Pilih Slot B2]" style="font-weight: 800; text-align: center; color: #b71c1c; border: 2px solid #ffcdd2; background: #ffebee; cursor: pointer;">
+                                </td>
+                                <td style="border-bottom: 2px solid #ddd; border-right: 2px solid #ddd; padding: 15px; vertical-align: top; background: #fafafa;">
+                                    <input type="text" class="form-control" placeholder="Kategori (Otomatis)" style="margin-bottom: 5px; font-size: 10px; text-align: center; background: #eee; border: none;">
+                                    <input type="text" class="form-control" placeholder="Babak (Otomatis)" style="margin-bottom: 12px; font-size: 10px; text-align: center; background: #eee; border: none;">
+                                    <input type="text" class="form-control" placeholder="[Pilih Slot C1]" style="font-weight: 800; text-align: center; color: #1a237e; border: 2px solid #bbdefb; background: #e3f2fd; cursor: pointer;">
+                                    <div style="font-size: 10px; font-weight: 900; color: #888; margin: 6px 0;">VS</div>
+                                    <input type="text" class="form-control" placeholder="[Pilih Slot D2]" style="font-weight: 800; text-align: center; color: #b71c1c; border: 2px solid #ffcdd2; background: #ffebee; cursor: pointer;">
+                                </td>
+                                <td style="border-bottom: 2px solid #ddd; padding: 15px; vertical-align: top; background: #fafafa;">
+                                    <div style="height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0.5; font-size: 12px; font-weight: bold; border: 2px dashed #ccc; border-radius: 6px; padding: 40px 0;">
+                                        + KLIK UNTUK ISI JADWAL
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="background: #eceff1; font-weight: 900; font-size: 14px; border-bottom: 2px solid #ddd; border-right: 2px solid #ddd;">M2</td>
+                                <td style="border-bottom: 2px solid #ddd; border-right: 2px solid #ddd; padding: 15px; vertical-align: top; background: #fafafa;">
+                                    <div style="height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0.5; font-size: 12px; font-weight: bold; border: 2px dashed #ccc; border-radius: 6px; padding: 40px 0;">
+                                        + KLIK UNTUK ISI JADWAL
+                                    </div>
+                                </td>
+                                <td style="border-bottom: 2px solid #ddd; border-right: 2px solid #ddd; padding: 15px; vertical-align: top; background: #fafafa;">
+                                    <div style="height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0.5; font-size: 12px; font-weight: bold; border: 2px dashed #ccc; border-radius: 6px; padding: 40px 0;">
+                                        + KLIK UNTUK ISI JADWAL
+                                    </div>
+                                </td>
+                                <td style="border-bottom: 2px solid #ddd; padding: 15px; vertical-align: top; background: #fafafa;">
+                                    <div style="height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0.5; font-size: 12px; font-weight: bold; border: 2px dashed #ccc; border-radius: 6px; padding: 40px 0;">
+                                        + KLIK UNTUK ISI JADWAL
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             <div id="view-branding" class="view-section">
                 <div class="branding-panel">
                     <div class="section-title" style="margin-top:0;">1. QUICK THEMES (PREMIUM)</div>
@@ -997,8 +1080,124 @@
         }
 
         // ==========================================
-        // SISTEM LOAD & SAVE SETTINGS
+        // 🗂️ MESIN GROUP STAGE (JSON MATRIKS)
         // ==========================================
+        window.GLOBAL_GROUP_DATA = {};
+        let groupSaveTimer = null;
+
+        function initGroupStage(d) {
+            try { window.GLOBAL_GROUP_DATA = d.group_data ? JSON.parse(d.group_data) : {}; } 
+            catch(e) { window.GLOBAL_GROUP_DATA = {}; }
+            renderGroupCategories(d);
+        }
+
+        function renderGroupCategories(d) {
+            const select = document.getElementById('group-cat-select');
+            if(!select) return;
+            
+            let cats = [];
+            try { let parsedCats = JSON.parse(d.categories); if(Array.isArray(parsedCats)) cats = parsedCats.map(c => c.name); } catch(e) {}
+            
+            if(cats.length === 0) {
+                select.innerHTML = '<option value="">(Buat Kategori Dulu)</option>';
+                document.getElementById('group-matrix-container').innerHTML = '<div style="padding:20px; font-weight:bold; color:#c62828;">⚠️ Kategori kosong! Silakan buat kategori di menu "DATA PENDAFTAR" terlebih dahulu.</div>';
+                return;
+            }
+            
+            let html = '';
+            cats.forEach(c => { html += `<option value="${c}">🎾 ${c}</option>`; });
+            select.innerHTML = html;
+            renderGroupMatrix();
+        }
+
+        function renderGroupMatrix() {
+            const cat = document.getElementById('group-cat-select').value;
+            const container = document.getElementById('group-matrix-container');
+            if(!cat) return;
+
+            // Jika kategori ini baru dan belum punya matriks, buatkan template awal
+            if(!window.GLOBAL_GROUP_DATA[cat]) {
+                window.GLOBAL_GROUP_DATA[cat] = [
+                    { name: "GRUP A", teams: ["", "", ""] },
+                    { name: "GRUP B", teams: ["", "", ""] }
+                ];
+                triggerGroupSave();
+            }
+
+            let groups = window.GLOBAL_GROUP_DATA[cat];
+            let html = '';
+
+            groups.forEach((g, gIndex) => {
+                let slotsHtml = '';
+                g.teams.forEach((team, tIndex) => {
+                    slotsHtml += `<input type="text" class="form-control" placeholder="Slot ${tIndex+1}" value="${team}" oninput="updateGroupSlot('${cat}', ${gIndex}, ${tIndex}, this.value)" style="font-weight: bold; text-align: center; border: 1px dashed #aaa; color: #1a237e;">`;
+                });
+
+                html += `
+                <div style="min-width: 220px; background: white; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; position: relative;">
+                    <div style="background: #1a237e; color: white; padding: 12px; text-align: center; display: flex; align-items: center; justify-content: center;">
+                        <input type="text" value="${g.name}" oninput="updateGroupName('${cat}', ${gIndex}, this.value)" style="background: transparent; border: none; color: white; font-weight: 900; text-align: center; font-size: 14px; outline: none; letter-spacing: 1px; width: 80%;">
+                        <button onclick="removeGroup('${cat}', ${gIndex})" style="position: absolute; right: 8px; top: 12px; background: #c62828; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; padding: 3px 6px;" title="Hapus Grup">✕</button>
+                    </div>
+                    <div style="padding: 15px; display: flex; flex-direction: column; gap: 10px; background: #fafafa;">
+                        ${slotsHtml}
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function updateGroupSlot(cat, gIndex, tIndex, value) {
+            window.GLOBAL_GROUP_DATA[cat][gIndex].teams[tIndex] = value;
+            triggerGroupSave();
+        }
+
+        function updateGroupName(cat, gIndex, value) {
+            window.GLOBAL_GROUP_DATA[cat][gIndex].name = value;
+            triggerGroupSave();
+        }
+
+        function addGroup() {
+            const cat = document.getElementById('group-cat-select').value;
+            if(!cat || !window.GLOBAL_GROUP_DATA[cat]) return;
+            let groups = window.GLOBAL_GROUP_DATA[cat];
+            let nextChar = String.fromCharCode(65 + groups.length);
+            let slotCount = groups.length > 0 ? groups[0].teams.length : 3;
+            
+            groups.push({ name: "GRUP " + nextChar, teams: new Array(slotCount).fill("") });
+            renderGroupMatrix(); triggerGroupSave();
+        }
+
+        function addSlot() {
+            const cat = document.getElementById('group-cat-select').value;
+            if(!cat || !window.GLOBAL_GROUP_DATA[cat]) return;
+            window.GLOBAL_GROUP_DATA[cat].forEach(g => { g.teams.push(""); });
+            renderGroupMatrix(); triggerGroupSave();
+        }
+
+        function removeGroup(cat, gIndex) {
+            if(!confirm("⚠️ Yakin ingin menghapus grup ini beserta isinya?")) return;
+            window.GLOBAL_GROUP_DATA[cat].splice(gIndex, 1);
+            renderGroupMatrix(); triggerGroupSave();
+        }
+
+        function triggerGroupSave() {
+            const st = document.getElementById('group-save-status');
+            if(st) { st.style.display = 'inline-block'; st.innerText = '⏳ Menyimpan...'; st.style.color = '#ef6c00'; }
+            
+            clearTimeout(groupSaveTimer);
+            groupSaveTimer = setTimeout(async () => {
+                const pl = { group_data: JSON.stringify(window.GLOBAL_GROUP_DATA) };
+                const { error } = await db.from('partners').update(pl).eq('tournament_id', ACTIVE_ID);
+                if(st) {
+                    if(error) { st.innerText = '❌ Gagal Simpan'; st.style.color = '#c62828'; }
+                    else { 
+                        st.innerText = '✅ Tersimpan'; st.style.color = '#2e7d32'; 
+                        setTimeout(() => { st.style.display = 'none'; }, 2000);
+                    }
+                }
+            }, 800);
+        }
         function loadSettings(d) {
             window.RAW_DB_DATA = d; 
             const set = (id, v) => { if(document.getElementById(id)) document.getElementById(id).value = v || ''; };
@@ -1031,6 +1230,7 @@
 
             updateBrandingPreview();
             updateTVPreview(); 
+            initGroupStage(d); // 🚀 PENGAPIAN MESIN GROUP STAGE
         }
 
         function applyTheme(h1, h2, bg, neon, st) {
