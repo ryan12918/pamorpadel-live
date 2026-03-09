@@ -298,10 +298,14 @@
                         <b style="color: #1a237e; font-size: 14px;">🗂️ MATRIKS GROUP STAGE</b>
                         <span id="group-save-status" style="font-size: 11px; font-weight: 800; margin-left: 10px; display: none;"></span>
                         
-                        <select id="group-cat-select" class="form-control" style="width: 200px; font-weight: bold; margin-left: auto; cursor: pointer; background: #e8eaf6; border: 1px solid #c5cae9;" onchange="renderGroupMatrix()">
-                            </select>
-                        <button class="btn-action btn-blue" style="font-size: 11px; padding: 8px 15px;" onclick="addGroup()">+ TAMBAH GRUP (KOLOM)</button>
-                        <button class="btn-action btn-green" style="font-size: 11px; padding: 8px 15px;" onclick="addSlot()">+ TAMBAH SLOT (BARIS)</button>
+                        <select id="group-cat-select" class="form-control" style="width: 220px; font-weight: bold; margin-left: auto; cursor: pointer; background: #e8eaf6; border: 1px solid #c5cae9;" onchange="renderGroupMatrix()">
+                        </select>
+                        <div id="group-action-btns" style="display: flex; gap: 5px;">
+                            <button class="btn-action btn-blue" style="font-size: 10px; padding: 6px 10px;" onclick="addGroup()">+ GRUP</button>
+                            <button class="btn-action btn-red" style="font-size: 10px; padding: 6px 10px;" onclick="popGroup()">- GRUP</button>
+                            <button class="btn-action btn-green" style="font-size: 10px; padding: 6px 10px;" onclick="addSlot()">+ SLOT</button>
+                            <button class="btn-action btn-red" style="font-size: 10px; padding: 6px 10px;" onclick="popSlot()">- SLOT</button>
+                        </div>
                     </div>
                 </div>
 
@@ -744,6 +748,11 @@
         
         let isUnsavedData = false;
         window.RAW_DB_DATA = null;
+	// ==========================================
+        // 🛡️ VAKSIN GLOBAL ANTI-ERROR (ESCAPE STRING)
+        // ==========================================
+        function safeHTML(str) { if (str === null || str === undefined) return ''; return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+        function safeJS(str) { if (str === null || str === undefined) return ''; return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
 
         window.addEventListener('beforeunload', function (e) {
             if (isUnsavedData || Object.keys(pendingUpdates).length > 0) {
@@ -843,9 +852,9 @@
             
             if(window.GLOBAL_MATCHES && window.GLOBAL_MATCHES.length > 0) {
                 window.GLOBAL_MATCHES.forEach((m) => {
-                    const inp = (f, v, c='') => `<input class="tbl-inp ${c}" data-field="${f}" value="${v||''}" onchange="upd('${m.id}','${f}',this.value)">`;
-                    const num = (f, v) => `<input type="text" class="tbl-inp inp-score" data-field="${f}" value="${v}" oninput="upd('${m.id}','${f}',this.value)">`; 
-                    const txt = (f, v, c='') => `<textarea class="inp-wrap ${c}" data-field="${f}" onchange="upd('${m.id}','${f}',this.value)">${v||''}</textarea>`;
+                    const inp = (f, v, c='') => `<input class="tbl-inp ${c}" data-field="${f}" value="${safeHTML(v)}" onchange="upd('${m.id}','${f}',this.value)">`;
+                    const num = (f, v) => `<input type="text" class="tbl-inp inp-score" data-field="${f}" value="${v||''}" oninput="upd('${m.id}','${f}',this.value)">`; 
+                    const txt = (f, v, c='') => `<textarea class="inp-wrap ${c}" data-field="${f}" onchange="upd('${m.id}','${f}',this.value)">${safeHTML(v)}</textarea>`;
                     const cbox = (f, v) => `<input type="checkbox" data-field="${f}" ${v?'checked':''} onchange="upd('${m.id}','${f}',this.checked)">`;
                     let bCls = m.status==='LIVE'?'#e91e63':(m.status==='FINISHED'?'#43a047':'#90a4ae');
                     let bTxt = m.status==='LIVE'?'STOP':(m.status==='FINISHED'?'DONE':'LIVE');
@@ -1104,18 +1113,41 @@
                 return;
             }
             
-            let html = '';
-            cats.forEach(c => { html += `<option value="${c}">🎾 ${c}</option>`; });
+            let html = '<option value="ALL" style="background:#1a237e; color:white;">🌟 TAMPILKAN SEMUA KATEGORI</option>';
+            cats.forEach(c => { html += `<option value="${safeHTML(c)}">🎾 ${safeHTML(c)}</option>`; });
             select.innerHTML = html;
+            
+            if(select.value === 'ALL' && cats.length > 0) select.value = cats[0]; // Buka kategori pertama sbg default
             renderGroupMatrix();
         }
 
         function renderGroupMatrix() {
             const cat = document.getElementById('group-cat-select').value;
             const container = document.getElementById('group-matrix-container');
+            const actionBtns = document.getElementById('group-action-btns');
             if(!cat) return;
 
-            // Jika kategori ini baru dan belum punya matriks, buatkan template awal
+            let html = '';
+            
+            // 🔥 MODE TAMPILKAN SEMUA KATEGORI
+            if (cat === 'ALL') {
+                if(actionBtns) actionBtns.style.display = 'none'; 
+                container.style.overflowY = 'auto'; // Buka gembok scroll vertikal
+                container.style.flexDirection = 'column';
+                
+                let allCats = Array.from(document.getElementById('group-cat-select').options).map(opt => opt.value).filter(v => v !== 'ALL' && v !== '');
+                
+                allCats.forEach(cName => { html += buildCategoryMatrixHTML(cName, true); });
+                // Bantalan bawah 120px agar kategori terakhir tidak tenggelam
+                container.innerHTML = `<div style="display:flex; flex-direction:column; gap:25px; width:100%; padding-bottom:120px;">${html}</div>`;
+                return;
+            }
+
+            // 🔥 MODE 1 KATEGORI (EDIT MODE)
+            if(actionBtns) actionBtns.style.display = 'flex';
+            container.style.overflowY = 'hidden'; // Kunci kembali scroll vertikal
+            container.style.flexDirection = 'row';
+            
             if(!window.GLOBAL_GROUP_DATA[cat]) {
                 window.GLOBAL_GROUP_DATA[cat] = [
                     { name: "GRUP A", teams: ["", "", ""] },
@@ -1123,60 +1155,110 @@
                 ];
                 triggerGroupSave();
             }
+            
+            container.innerHTML = buildCategoryMatrixHTML(cat, false);
+        }
 
-            let groups = window.GLOBAL_GROUP_DATA[cat];
+        function buildCategoryMatrixHTML(catName, isAllMode) {
+            let groups = window.GLOBAL_GROUP_DATA[catName] || [];
+            if(groups.length === 0 && isAllMode) return ''; 
+
             let html = '';
+            if (isAllMode) {
+                html += `
+                <div style="width:100%; border-bottom:3px solid #1a237e; padding-bottom:5px; margin-bottom:10px;">
+                    <b style="font-size:16px; color:#1a237e; text-transform:uppercase;">🏆 KATEGORI: ${safeHTML(catName)}</b>
+                </div>`;
+            }
 
+            html += `<div style="display: flex; gap: 15px; overflow-x: auto; align-items: flex-start; padding-bottom:10px; width:100%;">`;
+            
             groups.forEach((g, gIndex) => {
                 let slotsHtml = '';
                 g.teams.forEach((team, tIndex) => {
-                    slotsHtml += `<input type="text" class="form-control" placeholder="Slot ${tIndex+1}" value="${team}" oninput="updateGroupSlot('${cat}', ${gIndex}, ${tIndex}, this.value)" style="font-weight: bold; text-align: center; border: 1px dashed #aaa; color: #1a237e;">`;
+                    // 🔥 Perlebar kolom & optimasi padding agar muat nama super panjang
+                    slotsHtml += `<input type="text" class="form-control" placeholder="Slot ${tIndex+1}" value="${safeHTML(team)}" oninput="updateGroupSlot('${safeJS(catName)}', ${gIndex}, ${tIndex}, this.value)" style="font-weight: bold; text-align: center; border: 1px dashed #aaa; color: #1a237e; font-size: 11px; padding: 8px 4px;" ${isAllMode ? 'readonly' : ''}>`;
                 });
 
                 html += `
-                <div style="min-width: 220px; background: white; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; position: relative;">
+                <div style="min-width: 300px; background: white; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; position: relative;">
                     <div style="background: #1a237e; color: white; padding: 12px; text-align: center; display: flex; align-items: center; justify-content: center;">
-                        <input type="text" value="${g.name}" oninput="updateGroupName('${cat}', ${gIndex}, this.value)" style="background: transparent; border: none; color: white; font-weight: 900; text-align: center; font-size: 14px; outline: none; letter-spacing: 1px; width: 80%;">
-                        <button onclick="removeGroup('${cat}', ${gIndex})" style="position: absolute; right: 8px; top: 12px; background: #c62828; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; padding: 3px 6px;" title="Hapus Grup">✕</button>
+                        <input type="text" value="${safeHTML(g.name)}" oninput="updateGroupName('${safeJS(catName)}', ${gIndex}, this.value)" style="background: transparent; border: none; color: white; font-weight: 900; text-align: center; font-size: 14px; outline: none; letter-spacing: 1px; width: 80%;" ${isAllMode ? 'readonly' : ''}>
+                        <button onclick="removeGroup('${safeJS(catName)}', ${gIndex})" style="position: absolute; right: 8px; top: 12px; background: #c62828; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; padding: 3px 6px;" title="Hapus Grup" ${isAllMode ? 'style="display:none;"' : ''}>✕</button>
                     </div>
                     <div style="padding: 15px; display: flex; flex-direction: column; gap: 10px; background: #fafafa;">
                         ${slotsHtml}
                     </div>
                 </div>`;
             });
-            container.innerHTML = html;
+            
+            html += `</div>`;
+            return html;
         }
 
         function updateGroupSlot(cat, gIndex, tIndex, value) {
+            if(!window.GLOBAL_GROUP_DATA[cat]) return;
             window.GLOBAL_GROUP_DATA[cat][gIndex].teams[tIndex] = value;
             triggerGroupSave();
         }
 
         function updateGroupName(cat, gIndex, value) {
+            if(!window.GLOBAL_GROUP_DATA[cat]) return;
             window.GLOBAL_GROUP_DATA[cat][gIndex].name = value;
             triggerGroupSave();
         }
 
         function addGroup() {
             const cat = document.getElementById('group-cat-select').value;
-            if(!cat || !window.GLOBAL_GROUP_DATA[cat]) return;
+            if(!cat || cat === 'ALL' || !window.GLOBAL_GROUP_DATA[cat]) return;
             let groups = window.GLOBAL_GROUP_DATA[cat];
             let nextChar = String.fromCharCode(65 + groups.length);
             let slotCount = groups.length > 0 ? groups[0].teams.length : 3;
             
-            groups.push({ name: "GRUP " + nextChar, teams: new Array(slotCount).fill("") });
+            // 🔥 LOGIKA KECERDASAN BUATAN: DETEKSI PREFIX OTOMATIS (GRUP/POOL/DLL)
+            let prefix = "GRUP ";
+            if (groups.length > 0) {
+                let lastGroupName = groups[groups.length - 1].name.trim(); 
+                let words = lastGroupName.split(' ');
+                if (words.length > 1) {
+                    words.pop(); // Buang huruf terakhir (Misal: membuang 'A' dari 'POOL A')
+                    prefix = words.join(' ') + ' '; // Hasilnya tetap 'POOL '
+                } else {
+                    prefix = lastGroupName.substring(0, lastGroupName.length - 1) + ' ';
+                }
+            }
+            
+            groups.push({ name: prefix + nextChar, teams: new Array(slotCount).fill("") });
             renderGroupMatrix(); triggerGroupSave();
         }
 
         function addSlot() {
             const cat = document.getElementById('group-cat-select').value;
-            if(!cat || !window.GLOBAL_GROUP_DATA[cat]) return;
+            if(!cat || cat === 'ALL' || !window.GLOBAL_GROUP_DATA[cat]) return;
             window.GLOBAL_GROUP_DATA[cat].forEach(g => { g.teams.push(""); });
+            renderGroupMatrix(); triggerGroupSave();
+        }
+
+        function popGroup() {
+            const cat = document.getElementById('group-cat-select').value;
+            if(!cat || cat === 'ALL' || !window.GLOBAL_GROUP_DATA[cat]) return;
+            if(window.GLOBAL_GROUP_DATA[cat].length === 0) return;
+            if(!confirm("⚠️ Kurangi 1 grup terakhir? Data di dalamnya akan hilang.")) return;
+            window.GLOBAL_GROUP_DATA[cat].pop();
+            renderGroupMatrix(); triggerGroupSave();
+        }
+
+        function popSlot() {
+            const cat = document.getElementById('group-cat-select').value;
+            if(!cat || cat === 'ALL' || !window.GLOBAL_GROUP_DATA[cat]) return;
+            if(!confirm("⚠️ Hapus 1 baris paling bawah dari SEMUA grup? Data di baris itu akan hilang.")) return;
+            window.GLOBAL_GROUP_DATA[cat].forEach(g => { if(g.teams.length > 0) g.teams.pop(); });
             renderGroupMatrix(); triggerGroupSave();
         }
 
         function removeGroup(cat, gIndex) {
             if(!confirm("⚠️ Yakin ingin menghapus grup ini beserta isinya?")) return;
+            if(!window.GLOBAL_GROUP_DATA[cat]) return;
             window.GLOBAL_GROUP_DATA[cat].splice(gIndex, 1);
             renderGroupMatrix(); triggerGroupSave();
         }
@@ -2099,10 +2181,10 @@
 
                 html += `<tr style="border-bottom:1px solid #ddd;">
                     <td style="padding:8px;">${idx+1}</td><td style="padding:8px;">${timeStr}</td>
-                    <td style="padding:8px; font-weight:bold; color:#1a237e;">${r.team_name} <br><span style="font-size:9px; font-weight:normal; color:#888;">${r.asal_klub||'-'}</span>${igText}</td>
-                    <td style="padding:8px;">${r.category}</td>
-                    <td style="padding:8px;">${r.capt_name} ${jC} <br> <a href="https://wa.me/${r.capt_wa}" target="_blank" style="color:#0277bd; text-decoration:none; font-weight:bold;">${r.capt_wa}</a></td>
-                    <td style="padding:8px;">${r.partner_name || '-'} ${jP}</td>
+                    <td style="padding:8px; font-weight:bold; color:#1a237e;">${safeHTML(r.team_name)} <br><span style="font-size:9px; font-weight:normal; color:#888;">${safeHTML(r.asal_klub)||'-'}</span>${igText}</td>
+                    <td style="padding:8px;">${safeHTML(r.category)}</td>
+                    <td style="padding:8px;">${safeHTML(r.capt_name)} ${jC} <br> <a href="https://wa.me/${r.capt_wa}" target="_blank" style="color:#0277bd; text-decoration:none; font-weight:bold;">${r.capt_wa}</a></td>
+                    <td style="padding:8px;">${safeHTML(r.partner_name) || '-'} ${jP}</td>
                     <td style="padding:8px;">
                         <select onchange="updateRegStatus('${r.id}', this.value)" style="padding:5px; border-radius:6px; border:2px solid ${statCol}; color:${statCol}; font-weight:bold; cursor:pointer; outline:none; background:#fff;">
                             <option value="PENDING" ${selP}>⏳ PENDING</option>
