@@ -315,22 +315,33 @@
             </div>
 
             <div id="view-oop" class="view-section">
-                <div class="toolbar" style="background: white; padding: 12px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px;">
-                    <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
-                        <b style="color: #e65100; font-size: 14px;">📋 PAPAN ORDER OF PLAY (OOP)</b>
-                        <span id="oop-save-status" style="font-size: 11px; font-weight: 800; margin-left: 10px; display: none;"></span>
+                <div style="display: flex; flex-direction: column; height: 100%; padding: 10px;">
+                    <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px; border: 1px solid #f0f0f0; flex-shrink: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #f8f9fa; padding-bottom: 15px; margin-bottom: 15px;">
+                            <div>
+                                <h2 style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 800; color: #1a237e; letter-spacing: 1.5px; font-size: 24px;">ORDER OF PLAY</h2>
+                                <div style="display: flex; gap: 10px; margin-top: 8px;">
+                                    <input type="text" id="oop-input-location" class="form-control" placeholder="📍 Ketik Lokasi (Misal: Padel Pro Arena)" style="font-size: 12px; width: 280px; font-weight: 600; color: #555; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px;">
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <span id="oop-save-status" style="font-size: 11px; font-weight: 800; background: #e8f5e9; color: #2e7d32; padding: 6px 12px; border-radius: 20px; display: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 10px; display: inline-block;">✅ Tersimpan</span>
+                                <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                                    <button class="btn-action btn-blue" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="addOOPCourt()">+ COURT</button>
+                                    <button class="btn-action btn-red" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="popOOPCourt()">- COURT</button>
+                                    <button class="btn-action btn-green" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="addOOPMatch()">+ MATCH</button>
+                                    <button class="btn-action btn-red" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="popOOPMatch()">- MATCH</button>
+                                </div>
+                            </div>
+                        </div>
                         
-                        <div style="margin-left: auto; display: flex; gap: 5px;">
-                            <button class="btn-action btn-blue" style="font-size: 10px; padding: 8px 12px;" onclick="addOOPCourt()">+ COURT (KOLOM)</button>
-                            <button class="btn-action btn-red" style="font-size: 10px; padding: 8px 12px;" onclick="popOOPCourt()">- COURT</button>
-                            <button class="btn-action btn-green" style="font-size: 10px; padding: 8px 12px;" onclick="addOOPMatch()">+ MATCH (BARIS)</button>
-                            <button class="btn-action btn-red" style="font-size: 10px; padding: 8px 12px;" onclick="popOOPMatch()">- MATCH</button>
+                        <div style="display: flex; gap: 10px; align-items: center; overflow-x: auto; padding-bottom: 5px;" id="oop-day-tabs">
                         </div>
                     </div>
-                </div>
 
-                <div id="oop-matrix-container" class="table-wrap" style="flex: 1; overflow: auto; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 15px;">
+                    <div id="oop-matrix-container" style="flex: 1; overflow: auto; background: #fdfdfd; border-radius: 12px; padding: 20px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.02); border: 1px solid #f0f0f0;">
                     </div>
+                </div>
             </div>
             <div id="view-branding" class="view-section">
                 <div class="branding-panel">
@@ -1380,15 +1391,150 @@
             }, 800);
         }
 // ==========================================
-        // 📋 MESIN ORDER OF PLAY (OOP) - VERSI AUTO-SYNC & BANK PERTANDINGAN
+        // 📋 MESIN ORDER OF PLAY (OOP) - LUXURY EDITION & MULTI-DAY
         // ==========================================
         function initOOP(d) {
             try { 
-                if (d.oop_data) { window.GLOBAL_OOP_DATA = JSON.parse(d.oop_data); } 
-                else { window.GLOBAL_OOP_DATA = { cols: 3, rows: 3, cells: {} }; }
-            } catch(e) { window.GLOBAL_OOP_DATA = { cols: 3, rows: 3, cells: {} }; }
+                if (d.oop_data) { 
+                    let parsed = JSON.parse(d.oop_data); 
+                    if(parsed.days) { window.GLOBAL_OOP_DATA = parsed; } 
+                    else { window.GLOBAL_OOP_DATA = { activeDay: 1, days: { 1: { title: "Day 1", cols: parsed.cols || 3, rows: parsed.rows || 3, cells: parsed.cells || {}, times: {} } } }; }
+                } else { window.GLOBAL_OOP_DATA = { activeDay: 1, days: { 1: { title: "Day 1", cols: 3, rows: 3, cells: {}, times: {} } } }; }
+            } catch(e) { window.GLOBAL_OOP_DATA = { activeDay: 1, days: { 1: { title: "Day 1", cols: 3, rows: 3, cells: {}, times: {} } } }; }
+            renderOOPTabs();
             renderOOPMatrix();
         }
+
+        function renderOOPTabs() {
+            let container = document.getElementById('oop-day-tabs');
+            if(!container) return;
+            let html = '';
+            let days = window.GLOBAL_OOP_DATA.days;
+            for(let key in days) {
+                let isActive = parseInt(key) === window.GLOBAL_OOP_DATA.activeDay;
+                let btnStyle = isActive ? 'background: #1a237e; color: white; border: 1px solid #1a237e; box-shadow: 0 4px 8px rgba(26,35,126,0.2);' : 'background: white; color: #555; border: 1px solid #e0e0e0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);';
+                
+                html += `
+                <div style="display: flex; align-items: center; ${btnStyle} border-radius: 30px; overflow: hidden; font-size: 12px; font-weight: 700; transition: 0.3s; flex-shrink: 0;">
+                    <div style="padding: 10px 15px; cursor: pointer; letter-spacing: 0.5px;" onclick="switchOOPDay(${key})">DAY ${key}</div>
+                    <input type="text" value="${safeHTML(days[key].title)}" onchange="updateOOPDayTitle(${key}, this.value)" style="border: none; background: transparent; color: inherit; font-weight: 600; font-size: 11px; width: 110px; padding: 10px 10px 10px 0; outline: none;" placeholder="Ketik Tanggal">
+                    ${Object.keys(days).length > 1 ? `<div style="padding: 10px 12px; background: rgba(0,0,0,0.08); cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(220,53,69,0.8)'; this.style.color='white';" onmouseout="this.style.background='rgba(0,0,0,0.08)'; this.style.color='inherit';" onclick="deleteOOPDay(${key})">✕</div>` : ''}
+                </div>`;
+            }
+            html += `<button onclick="addOOPDay()" style="background: transparent; border: 1px dashed #bdbdbd; color: #757575; border-radius: 30px; padding: 10px 20px; font-size: 11px; font-weight: 800; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='#1a237e'; this.style.color='#1a237e';">+ HARI BARU</button>`;
+            container.innerHTML = html;
+        }
+
+        function switchOOPDay(dayStr) { window.GLOBAL_OOP_DATA.activeDay = parseInt(dayStr); renderOOPTabs(); renderOOPMatrix(); }
+        function updateOOPDayTitle(dayStr, val) { window.GLOBAL_OOP_DATA.days[dayStr].title = val; triggerOOPSave(); }
+        function addOOPDay() {
+            let newDay = 1; while(window.GLOBAL_OOP_DATA.days[newDay]) newDay++;
+            window.GLOBAL_OOP_DATA.days[newDay] = { title: "Tanggal Baru", cols: 3, rows: 3, cells: {}, times: {} };
+            window.GLOBAL_OOP_DATA.activeDay = newDay;
+            renderOOPTabs(); renderOOPMatrix(); triggerOOPSave();
+        }
+        function deleteOOPDay(dayStr) {
+            if(confirm("Hapus seluruh jadwal di hari ini?")) {
+                delete window.GLOBAL_OOP_DATA.days[dayStr];
+                window.GLOBAL_OOP_DATA.activeDay = parseInt(Object.keys(window.GLOBAL_OOP_DATA.days)[0]);
+                renderOOPTabs(); renderOOPMatrix(); triggerOOPSave();
+            }
+        }
+        function saveOOPTime(r, val) {
+            let oop = window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay];
+            if(!oop.times) oop.times = {}; oop.times[r] = val; triggerOOPSave();
+        }
+
+        // 🔥 FITUR BARU: Simpan Nama Court Custom
+        function saveOOPCourtName(c, val) {
+            let oop = window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay];
+            if(!oop.courtNames) oop.courtNames = {}; oop.courtNames[c] = val; triggerOOPSave();
+        }
+
+        function renderOOPMatrix() {
+            const container = document.getElementById('oop-matrix-container');
+            if(!container) return;
+            let oop = window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay];
+            
+            let html = '<table style="width: 100%; min-width: 900px; border-collapse: separate; border-spacing: 12px; text-align: center; font-family: \'Montserrat\', sans-serif;"><thead><tr>';
+            html += '<th style="background: #1a237e; color: white; padding: 15px; width: 100px; border-radius: 8px; font-weight: 800; letter-spacing: 1px; position: sticky; top: 0; z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">TIME / ORDER</th>';
+            
+            for(let c = 0; c < oop.cols; c++) {
+                // 🔥 KOREKSI: Tambahkan Input untuk Nama Court
+                let cName = (oop.courtNames && oop.courtNames[c]) ? oop.courtNames[c] : `COURT ${c+1}`;
+                html += `<th style="background: #ffffff; color: #1a237e; padding: 15px; font-size: 16px; font-weight: 800; border-radius: 8px; position: sticky; top: 0; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.04); border-top: 4px solid #c5a880;">
+                            <input type="text" value="${safeHTML(cName)}" onchange="saveOOPCourtName(${c}, this.value)" style="width: 100%; text-align: center; border: none; background: transparent; color: inherit; font-family: inherit; font-size: inherit; font-weight: inherit; outline: none; text-transform: uppercase;">
+                        </th>`;
+            }
+            html += '</tr></thead><tbody>';
+
+            for(let r = 0; r < oop.rows; r++) {
+                let timeVal = oop.times ? (oop.times[r] || '') : '';
+                html += `<tr>
+                    <td style="background: #263238; color: white; border-radius: 12px; padding: 15px 10px; vertical-align: middle; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        <div style="font-weight: 900; font-size: 22px; margin-bottom: 8px; letter-spacing: 1px;">M${r+1}</div>
+                        <input type="text" value="${safeHTML(timeVal)}" onchange="saveOOPTime(${r}, this.value)" placeholder="Time / NB" style="width: 90%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; text-align: center; font-size: 11px; padding: 8px; border-radius: 6px; font-style: italic; font-weight: 600; outline: none; transition: 0.2s;" onfocus="this.style.background='rgba(255,255,255,0.1)'">
+                    </td>`;
+                
+                for(let c = 0; c < oop.cols; c++) {
+                    let cellKey = r + '_' + c;
+                    let cellData = oop.cells[cellKey];
+                    
+                    if(cellData && (cellData.cat || cellData.ta || cellData.tb)) {
+                        let taDisplay = cellData.isManual ? cellData.ta : resolveOOPPointer(cellData.cat, cellData.ta);
+                        let tbDisplay = cellData.isManual ? cellData.tb : resolveOOPPointer(cellData.cat, cellData.tb);
+
+                        let isPlaceholderA = taDisplay.includes('['); let isPlaceholderB = tbDisplay.includes('[');
+                        let styleTA = isPlaceholderA ? 'color:#9e9e9e; font-style:italic; font-weight:600;' : 'color:#1a237e; font-weight:800;';
+                        let styleTB = isPlaceholderB ? 'color:#9e9e9e; font-style:italic; font-weight:600;' : 'color:#1a237e; font-weight:800;';
+                        let iconA = isPlaceholderA ? '⏳ ' : ''; let iconB = isPlaceholderB ? '⏳ ' : '';
+
+                        html += `
+                        <td style="background: #ffffff; border-radius: 12px; padding: 0; vertical-align: top; box-shadow: 0 6px 15px rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border: 1px solid #f5f5f5;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.08)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 6px 15px rgba(0,0,0,0.04)'" onclick="openOOPModal(${r}, ${c})">
+                            <div style="background: #1a237e; color: white; padding: 8px 10px; border-radius: 12px 12px 0 0; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">
+                                ${safeHTML(cellData.cat)}
+                            </div>
+                            
+                            <div style="padding: 15px 12px;">
+                                <div style="font-size: 11px; font-weight: 800; color: #c5a880; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1.5px;">
+                                    ${safeHTML(cellData.round)}
+                                </div>
+                                
+                                <div style="font-size: 13px; ${styleTA}; margin-bottom: 8px; line-height: 1.3;">
+                                    ${iconA}${safeHTML(taDisplay)}
+                                </div>
+                                
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin: 12px 0;">
+                                    <div style="flex: 1; height: 1px; border-top: 1px dashed #e0e0e0;"></div>
+                                    <div style="font-size: 10px; font-weight: 800; color: #bdbdbd; letter-spacing: 1px;">VS</div>
+                                    <div style="flex: 1; height: 1px; border-top: 1px dashed #e0e0e0;"></div>
+                                </div>
+                                
+                                <div style="font-size: 13px; ${styleTB}; margin-top: 8px; line-height: 1.3;">
+                                    ${iconB}${safeHTML(tbDisplay)}
+                                </div>
+                            </div>
+                        </td>`;
+                    } else {
+                        html += `
+                        <td style="background: transparent; padding: 10px; vertical-align: middle; cursor: pointer; transition: 0.2s;" onclick="openOOPModal(${r}, ${c})">
+                            <div style="height: 100%; min-height: 140px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #bdbdbd; background: #ffffff; border: 2px dashed #e0e0e0; border-radius: 12px; transition: 0.2s;" onmouseover="this.style.borderColor='#c5a880'; this.style.color='#c5a880'; this.style.background='#fffcf9';" onmouseout="this.style.borderColor='#e0e0e0'; this.style.color='#bdbdbd'; this.style.background='#ffffff';">
+                                + KLIK ISI JADWAL
+                            </div>
+                        </td>`;
+                    }
+                }
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // --- Update Tombol Tambah/Kurang agar bekerja di Tab Hari yang aktif ---
+        function addOOPCourt() { window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay].cols++; renderOOPMatrix(); triggerOOPSave(); }
+        function popOOPCourt() { if(window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay].cols > 1) { window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay].cols--; renderOOPMatrix(); triggerOOPSave(); } }
+        function addOOPMatch() { window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay].rows++; renderOOPMatrix(); triggerOOPSave(); }
+        function popOOPMatch() { if(window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay].rows > 1) { window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay].rows--; renderOOPMatrix(); triggerOOPSave(); } }
 
         // 🔥 MESIN RESOLVE POINTER (Penerjemah Alamat -> Nama Asli)
         function resolveOOPPointer(cat, pointerStr) {
@@ -1403,66 +1549,8 @@
                     return group.teams[sIdx]; // Kembalikan nama asli jika H-4 sudah diundi!
                 }
             }
-            return pointerStr; // Kembalikan wujud alamat jika di H-7 masih kosong
+            return pointerStr; 
         }
-
-        function renderOOPMatrix() {
-            const container = document.getElementById('oop-matrix-container');
-            if(!container) return;
-            let oop = window.GLOBAL_OOP_DATA;
-            
-            let html = '<table style="width: 100%; min-width: 800px; border-collapse: collapse; text-align: center;"><thead><tr>';
-            html += '<th style="background: #263238; color: white; padding: 12px; width: 60px; position: sticky; top: 0; z-index: 10; border-right: 2px solid #fff;">URUTAN</th>';
-            
-            for(let c = 0; c < oop.cols; c++) {
-                html += `<th style="background: #e65100; color: white; padding: 12px; font-size: 14px; position: sticky; top: 0; z-index: 10; border-right: 2px solid #fff;">COURT ${c+1}</th>`;
-            }
-            html += '</tr></thead><tbody>';
-
-            for(let r = 0; r < oop.rows; r++) {
-                html += `<tr><td style="background: #eceff1; font-weight: 900; font-size: 14px; border-bottom: 2px solid #ddd; border-right: 2px solid #ddd;">M${r+1}</td>`;
-                for(let c = 0; c < oop.cols; c++) {
-                    let cellKey = r + '_' + c;
-                    let cellData = oop.cells[cellKey];
-                    
-                    if(cellData && (cellData.cat || cellData.ta || cellData.tb)) {
-                        let isManual = cellData.isManual ? ' <span style="font-size:8px; color:#e65100; font-weight:900;">(MANUAL)</span>' : '';
-                        
-                        // 🔥 AUTO-SYNC: Terjemahkan alamat menjadi nama asli saat matriks digambar!
-                        let taDisplay = cellData.isManual ? cellData.ta : resolveOOPPointer(cellData.cat, cellData.ta);
-                        let tbDisplay = cellData.isManual ? cellData.tb : resolveOOPPointer(cellData.cat, cellData.tb);
-
-                        // Beri warna redup jika nama belum diundi (masih berupa bracket alamat)
-                        let styleTA = taDisplay.includes('[') ? 'color:#888; font-style:italic; font-weight:600;' : 'color:#1a237e; font-weight:800;';
-                        let styleTB = tbDisplay.includes('[') ? 'color:#888; font-style:italic; font-weight:600;' : 'color:#b71c1c; font-weight:800;';
-
-                        html += `
-                        <td style="border-bottom: 2px solid #ddd; border-right: 2px solid #ddd; padding: 12px; vertical-align: top; background: #fafafa; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#f0f4c3'" onmouseout="this.style.background='#fafafa'" onclick="openOOPModal(${r}, ${c})">
-                            <div style="font-size: 10px; font-weight: bold; color: #555; margin-bottom: 4px;">${safeHTML(cellData.cat)}${isManual}</div>
-                            <div style="font-size: 11px; font-weight: 900; color: #e91e63; margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 6px; text-transform:uppercase;">${safeHTML(cellData.round)}</div>
-                            <div style="font-size: 12px; ${styleTA}">${safeHTML(taDisplay)}</div>
-                            <div style="font-size: 10px; font-weight: 900; color: #aaa; margin: 6px 0;">VS</div>
-                            <div style="font-size: 12px; ${styleTB}">${safeHTML(tbDisplay)}</div>
-                        </td>`;
-                    } else {
-                        html += `
-                        <td style="border-bottom: 2px solid #ddd; border-right: 2px solid #ddd; padding: 15px; vertical-align: top; background: #fafafa; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#e3f2fd'" onmouseout="this.style.background='#fafafa'" onclick="openOOPModal(${r}, ${c})">
-                            <div style="height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0.4; font-size: 11px; font-weight: bold; border: 2px dashed #ccc; border-radius: 6px; padding: 35px 0;">
-                                + KLIK ISI JADWAL
-                            </div>
-                        </td>`;
-                    }
-                }
-                html += '</tr>';
-            }
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        function addOOPCourt() { window.GLOBAL_OOP_DATA.cols++; renderOOPMatrix(); triggerOOPSave(); }
-        function popOOPCourt() { if(window.GLOBAL_OOP_DATA.cols > 1) { window.GLOBAL_OOP_DATA.cols--; renderOOPMatrix(); triggerOOPSave(); } }
-        function addOOPMatch() { window.GLOBAL_OOP_DATA.rows++; renderOOPMatrix(); triggerOOPSave(); }
-        function popOOPMatch() { if(window.GLOBAL_OOP_DATA.rows > 1) { window.GLOBAL_OOP_DATA.rows--; renderOOPMatrix(); triggerOOPSave(); } }
 
         function openOOPModal(r, c) {
             document.getElementById('oop-r').value = r; document.getElementById('oop-c').value = c;
@@ -1474,7 +1562,8 @@
             catSel.innerHTML = catHtml;
 
             let cellKey = r + '_' + c;
-            let data = window.GLOBAL_OOP_DATA.cells[cellKey];
+            // 🔥 KOREKSI FATAL: Baca data dari Tab Hari yang aktif!
+            let data = window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay].cells[cellKey];
             
             if (data) {
                 document.getElementById('oop-mode-bebas').checked = !!data.isManual;
@@ -1592,7 +1681,8 @@
             let cellKey = r + '_' + c;
             let isManual = document.getElementById('oop-mode-bebas').checked;
             
-            window.GLOBAL_OOP_DATA.cells[cellKey] = {
+            // 🔥 KOREKSI: Simpan ke Tab Hari yang sedang aktif!
+            window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay].cells[cellKey] = {
                 cat: document.getElementById('oop-cat').value, round: document.getElementById('oop-round').value,
                 ta: isManual ? document.getElementById('oop-ta-inp').value : document.getElementById('oop-ta-sel').value,
                 tb: isManual ? document.getElementById('oop-tb-inp').value : document.getElementById('oop-tb-sel').value,
@@ -1605,7 +1695,8 @@
 
         function clearOOPCell() {
             let r = document.getElementById('oop-r').value; let c = document.getElementById('oop-c').value;
-            delete window.GLOBAL_OOP_DATA.cells[r + '_' + c];
+            // 🔥 KOREKSI: Hapus dari Tab Hari yang sedang aktif!
+            delete window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay].cells[r + '_' + c];
             document.getElementById('modal-oop').style.display = 'none';
             renderOOPMatrix(); triggerOOPSave();
         }
