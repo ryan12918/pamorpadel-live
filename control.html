@@ -318,65 +318,19 @@
                 <div class="toolbar" style="background: white; padding: 12px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px;">
                     <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
                         <b style="color: #e65100; font-size: 14px;">📋 PAPAN ORDER OF PLAY (OOP)</b>
-                        <button class="btn-action btn-blue" style="margin-left: auto; font-size: 11px; padding: 8px 15px;">+ TAMBAH COURT (KOLOM)</button>
-                        <button class="btn-action btn-green" style="font-size: 11px; padding: 8px 15px;">+ TAMBAH MATCH (BARIS)</button>
+                        <span id="oop-save-status" style="font-size: 11px; font-weight: 800; margin-left: 10px; display: none;"></span>
+                        
+                        <div style="margin-left: auto; display: flex; gap: 5px;">
+                            <button class="btn-action btn-blue" style="font-size: 10px; padding: 8px 12px;" onclick="addOOPCourt()">+ COURT (KOLOM)</button>
+                            <button class="btn-action btn-red" style="font-size: 10px; padding: 8px 12px;" onclick="popOOPCourt()">- COURT</button>
+                            <button class="btn-action btn-green" style="font-size: 10px; padding: 8px 12px;" onclick="addOOPMatch()">+ MATCH (BARIS)</button>
+                            <button class="btn-action btn-red" style="font-size: 10px; padding: 8px 12px;" onclick="popOOPMatch()">- MATCH</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="table-wrap" style="flex: 1; overflow: auto; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 15px;">
-                    <table style="width: 100%; min-width: 1000px; border-collapse: collapse; text-align: center;">
-                        <thead>
-                            <tr>
-                                <th style="background: #263238; color: white; padding: 12px; width: 80px; position: sticky; top: 0; z-index: 10; border-right: 2px solid #fff;">URUTAN</th>
-                                <th style="background: #e65100; color: white; padding: 12px; font-size: 14px; position: sticky; top: 0; z-index: 10; border-right: 2px solid #fff;">COURT 1</th>
-                                <th style="background: #e65100; color: white; padding: 12px; font-size: 14px; position: sticky; top: 0; z-index: 10; border-right: 2px solid #fff;">COURT 2</th>
-                                <th style="background: #e65100; color: white; padding: 12px; font-size: 14px; position: sticky; top: 0; z-index: 10;">COURT 3</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="background: #eceff1; font-weight: 900; font-size: 14px; border-bottom: 2px solid #ddd; border-right: 2px solid #ddd;">M1</td>
-                                <td style="border-bottom: 2px solid #ddd; border-right: 2px solid #ddd; padding: 15px; vertical-align: top; background: #fafafa;">
-                                    <input type="text" class="form-control" placeholder="Kategori (Otomatis)" style="margin-bottom: 5px; font-size: 10px; text-align: center; background: #eee; border: none;">
-                                    <input type="text" class="form-control" placeholder="Babak (Otomatis)" style="margin-bottom: 12px; font-size: 10px; text-align: center; background: #eee; border: none;">
-                                    <input type="text" class="form-control" placeholder="[Pilih Slot A1]" style="font-weight: 800; text-align: center; color: #1a237e; border: 2px solid #bbdefb; background: #e3f2fd; cursor: pointer;">
-                                    <div style="font-size: 10px; font-weight: 900; color: #888; margin: 6px 0;">VS</div>
-                                    <input type="text" class="form-control" placeholder="[Pilih Slot B2]" style="font-weight: 800; text-align: center; color: #b71c1c; border: 2px solid #ffcdd2; background: #ffebee; cursor: pointer;">
-                                </td>
-                                <td style="border-bottom: 2px solid #ddd; border-right: 2px solid #ddd; padding: 15px; vertical-align: top; background: #fafafa;">
-                                    <input type="text" class="form-control" placeholder="Kategori (Otomatis)" style="margin-bottom: 5px; font-size: 10px; text-align: center; background: #eee; border: none;">
-                                    <input type="text" class="form-control" placeholder="Babak (Otomatis)" style="margin-bottom: 12px; font-size: 10px; text-align: center; background: #eee; border: none;">
-                                    <input type="text" class="form-control" placeholder="[Pilih Slot C1]" style="font-weight: 800; text-align: center; color: #1a237e; border: 2px solid #bbdefb; background: #e3f2fd; cursor: pointer;">
-                                    <div style="font-size: 10px; font-weight: 900; color: #888; margin: 6px 0;">VS</div>
-                                    <input type="text" class="form-control" placeholder="[Pilih Slot D2]" style="font-weight: 800; text-align: center; color: #b71c1c; border: 2px solid #ffcdd2; background: #ffebee; cursor: pointer;">
-                                </td>
-                                <td style="border-bottom: 2px solid #ddd; padding: 15px; vertical-align: top; background: #fafafa;">
-                                    <div style="height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0.5; font-size: 12px; font-weight: bold; border: 2px dashed #ccc; border-radius: 6px; padding: 40px 0;">
-                                        + KLIK UNTUK ISI JADWAL
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="background: #eceff1; font-weight: 900; font-size: 14px; border-bottom: 2px solid #ddd; border-right: 2px solid #ddd;">M2</td>
-                                <td style="border-bottom: 2px solid #ddd; border-right: 2px solid #ddd; padding: 15px; vertical-align: top; background: #fafafa;">
-                                    <div style="height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0.5; font-size: 12px; font-weight: bold; border: 2px dashed #ccc; border-radius: 6px; padding: 40px 0;">
-                                        + KLIK UNTUK ISI JADWAL
-                                    </div>
-                                </td>
-                                <td style="border-bottom: 2px solid #ddd; border-right: 2px solid #ddd; padding: 15px; vertical-align: top; background: #fafafa;">
-                                    <div style="height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0.5; font-size: 12px; font-weight: bold; border: 2px dashed #ccc; border-radius: 6px; padding: 40px 0;">
-                                        + KLIK UNTUK ISI JADWAL
-                                    </div>
-                                </td>
-                                <td style="border-bottom: 2px solid #ddd; padding: 15px; vertical-align: top; background: #fafafa;">
-                                    <div style="height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0.5; font-size: 12px; font-weight: bold; border: 2px dashed #ccc; border-radius: 6px; padding: 40px 0;">
-                                        + KLIK UNTUK ISI JADWAL
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <div id="oop-matrix-container" class="table-wrap" style="flex: 1; overflow: auto; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 15px;">
+                    </div>
             </div>
             <div id="view-branding" class="view-section">
                 <div class="branding-panel">
@@ -620,6 +574,58 @@
                     </div>
                 </div>
             </div>
+<div id="modal-oop" class="modal">
+        <div class="modal-box" style="width: 450px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin:0; color:#e65100;">⚙️ PERUMUS JADWAL OOP</h3>
+                <div style="cursor:pointer; font-weight:bold; color:#aaa; font-size:18px;" onclick="document.getElementById('modal-oop').style.display='none'">✕</div>
+            </div>
+            
+            <input type="hidden" id="oop-r"><input type="hidden" id="oop-c">
+            
+            <div style="background:#fff3e0; padding:10px; border-radius:6px; border:1px solid #ffcc80; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                <label style="font-size:11px; font-weight:bold; color:#e65100; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                    <input type="checkbox" id="oop-mode-bebas" onchange="toggleOOPMode()"> 🔓 AKTIFKAN MODE KETIK BEBAS (MANUAL OVERRIDE)
+                </label>
+            </div>
+
+            <div class="grid-modal">
+                <div class="form-group">
+                    <label>Kategori</label>
+                    <select id="oop-cat" class="form-control" style="font-weight:bold; color:#1a237e;" onchange="updateOOPTeamOptions()"></select>
+                </div>
+                <div class="form-group">
+                    <label style="color:#2e7d32; font-weight:800;">🎯 BANK PERTANDINGAN (AUTO)</label>
+                    <select id="oop-bank" class="form-control" style="font-weight:bold; color:#2e7d32; background:#e8f5e9; border:1px solid #4caf50; cursor:pointer;" onchange="applyBankSelection()">
+                        <option value="">-- Pilih Kategori Dulu --</option>
+                    </select>
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>Babak</label>
+                    <input type="text" id="oop-round" class="form-control" placeholder="Ketik Babak (Misal: Grup A / Quarter Final)" style="font-weight:bold;">
+                </div>
+            </div>
+            
+            <div style="margin-top:10px; padding:15px; background:#fafafa; border:1px solid #ddd; border-radius:6px;">
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label style="color:#1a237e; font-size:12px;">Pemain / Tim A</label>
+                    <select id="oop-ta-sel" class="form-control" style="font-weight:bold; padding:8px;"></select>
+                    <input type="text" id="oop-ta-inp" class="form-control" style="font-weight:bold; display:none; padding:8px;" placeholder="Ketik manual Tim A">
+                </div>
+                <div style="text-align:center; font-weight:900; color:#888; font-size:14px; margin-bottom:15px;">VS</div>
+                <div class="form-group">
+                    <label style="color:#b71c1c; font-size:12px;">Pemain / Tim B</label>
+                    <select id="oop-tb-sel" class="form-control" style="font-weight:bold; padding:8px;"></select>
+                    <input type="text" id="oop-tb-inp" class="form-control" style="font-weight:bold; display:none; padding:8px;" placeholder="Ketik manual Tim B">
+                </div>
+            </div>
+
+            <div style="margin-top:15px; display:flex; justify-content:space-between;">
+                <button class="btn-action btn-grey" onclick="clearOOPCell()">🗑️ KOSONGKAN SLOT</button>
+                <button class="btn-action btn-green" onclick="saveOOPCell()" style="padding:10px 20px; font-size:12px;">💾 SIMPAN JADWAL</button>
+            </div>
+        </div>
+    </div>
 
         </div> </div> <div id="modal-tv" class="modal">
         <div class="modal-box" style="width:350px;">
@@ -1094,6 +1100,10 @@
         // ==========================================
         window.GLOBAL_GROUP_DATA = {};
         let groupSaveTimer = null;
+        
+        // 🔥 WADAH MEMORI OOP
+        window.GLOBAL_OOP_DATA = { cols: 3, rows: 3, cells: {} };
+        let oopSaveTimer = null;
 
         function initGroupStage(d) {
             try { window.GLOBAL_GROUP_DATA = d.group_data ? JSON.parse(d.group_data) : {}; } 
@@ -1369,6 +1379,250 @@
                 }
             }, 800);
         }
+// ==========================================
+        // 📋 MESIN ORDER OF PLAY (OOP) - VERSI AUTO-SYNC & BANK PERTANDINGAN
+        // ==========================================
+        function initOOP(d) {
+            try { 
+                if (d.oop_data) { window.GLOBAL_OOP_DATA = JSON.parse(d.oop_data); } 
+                else { window.GLOBAL_OOP_DATA = { cols: 3, rows: 3, cells: {} }; }
+            } catch(e) { window.GLOBAL_OOP_DATA = { cols: 3, rows: 3, cells: {} }; }
+            renderOOPMatrix();
+        }
+
+        // 🔥 MESIN RESOLVE POINTER (Penerjemah Alamat -> Nama Asli)
+        function resolveOOPPointer(cat, pointerStr) {
+            if (!pointerStr) return "";
+            if (!cat || !window.GLOBAL_GROUP_DATA[cat]) return pointerStr;
+            let match = pointerStr.match(/\[(.*?)\] Slot (\d+)/);
+            if (match) {
+                let gName = match[1];
+                let sIdx = parseInt(match[2]) - 1;
+                let group = window.GLOBAL_GROUP_DATA[cat].find(g => g.name === gName);
+                if (group && group.teams[sIdx] && group.teams[sIdx].trim() !== '') {
+                    return group.teams[sIdx]; // Kembalikan nama asli jika H-4 sudah diundi!
+                }
+            }
+            return pointerStr; // Kembalikan wujud alamat jika di H-7 masih kosong
+        }
+
+        function renderOOPMatrix() {
+            const container = document.getElementById('oop-matrix-container');
+            if(!container) return;
+            let oop = window.GLOBAL_OOP_DATA;
+            
+            let html = '<table style="width: 100%; min-width: 800px; border-collapse: collapse; text-align: center;"><thead><tr>';
+            html += '<th style="background: #263238; color: white; padding: 12px; width: 60px; position: sticky; top: 0; z-index: 10; border-right: 2px solid #fff;">URUTAN</th>';
+            
+            for(let c = 0; c < oop.cols; c++) {
+                html += `<th style="background: #e65100; color: white; padding: 12px; font-size: 14px; position: sticky; top: 0; z-index: 10; border-right: 2px solid #fff;">COURT ${c+1}</th>`;
+            }
+            html += '</tr></thead><tbody>';
+
+            for(let r = 0; r < oop.rows; r++) {
+                html += `<tr><td style="background: #eceff1; font-weight: 900; font-size: 14px; border-bottom: 2px solid #ddd; border-right: 2px solid #ddd;">M${r+1}</td>`;
+                for(let c = 0; c < oop.cols; c++) {
+                    let cellKey = r + '_' + c;
+                    let cellData = oop.cells[cellKey];
+                    
+                    if(cellData && (cellData.cat || cellData.ta || cellData.tb)) {
+                        let isManual = cellData.isManual ? ' <span style="font-size:8px; color:#e65100; font-weight:900;">(MANUAL)</span>' : '';
+                        
+                        // 🔥 AUTO-SYNC: Terjemahkan alamat menjadi nama asli saat matriks digambar!
+                        let taDisplay = cellData.isManual ? cellData.ta : resolveOOPPointer(cellData.cat, cellData.ta);
+                        let tbDisplay = cellData.isManual ? cellData.tb : resolveOOPPointer(cellData.cat, cellData.tb);
+
+                        // Beri warna redup jika nama belum diundi (masih berupa bracket alamat)
+                        let styleTA = taDisplay.includes('[') ? 'color:#888; font-style:italic; font-weight:600;' : 'color:#1a237e; font-weight:800;';
+                        let styleTB = tbDisplay.includes('[') ? 'color:#888; font-style:italic; font-weight:600;' : 'color:#b71c1c; font-weight:800;';
+
+                        html += `
+                        <td style="border-bottom: 2px solid #ddd; border-right: 2px solid #ddd; padding: 12px; vertical-align: top; background: #fafafa; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#f0f4c3'" onmouseout="this.style.background='#fafafa'" onclick="openOOPModal(${r}, ${c})">
+                            <div style="font-size: 10px; font-weight: bold; color: #555; margin-bottom: 4px;">${safeHTML(cellData.cat)}${isManual}</div>
+                            <div style="font-size: 11px; font-weight: 900; color: #e91e63; margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 6px; text-transform:uppercase;">${safeHTML(cellData.round)}</div>
+                            <div style="font-size: 12px; ${styleTA}">${safeHTML(taDisplay)}</div>
+                            <div style="font-size: 10px; font-weight: 900; color: #aaa; margin: 6px 0;">VS</div>
+                            <div style="font-size: 12px; ${styleTB}">${safeHTML(tbDisplay)}</div>
+                        </td>`;
+                    } else {
+                        html += `
+                        <td style="border-bottom: 2px solid #ddd; border-right: 2px solid #ddd; padding: 15px; vertical-align: top; background: #fafafa; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#e3f2fd'" onmouseout="this.style.background='#fafafa'" onclick="openOOPModal(${r}, ${c})">
+                            <div style="height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0.4; font-size: 11px; font-weight: bold; border: 2px dashed #ccc; border-radius: 6px; padding: 35px 0;">
+                                + KLIK ISI JADWAL
+                            </div>
+                        </td>`;
+                    }
+                }
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function addOOPCourt() { window.GLOBAL_OOP_DATA.cols++; renderOOPMatrix(); triggerOOPSave(); }
+        function popOOPCourt() { if(window.GLOBAL_OOP_DATA.cols > 1) { window.GLOBAL_OOP_DATA.cols--; renderOOPMatrix(); triggerOOPSave(); } }
+        function addOOPMatch() { window.GLOBAL_OOP_DATA.rows++; renderOOPMatrix(); triggerOOPSave(); }
+        function popOOPMatch() { if(window.GLOBAL_OOP_DATA.rows > 1) { window.GLOBAL_OOP_DATA.rows--; renderOOPMatrix(); triggerOOPSave(); } }
+
+        function openOOPModal(r, c) {
+            document.getElementById('oop-r').value = r; document.getElementById('oop-c').value = c;
+            
+            const catSel = document.getElementById('oop-cat');
+            let cats = Object.keys(window.GLOBAL_GROUP_DATA || {});
+            let catHtml = '<option value="">-- Pilih Kategori --</option>';
+            cats.forEach(cat => { catHtml += `<option value="${safeHTML(cat)}">${safeHTML(cat)}</option>`; });
+            catSel.innerHTML = catHtml;
+
+            let cellKey = r + '_' + c;
+            let data = window.GLOBAL_OOP_DATA.cells[cellKey];
+            
+            if (data) {
+                document.getElementById('oop-mode-bebas').checked = !!data.isManual;
+                catSel.value = data.cat || '';
+                document.getElementById('oop-round').value = data.round || '';
+                updateOOPTeamOptions(); 
+                
+                if (data.isManual) {
+                    document.getElementById('oop-ta-inp').value = data.ta || ''; document.getElementById('oop-tb-inp').value = data.tb || '';
+                } else {
+                    document.getElementById('oop-ta-sel').value = data.ta || ''; document.getElementById('oop-tb-sel').value = data.tb || '';
+                }
+            } else {
+                document.getElementById('oop-mode-bebas').checked = false;
+                catSel.value = ''; document.getElementById('oop-round').value = '';
+                updateOOPTeamOptions();
+                document.getElementById('oop-ta-inp').value = ''; document.getElementById('oop-tb-inp').value = '';
+            }
+            toggleOOPMode();
+            document.getElementById('modal-oop').style.display = 'flex';
+        }
+
+        function updateOOPTeamOptions() {
+            let cat = document.getElementById('oop-cat').value;
+            let taSel = document.getElementById('oop-ta-sel'); let tbSel = document.getElementById('oop-tb-sel');
+            let html = '<option value="">-- Pilih Tim dari Group Stage --</option>';
+            
+            if(cat && window.GLOBAL_GROUP_DATA[cat]) {
+                window.GLOBAL_GROUP_DATA[cat].forEach((g) => {
+                    g.teams.forEach((t, tIndex) => {
+                        // 🔥 POINTER: Simpan alamatnya (Misal: "[GRUP A] Slot 1"), bukan namanya.
+                        let pointerStr = `[${g.name}] Slot ${tIndex+1}`;
+                        let displayLabel = t.trim() !== '' ? `${pointerStr} - ${t}` : pointerStr;
+                        html += `<option value="${safeHTML(pointerStr)}">${safeHTML(displayLabel)}</option>`;
+                    });
+                });
+            }
+            taSel.innerHTML = html; tbSel.innerHTML = html;
+            
+            populateMatchBank(cat); // 🔥 PANGGIL PABRIK JADWAL
+        }
+
+        // 🔥 MESIN PABRIK JADWAL (ROUND ROBIN AUTO-GENERATOR)
+        function populateMatchBank(cat) {
+            const bankSel = document.getElementById('oop-bank');
+            if (!bankSel) return;
+            
+            if (!cat || !window.GLOBAL_GROUP_DATA[cat]) {
+                bankSel.innerHTML = '<option value="">-- Pilih Kategori Dulu --</option>';
+                return;
+            }
+            
+            let html = '<option value="">-- PILIH UNTUK AUTO-FILL --</option>';
+            
+            window.GLOBAL_GROUP_DATA[cat].forEach((g) => {
+                // 🔥 MESIN DETEKTOR BYE: Saring jika Slot Kosong atau tertulis BYE
+                let validIndices = [];
+                g.teams.forEach((t, idx) => {
+                    let text = t.trim().toUpperCase();
+                    if (text !== 'BYE' && text !== 'KOSONG') {
+                        validIndices.push(idx + 1); // Indeks Slot (1-based)
+                    }
+                });
+
+                if (validIndices.length > 1) {
+                    html += `<optgroup label="🏆 ${safeHTML(g.name)}">`;
+                    // 🔥 RUMUS KOMBINASI ROUND ROBIN: N x (N-1) / 2
+                    for (let i = 0; i < validIndices.length - 1; i++) {
+                        for (let j = i + 1; j < validIndices.length; j++) {
+                            let s1 = validIndices[i];
+                            let s2 = validIndices[j];
+                            let valA = `[${g.name}] Slot ${s1}`;
+                            let valB = `[${g.name}] Slot ${s2}`;
+                            // Simpan JSON ke dalam option agar mudah diekstrak oleh saraf Auto-Fill
+                            let valJSON = JSON.stringify({ round: g.name, ta: valA, tb: valB });
+                            html += `<option value='${safeHTML(valJSON)}'>Match: Slot ${s1} VS Slot ${s2}</option>`;
+                        }
+                    }
+                    html += `</optgroup>`;
+                }
+            });
+            
+            bankSel.innerHTML = html;
+        }
+
+        // 🔥 SARAF PENGHUBUNG AUTO-FILL
+        function applyBankSelection() {
+            const bankSel = document.getElementById('oop-bank');
+            if (!bankSel || !bankSel.value) return;
+            
+            try {
+                let data = JSON.parse(bankSel.value);
+                document.getElementById('oop-round').value = data.round;
+                document.getElementById('oop-ta-sel').value = data.ta;
+                document.getElementById('oop-tb-sel').value = data.tb;
+                
+                // Matikan mode bebas jika sedang aktif
+                document.getElementById('oop-mode-bebas').checked = false;
+                toggleOOPMode();
+            } catch(e) {}
+            
+            bankSel.value = ''; // Reset dropdown ke atas setelah diklik agar tidak nyangkut
+        }
+
+        function toggleOOPMode() {
+            let isManual = document.getElementById('oop-mode-bebas').checked;
+            document.getElementById('oop-ta-sel').style.display = isManual ? 'none' : 'block';
+            document.getElementById('oop-tb-sel').style.display = isManual ? 'none' : 'block';
+            document.getElementById('oop-ta-inp').style.display = isManual ? 'block' : 'none';
+            document.getElementById('oop-tb-inp').style.display = isManual ? 'block' : 'none';
+        }
+
+        function saveOOPCell() {
+            let r = document.getElementById('oop-r').value; let c = document.getElementById('oop-c').value;
+            let cellKey = r + '_' + c;
+            let isManual = document.getElementById('oop-mode-bebas').checked;
+            
+            window.GLOBAL_OOP_DATA.cells[cellKey] = {
+                cat: document.getElementById('oop-cat').value, round: document.getElementById('oop-round').value,
+                ta: isManual ? document.getElementById('oop-ta-inp').value : document.getElementById('oop-ta-sel').value,
+                tb: isManual ? document.getElementById('oop-tb-inp').value : document.getElementById('oop-tb-sel').value,
+                isManual: isManual
+            };
+            
+            document.getElementById('modal-oop').style.display = 'none';
+            renderOOPMatrix(); triggerOOPSave();
+        }
+
+        function clearOOPCell() {
+            let r = document.getElementById('oop-r').value; let c = document.getElementById('oop-c').value;
+            delete window.GLOBAL_OOP_DATA.cells[r + '_' + c];
+            document.getElementById('modal-oop').style.display = 'none';
+            renderOOPMatrix(); triggerOOPSave();
+        }
+
+        function triggerOOPSave() {
+            const st = document.getElementById('oop-save-status');
+            if(st) { st.style.display = 'inline-block'; st.innerText = '⏳ Menyimpan Jadwal...'; st.style.color = '#ef6c00'; }
+            clearTimeout(oopSaveTimer);
+            oopSaveTimer = setTimeout(async () => {
+                const pl = { oop_data: JSON.stringify(window.GLOBAL_OOP_DATA) };
+                const { error } = await db.from('partners').update(pl).eq('tournament_id', ACTIVE_ID);
+                if(st) {
+                    if(error) { st.innerText = '❌ Gagal Simpan'; st.style.color = '#c62828'; }
+                    else { st.innerText = '✅ Jadwal Tersimpan'; st.style.color = '#2e7d32'; setTimeout(() => { st.style.display = 'none'; }, 2000); }
+                }
+            }, 800);
+        }
         function loadSettings(d) {
             window.RAW_DB_DATA = d; 
             const set = (id, v) => { if(document.getElementById(id)) document.getElementById(id).value = v || ''; };
@@ -1401,7 +1655,8 @@
 
             updateBrandingPreview();
             updateTVPreview(); 
-            initGroupStage(d); // 🚀 PENGAPIAN MESIN GROUP STAGE
+            initGroupStage(d);
+	initOOP(d); // 🚀 PENGAPIAN MESIN OOP
         }
 
         function applyTheme(h1, h2, bg, neon, st) {
