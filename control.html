@@ -1131,6 +1131,8 @@
             try { window.GLOBAL_GROUP_DATA = d.group_data ? JSON.parse(d.group_data) : {}; } 
             catch(e) { window.GLOBAL_GROUP_DATA = {}; }
             renderGroupCategories(d);
+            // 🔥 SUNTIKAN: Lukis ulang OOP setelah memori Grup terisi!
+            if(typeof renderOOPMatrix === 'function') renderOOPMatrix();
         }
 
         function renderGroupCategories(d) {
@@ -1364,15 +1366,16 @@
             if(!window.GLOBAL_GROUP_DATA[cat]) return;
             window.GLOBAL_GROUP_DATA[cat][gIndex].teams[tIndex] = value;
             triggerGroupSave();
+            if(typeof renderOOPMatrix === 'function') renderOOPMatrix(); // 🔥 REPAINT OOP SAAT KETIK NAMA
         }
         
-        // (Fungsi kosong agar kode injeksi sebelumnya tidak error)
         function updateDatalist(cat) {}
 
         function updateGroupName(cat, gIndex, value) {
             if(!window.GLOBAL_GROUP_DATA[cat]) return;
             window.GLOBAL_GROUP_DATA[cat][gIndex].name = value;
             triggerGroupSave();
+            if(typeof renderOOPMatrix === 'function') renderOOPMatrix(); // 🔥 REPAINT OOP SAAT KETIK GRUP
         }
 
         function addGroup() {
@@ -1764,13 +1767,20 @@ function saveOOPSettings() {
                 return;
             }
 
-            // 🛡️ RADAR DETEKTIF: Kumpulkan semua Babak dan Tim yang SUDAH TERJADWAL
+            // 🛡️ WHITELIST EDIT: Ambil info kotak mana yang sedang diedit
+            let editingKey = document.getElementById('oop-r').value + '_' + document.getElementById('oop-c').value;
+            let activeDayStr = window.GLOBAL_OOP_DATA.activeDay.toString();
+
+            // 🛡️ RADAR DETEKTIF PINTAR
             let scheduledTeams = [];
             let scheduledRounds = [];
             let days = window.GLOBAL_OOP_DATA.days;
             for (let d in days) {
                 let cells = days[d].cells;
                 for (let k in cells) {
+                    // Pengecualian: Abaikan kotak yang sedang kita edit saat ini agar tidak terhapus
+                    if (d.toString() === activeDayStr && k === editingKey) continue;
+                    
                     let c = cells[k];
                     if (c.cat === cat && c.ta && c.tb) {
                         scheduledTeams.push(c.ta.trim());
@@ -1780,7 +1790,7 @@ function saveOOPSettings() {
                 }
             }
 
-            // 1. CETAK DATALIST BABAK (Hanya yang belum dipakai)
+            // 1. CETAK DATALIST BABAK
             let allRounds = [
                 "ROUND OF 16 - MATCH 1", "ROUND OF 16 - MATCH 2", "ROUND OF 16 - MATCH 3", "ROUND OF 16 - MATCH 4",
                 "ROUND OF 16 - MATCH 5", "ROUND OF 16 - MATCH 6", "ROUND OF 16 - MATCH 7", "ROUND OF 16 - MATCH 8",
@@ -1852,16 +1862,23 @@ function saveOOPSettings() {
             
             let html = '<option value="">-- PILIH UNTUK AUTO-FILL --</option>';
             
-            // 🛡️ RADAR ANTI-DOUBLE: Membaca jadwal yang sudah masuk di OOP
+            // 🛡️ WHITELIST EDIT
+            let editingKey = document.getElementById('oop-r').value + '_' + document.getElementById('oop-c').value;
+            let activeDayStr = window.GLOBAL_OOP_DATA.activeDay.toString();
+
+            // 🛡️ RADAR ANTI-DOUBLE PINTAR
             let scheduledMatches = [];
             let days = window.GLOBAL_OOP_DATA.days;
             for (let d in days) {
                 let cells = days[d].cells;
                 for (let k in cells) {
+                    // Pengecualian Edit
+                    if (d.toString() === activeDayStr && k === editingKey) continue;
+
                     let c = cells[k];
                     if (c.cat === cat && !c.isManual) {
                         scheduledMatches.push(c.ta + "|||" + c.tb);
-                        scheduledMatches.push(c.tb + "|||" + c.ta); // Bolak-balik dianggap sama
+                        scheduledMatches.push(c.tb + "|||" + c.ta);
                     }
                 }
             }
@@ -1884,7 +1901,6 @@ function saveOOPSettings() {
                             let valA = `[${g.name}] Slot ${s1}`;
                             let valB = `[${g.name}] Slot ${s2}`;
                             
-                            // 🛡️ CEK RADAR: Jika match ini sudah ada di tabel OOP, lewati!
                             let isScheduled = scheduledMatches.includes(valA + "|||" + valB);
                             
                             if (!isScheduled) {
@@ -1896,12 +1912,10 @@ function saveOOPSettings() {
                     }
                     groupHtml += `</optgroup>`;
                     
-                    // Hanya tampilkan grup jika masih ada pertandingan yang belum dijadwalkan
                     if (hasAvailableMatch) { html += groupHtml; }
                 }
             });
             
-            // Jika semua pertandingan di kategori ini sudah dijadwalkan
             if (html === '<option value="">-- PILIH UNTUK AUTO-FILL --</option>') {
                 html = '<option value="">✅ Semua Fase Grup Sudah Terjadwal</option>';
             }
@@ -1941,12 +1955,18 @@ function saveOOPSettings() {
             let cellKey = r + '_' + c;
             let isManual = document.getElementById('oop-mode-bebas').checked;
             
-            // 🔥 KOREKSI: Simpan ke Tab Hari yang sedang aktif!
+            let taVal = isManual ? document.getElementById('oop-ta-inp').value : document.getElementById('oop-ta-sel').value;
+            let tbVal = isManual ? document.getElementById('oop-tb-inp').value : document.getElementById('oop-tb-sel').value;
+            
+            // 🛡️ GEMBOK SELF-VERSUS: Cegah tim yang sama bertanding
+            if (!isManual && taVal && tbVal && taVal === tbVal) {
+                alert("⚠️ PERINGATAN! Tim A dan Tim B tidak boleh sama (Self-Versus)!");
+                return;
+            }
+
             window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay].cells[cellKey] = {
                 cat: document.getElementById('oop-cat').value, round: document.getElementById('oop-round').value,
-                ta: isManual ? document.getElementById('oop-ta-inp').value : document.getElementById('oop-ta-sel').value,
-                tb: isManual ? document.getElementById('oop-tb-inp').value : document.getElementById('oop-tb-sel').value,
-                isManual: isManual
+                ta: taVal, tb: tbVal, isManual: isManual
             };
             
             document.getElementById('modal-oop').style.display = 'none';
