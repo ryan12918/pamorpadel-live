@@ -319,7 +319,7 @@
                     <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px; border: 1px solid #f0f0f0; flex-shrink: 0;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #f8f9fa; padding-bottom: 15px; margin-bottom: 15px; position: relative;">
                             <div>
-                                <h2 id="oop-dynamic-title" style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 900; color: #1a237e; letter-spacing: 1px; font-size: 22px; text-transform: uppercase;">ORDER OF PLAY</h2>
+                                <h2 id="oop-dynamic-title" style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 900; color: #222222; letter-spacing: 1px; font-size: 22px; text-transform: uppercase;">ORDER OF PLAY</h2>
                                 <div style="display: flex; gap: 10px; margin-top: 8px;">
                                     <input type="text" id="oop-input-location" class="form-control" placeholder="📍 Ketik Lokasi (Misal: Padel Pro Arena)" style="font-size: 11px; width: 200px; font-weight: 600; color: #555; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px;" onchange="saveOOPSettings()">
                                     <input type="text" id="oop-input-referee" class="form-control" placeholder="👤 Tournament Director (Opsional)" style="font-size: 11px; width: 200px; font-weight: 600; color: #555; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px;" onchange="saveOOPSettings()">
@@ -1437,16 +1437,23 @@
         function renderOOPTabs() {
             let container = document.getElementById('oop-day-tabs');
             if(!container) return;
+            
+            // 🔥 Ambil Warna untuk Tab Aktif
+            let primaryColor = (window.RAW_DB_DATA && window.RAW_DB_DATA.color_primary) ? window.RAW_DB_DATA.color_primary : '#1a237e';
+            let gradColor = (window.RAW_DB_DATA && window.RAW_DB_DATA.color_gradient_end) ? window.RAW_DB_DATA.color_gradient_end : '#0d47a1';
+            let contrastColor = getOOPContrastColor(primaryColor);
+
             let html = '';
             let days = window.GLOBAL_OOP_DATA.days;
             for(let key in days) {
                 let isActive = parseInt(key) === window.GLOBAL_OOP_DATA.activeDay;
-                let btnStyle = isActive ? 'background: #1a237e; color: white; border: 1px solid #1a237e; box-shadow: 0 4px 8px rgba(26,35,126,0.2);' : 'background: white; color: #555; border: 1px solid #e0e0e0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);';
+                // 🔥 KOREKSI: Tab Aktif pakai Linear Gradient
+                let btnStyle = isActive ? `background: linear-gradient(135deg, ${primaryColor}, ${gradColor}); color: ${contrastColor}; border: none; box-shadow: 0 4px 8px rgba(0,0,0,0.15);` : 'background: white; color: #555; border: 1px solid #e0e0e0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);';
                 
                 html += `
                 <div style="display: flex; align-items: center; ${btnStyle} border-radius: 30px; overflow: hidden; font-size: 12px; font-weight: 700; transition: 0.3s; flex-shrink: 0;">
                     <div style="padding: 10px 15px; cursor: pointer; letter-spacing: 0.5px;" onclick="switchOOPDay(${key})">DAY ${key}</div>
-                    <input type="text" value="${safeHTML(days[key].title)}" onchange="updateOOPDayTitle(${key}, this.value)" style="border: none; background: transparent; color: inherit; font-weight: 600; font-size: 11px; width: 110px; padding: 10px 10px 10px 0; outline: none;" placeholder="Ketik Tanggal">
+                    <input type="text" value="${safeHTML(days[key].title)}" onchange="updateOOPDayTitle(${key}, this.value)" style="border: none; background: transparent; color: inherit; font-weight: 600; font-size: 11px; width: 160px; padding: 10px 10px 10px 0; outline: none;" placeholder="Ketik Tanggal">
                     ${Object.keys(days).length > 1 ? `<div style="padding: 10px 12px; background: rgba(0,0,0,0.08); cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(220,53,69,0.8)'; this.style.color='white';" onmouseout="this.style.background='rgba(0,0,0,0.08)'; this.style.color='inherit';" onclick="deleteOOPDay(${key})">✕</div>` : ''}
                 </div>`;
             }
@@ -1498,17 +1505,16 @@
             if(!container) return;
             let oop = window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay];
             
-            // 🔥 Ambil Warna Utama & Gradasi
             let primaryColor = (window.RAW_DB_DATA && window.RAW_DB_DATA.color_primary) ? window.RAW_DB_DATA.color_primary : '#1a237e';
             let gradColor = (window.RAW_DB_DATA && window.RAW_DB_DATA.color_gradient_end) ? window.RAW_DB_DATA.color_gradient_end : '#0d47a1';
             let contrastColor = getOOPContrastColor(primaryColor);
             
-            let html = '<table style="width: 100%; min-width: 900px; border-collapse: separate; border-spacing: 12px; text-align: center; font-family: \'Montserrat\', sans-serif;"><thead><tr>';
-            html += '<th style="background: #1a237e; color: white; padding: 15px; width: 100px; border-radius: 8px; font-weight: 800; letter-spacing: 1px; position: sticky; top: 0; z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">TIME / ORDER</th>';
+            let html = '<table style="width: 100%; min-width: 900px; border-collapse: separate; border-spacing: 8px; text-align: center; font-family: \'Montserrat\', sans-serif;"><thead><tr>';
+            html += `<th style="background: linear-gradient(135deg, ${primaryColor}, ${gradColor}); color: ${contrastColor}; padding: 12px; width: 90px; border-radius: 8px; font-weight: 800; letter-spacing: 1px; position: sticky; top: 0; z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">TIME / ORDER</th>`;
             
             for(let c = 0; c < oop.cols; c++) {
                 let cName = (oop.courtNames && oop.courtNames[c]) ? oop.courtNames[c] : `COURT ${c+1}`;
-                html += `<th style="background: #ffffff; color: #1a237e; padding: 15px; font-size: 16px; font-weight: 800; border-radius: 8px; position: sticky; top: 0; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.04); border-top: 4px solid #c5a880;">
+                html += `<th style="background: #ffffff; color: ${primaryColor}; padding: 12px; font-size: 15px; font-weight: 800; border-radius: 8px; position: sticky; top: 0; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.04); border-top: 4px solid ${gradColor};">
                             <input type="text" value="${safeHTML(cName)}" onchange="saveOOPCourtName(${c}, this.value)" style="width: 100%; text-align: center; border: none; background: transparent; color: inherit; font-family: inherit; font-size: inherit; font-weight: inherit; outline: none; text-transform: uppercase;">
                         </th>`;
             }
@@ -1517,10 +1523,10 @@
             for(let r = 0; r < oop.rows; r++) {
                 let timeVal = oop.times ? (oop.times[r] || '') : '';
                 html += `<tr>
-                    <td style="background: #263238; color: white; border-radius: 12px; padding: 12px 10px; vertical-align: middle; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <td style="background: #263238; color: white; border-radius: 12px; padding: 10px 8px; vertical-align: middle; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                         <div style="font-weight: 800; font-size: 10px; letter-spacing: 2px; opacity: 0.8; margin-bottom: 2px;">MATCH</div>
-                        <div style="font-weight: 900; font-size: 26px; margin-bottom: 10px; line-height: 1;">${r+1}</div>
-                        <input type="text" value="${safeHTML(timeVal)}" onchange="saveOOPTime(${r}, this.value)" placeholder="Time / NB" style="width: 90%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; text-align: center; font-size: 11px; padding: 8px; border-radius: 6px; font-style: italic; font-weight: 600; outline: none; transition: 0.2s;" onfocus="this.style.background='rgba(255,255,255,0.1)'">
+                        <div style="font-weight: 900; font-size: 24px; margin-bottom: 8px; line-height: 1;">${r+1}</div>
+                        <textarea onchange="saveOOPTime(${r}, this.value)" placeholder="Time / NB" style="width: 90%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; text-align: center; font-size: 10px; padding: 4px; border-radius: 6px; font-style: italic; font-weight: 600; outline: none; transition: 0.2s; resize: none; overflow: hidden; height: 34px; line-height: 1.2; font-family: inherit; display: block; margin: 0 auto;" onfocus="this.style.background='rgba(255,255,255,0.1)'">${safeHTML(timeVal)}</textarea>
                     </td>`;
                 
                 for(let c = 0; c < oop.cols; c++) {
@@ -1531,37 +1537,36 @@
                         let taDisplay = cellData.isManual ? cellData.ta : resolveOOPPointer(cellData.cat, cellData.ta);
                         let tbDisplay = cellData.isManual ? cellData.tb : resolveOOPPointer(cellData.cat, cellData.tb);
 
+                        // 🔥 KOREKSI: Font pemain diperbesar (14px) dan ditebalkan penuh (900)
                         let isPlaceholderA = taDisplay.includes('['); let isPlaceholderB = tbDisplay.includes('[');
-                        let styleTA = isPlaceholderA ? 'color:#9e9e9e; font-style:italic; font-weight:600;' : 'color:#1a237e; font-weight:800;';
-                        let styleTB = isPlaceholderB ? 'color:#9e9e9e; font-style:italic; font-weight:600;' : 'color:#1a237e; font-weight:800;';
+                        let styleTA = isPlaceholderA ? 'color:#9e9e9e; font-style:italic; font-weight:700;' : 'color:#222222; font-weight:900;';
+                        let styleTB = isPlaceholderB ? 'color:#9e9e9e; font-style:italic; font-weight:700;' : 'color:#222222; font-weight:900;';
                         let iconA = isPlaceholderA ? '⏳ ' : ''; let iconB = isPlaceholderB ? '⏳ ' : '';
 
                         html += `
                         <td style="background: #ffffff; border-radius: 12px; padding: 0; vertical-align: top; box-shadow: 0 6px 15px rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border: 1px solid #f5f5f5;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.08)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 6px 15px rgba(0,0,0,0.04)'" onclick="openOOPModal(${r}, ${c})">
-                            <div style="background: linear-gradient(135deg, ${primaryColor}, ${gradColor}); color: ${contrastColor}; padding: 8px 10px; border-radius: 12px 12px 0 0; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">
+                            <div style="background: linear-gradient(135deg, ${primaryColor}, ${gradColor}); color: ${contrastColor}; padding: 6px 8px; border-radius: 12px 12px 0 0; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">
                                 ${safeHTML(cellData.cat)}
                             </div>
-                            <div style="padding: 15px 12px;">
-                                <div style="font-size: 11px; font-weight: 800; color: #c5a880; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1.5px;">
+                            <div style="padding: 10px;">
+                                <div style="font-size: 11px; font-weight: 800; color: ${primaryColor}; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1.5px;">
                                     ${safeHTML(cellData.round)}
                                 </div>
-                                <div style="font-size: 13px; ${styleTA}; margin-bottom: 8px; line-height: 1.3;">
+                                <div style="font-size: 14px; ${styleTA}; margin-bottom: 4px; line-height: 1.2;">
                                     ${iconA}${safeHTML(taDisplay)}
                                 </div>
-                                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin: 12px 0;">
-                                    <div style="flex: 1; height: 1px; border-top: 1px dashed #e0e0e0;"></div>
+                                <div style="display: flex; align-items: center; justify-content: center; margin: 4px 0;">
                                     <div style="font-size: 10px; font-weight: 800; color: #bdbdbd; letter-spacing: 1px;">VS</div>
-                                    <div style="flex: 1; height: 1px; border-top: 1px dashed #e0e0e0;"></div>
                                 </div>
-                                <div style="font-size: 13px; ${styleTB}; margin-top: 8px; line-height: 1.3;">
+                                <div style="font-size: 14px; ${styleTB}; margin-top: 4px; line-height: 1.2;">
                                     ${iconB}${safeHTML(tbDisplay)}
                                 </div>
                             </div>
                         </td>`;
                     } else {
                         html += `
-                        <td style="background: transparent; padding: 10px; vertical-align: middle; cursor: pointer; transition: 0.2s;" onclick="openOOPModal(${r}, ${c})">
-                            <div style="height: 100%; min-height: 140px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #bdbdbd; background: #ffffff; border: 2px dashed #e0e0e0; border-radius: 12px; transition: 0.2s;" onmouseover="this.style.borderColor='#c5a880'; this.style.color='#c5a880'; this.style.background='#fffcf9';" onmouseout="this.style.borderColor='#e0e0e0'; this.style.background='#ffffff';">
+                        <td style="background: transparent; padding: 8px; vertical-align: middle; cursor: pointer; transition: 0.2s;" onclick="openOOPModal(${r}, ${c})">
+                            <div style="height: 100%; min-height: 110px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #bdbdbd; background: #ffffff; border: 2px dashed #e0e0e0; border-radius: 12px; transition: 0.2s;" onmouseover="this.style.borderColor='${gradColor}'; this.style.color='${primaryColor}'; this.style.background='#fffcf9';" onmouseout="this.style.borderColor='#e0e0e0'; this.style.background='#ffffff';">
                                 + KLIK ISI JADWAL
                             </div>
                         </td>`;
@@ -1571,12 +1576,10 @@
             }
             html += '</tbody></table>';
 
-            // 🔥 RENDER FOOTER CETAK (OPSIONAL)
             let set = window.GLOBAL_OOP_DATA.settings || {};
             let publishTime = new Date().toLocaleString('id-ID', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'});
 
             html += `<div style="margin-top: 30px; padding-top: 15px; display: flex; justify-content: space-between; align-items: flex-end; text-align: left; font-family: 'Montserrat', sans-serif;">`;
-            
             html += `<div style="max-width: 60%;">`;
             if (set.notes && set.notes.trim() !== '') {
                 html += `<div style="font-size: 10px; font-weight: 800; color: #c62828; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">⚠️ DISCLAIMER / NOTES</div>
@@ -1588,7 +1591,7 @@
             if (set.referee && set.referee.trim() !== '') {
                 html += `<div style="text-align: right; min-width: 200px;">
                             <div style="font-size: 10px; font-weight: 800; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 30px;">TOURNAMENT DIRECTOR</div>
-                            <div style="font-size: 14px; font-weight: 900; color: #1a237e; border-bottom: 1px solid #ccc; padding-bottom: 5px;">${safeHTML(set.referee)}</div>
+                            <div style="font-size: 14px; font-weight: 900; color: #222222; border-bottom: 1px solid #ccc; padding-bottom: 5px;">${safeHTML(set.referee)}</div>
                         </div>`;
             }
             html += `</div>`;
