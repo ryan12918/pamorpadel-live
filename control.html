@@ -293,25 +293,31 @@
             </div>
 
 <div id="view-group" class="view-section">
-                <div class="toolbar" style="background: white; padding: 12px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px;">
-                    <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
-                        <b style="color: #1a237e; font-size: 14px;">🗂️ MATRIKS GROUP STAGE</b>
-                        <span id="group-save-status" style="font-size: 11px; font-weight: 800; margin-left: 10px; display: none;"></span>
-                        
-                        <select id="group-cat-select" class="form-control" style="width: 220px; font-weight: bold; margin-left: auto; cursor: pointer; background: #e8eaf6; border: 1px solid #c5cae9;" onchange="renderGroupMatrix()">
-                        </select>
-                        <div id="group-action-btns" style="display: flex; gap: 5px;">
-                            <button class="btn-action btn-blue" style="font-size: 10px; padding: 6px 10px;" onclick="addGroup()">+ GRUP</button>
-                            <button class="btn-action btn-red" style="font-size: 10px; padding: 6px 10px;" onclick="popGroup()">- GRUP</button>
-                            <button class="btn-action btn-green" style="font-size: 10px; padding: 6px 10px;" onclick="addSlot()">+ SLOT</button>
-                            <button class="btn-action btn-red" style="font-size: 10px; padding: 6px 10px;" onclick="popSlot()">- SLOT</button>
+                <div style="display: flex; flex-direction: column; height: 100%; padding: 10px;">
+                    <div class="toolbar" style="background: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px; border: 1px solid #f0f0f0; flex-shrink: 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                            <b style="color: #222222; font-size: 16px; font-weight: 900; letter-spacing: 1px;">🗂️ GROUP STAGE</b>
+                            <span id="group-save-status" style="font-size: 11px; font-weight: 800; margin-left: 10px; display: none;"></span>
+                            
+                            <input type="text" id="group-input-notes" class="form-control" placeholder="📝 Ketik Regulasi Grup (Misal: Hanya Juara yang lolos)" style="font-size: 11px; width: 350px; font-weight: 600; color: #555; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; margin-left: auto; font-style: italic;" oninput="saveGroupNotes()">
+
+                            <select id="group-cat-select" class="form-control" style="width: 200px; font-weight: bold; cursor: pointer; background: #e8eaf6; border: 1px solid #c5cae9; color: #1a237e;" onchange="renderGroupMatrix()">
+                            </select>
+                            <div id="group-action-btns" style="display: flex; gap: 5px;">
+                                <button class="btn-action btn-blue" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="addGroup()">+ GRUP</button>
+                                <button class="btn-action btn-red" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="popGroup()">- GRUP</button>
+                                <button class="btn-action btn-green" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="addSlot()">+ SLOT</button>
+                                <button class="btn-action btn-red" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="popSlot()">- SLOT</button>
+                            </div>
+                        </div>
+                    </div>
+                    <datalist id="list-pemain-grup"></datalist>
+
+                    <div id="group-matrix-wrapper" style="flex: 1; overflow-y: auto; overflow-x: hidden; background: #fdfdfd; border-radius: 12px; padding: 20px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.02); border: 1px solid #f0f0f0;">
+                        <div id="group-matrix-container" style="display: flex; flex-direction: column; width: 100%;">
                         </div>
                     </div>
                 </div>
-		<datalist id="list-pemain-grup"></datalist>
-
-                <div id="group-matrix-container" class="table-wrap" style="background: transparent; box-shadow: none; padding: 0; display: flex; gap: 15px; overflow-x: auto; align-items: flex-start; height: 100%; padding-bottom: 20px;">
-                    </div>
             </div>
 
             <div id="view-oop" class="view-section">
@@ -321,11 +327,11 @@
                             <div>
                                 <h2 id="oop-dynamic-title" style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 900; color: #222222; letter-spacing: 1px; font-size: 22px; text-transform: uppercase;">ORDER OF PLAY</h2>
                                 <div style="display: flex; gap: 10px; margin-top: 8px;">
-                                    <input type="text" id="oop-input-location" class="form-control" placeholder="📍 Ketik Lokasi (Misal: Padel Pro Arena)" style="font-size: 11px; width: 200px; font-weight: 600; color: #555; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px;" onchange="saveOOPSettings()">
-                                    <input type="text" id="oop-input-referee" class="form-control" placeholder="👤 Tournament Director (Opsional)" style="font-size: 11px; width: 200px; font-weight: 600; color: #555; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px;" onchange="saveOOPSettings()">
+                                    <input type="text" id="oop-input-location" class="form-control" placeholder="📍 Ketik Lokasi (Misal: Padel Pro Arena)" style="font-size: 11px; width: 200px; font-weight: 600; color: #555; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px;" oninput="saveOOPSettings()">
+                                    <input type="text" id="oop-input-referee" class="form-control" placeholder="👤 Tournament Director (Opsional)" style="font-size: 11px; width: 200px; font-weight: 600; color: #555; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px;" oninput="saveOOPSettings()">
                                 </div>
                                 <div style="margin-top: 8px;">
-                                    <input type="text" id="oop-input-notes" class="form-control" placeholder="📝 Ketik Disclaimer / Catatan (Opsional - Kosongkan jika tidak perlu)" style="font-size: 11px; width: 410px; font-style: italic; color: #777; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px;" onchange="saveOOPSettings()">
+                                    <input type="text" id="oop-input-notes" class="form-control" placeholder="📝 Ketik Disclaimer / Catatan (Opsional - Kosongkan jika tidak perlu)" style="font-size: 11px; width: 410px; font-style: italic; color: #777; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px;" oninput="saveOOPSettings()">
                                 </div>
                             </div>
                             <div style="text-align: right; padding-top: 5px;">
@@ -1171,20 +1177,34 @@
             const actionBtns = document.getElementById('group-action-btns');
             if(!cat) return;
 
+            let primaryColor = (window.RAW_DB_DATA && window.RAW_DB_DATA.color_primary) ? window.RAW_DB_DATA.color_primary : '#1a237e';
+            let gradColor = (window.RAW_DB_DATA && window.RAW_DB_DATA.color_gradient_end) ? window.RAW_DB_DATA.color_gradient_end : '#0d47a1';
+            let contrastColor = getOOPContrastColor(primaryColor);
+            
+            let set = (window.GLOBAL_OOP_DATA && window.GLOBAL_OOP_DATA.settings) ? window.GLOBAL_OOP_DATA.settings : {};
+            let eventName = (window.RAW_DB_DATA && window.RAW_DB_DATA.event_name) ? window.RAW_DB_DATA.event_name : "TURNAMEN";
+            let locText = set.location ? `<div style="font-size: 11px; font-weight: 600; color: #555; margin-top: 4px;">📍 ${safeHTML(set.location)}</div>` : '';
+
+            let docHeader = `
+                <div style="width: 100%; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 20px; flex-shrink: 0;">
+                    <h2 style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 900; color: #222222; letter-spacing: 1px; font-size: 22px; text-transform: uppercase;">MATRIKS GRUP - ${safeHTML(eventName)}</h2>
+                    ${locText}
+                </div>
+            `;
+
             if (cat === 'ALL') {
                 if(actionBtns) actionBtns.style.display = 'none'; 
-                container.style.overflowY = 'auto'; 
-                container.style.flexDirection = 'column';
                 let allCats = Array.from(document.getElementById('group-cat-select').options).map(opt => opt.value).filter(v => v !== 'ALL' && v !== '');
-                let html = '';
-                allCats.forEach(cName => { html += buildCategoryMatrixHTML(cName, true); });
-                container.innerHTML = `<div style="display:flex; flex-direction:column; gap:25px; width:100%; padding-bottom:120px;">${html}</div>`;
+                
+                let html = docHeader;
+                allCats.forEach(cName => { html += buildCategoryMatrixHTML(cName, true, primaryColor, gradColor, contrastColor); });
+                html += buildGroupFooter(set);
+                
+                container.innerHTML = html;
                 return;
             }
 
             if(actionBtns) actionBtns.style.display = 'flex';
-            container.style.overflowY = 'hidden'; 
-            container.style.flexDirection = 'row';
             
             if(!window.GLOBAL_GROUP_DATA[cat]) {
                 window.GLOBAL_GROUP_DATA[cat] = [
@@ -1193,18 +1213,48 @@
                 ];
                 triggerGroupSave();
             }
-            container.innerHTML = buildCategoryMatrixHTML(cat, false);
+            
+            let html = docHeader;
+            html += buildCategoryMatrixHTML(cat, false, primaryColor, gradColor, contrastColor);
+            html += buildGroupFooter(set);
+            
+            container.innerHTML = html;
         }
 
-        function buildCategoryMatrixHTML(catName, isAllMode) {
+        function buildGroupFooter(set) {
+            let publishTime = new Date().toLocaleString('id-ID', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'});
+            // 🔥 KOREKSI: Lebar dipatok 100% dan ditambahkan border-top agar memisah dari area grup
+            let html = `<div style="margin-top: 30px; padding-top: 15px; display: flex; justify-content: space-between; align-items: flex-end; text-align: left; font-family: 'Montserrat', sans-serif; width: 100%; border-top: 1px solid #f0f0f0;">`;
+            
+            html += `<div style="max-width: 60%;">`;
+            // 🔥 KOREKSI: Gunakan groupNotes, bukan notes dari OOP
+            let gNotes = set.groupNotes || '';
+            if (gNotes.trim() !== '') {
+                html += `<div style="font-size: 10px; font-weight: 800; color: #c62828; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">⚠️ REGULASI / CATATAN KHUSUS</div>
+                         <div style="font-size: 11px; color: #555; font-weight: 600; font-style: italic; line-height: 1.4;">${safeHTML(gNotes)}</div>`;
+            }
+            html += `<div style="font-size: 9px; color: #999; margin-top: 10px; font-weight: 700;">Last Updated: ${publishTime}</div>`;
+            html += `</div>`;
+
+            if (set.referee && set.referee.trim() !== '') {
+                html += `<div style="text-align: right; min-width: 200px;">
+                            <div style="font-size: 10px; font-weight: 800; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 30px;">TOURNAMENT DIRECTOR</div>
+                            <div style="font-size: 14px; font-weight: 900; color: #222222; border-bottom: 1px solid #ccc; padding-bottom: 5px;">${safeHTML(set.referee)}</div>
+                        </div>`;
+            }
+            html += `</div>`;
+            return html;
+        }
+
+        function buildCategoryMatrixHTML(catName, isAllMode, pColor, gColor, cColor) {
             let groups = window.GLOBAL_GROUP_DATA[catName] || [];
             if(groups.length === 0 && isAllMode) return ''; 
 
             let html = '';
             if (isAllMode) {
                 html += `
-                <div style="width:100%; border-bottom:3px solid #1a237e; padding-bottom:5px; margin-bottom:10px;">
-                    <b style="font-size:16px; color:#1a237e; text-transform:uppercase;">🏆 KATEGORI: ${safeHTML(catName)}</b>
+                <div style="width:100%; border-bottom:3px solid ${gColor}; padding-bottom:5px; margin-bottom:15px; margin-top:15px;">
+                    <b style="font-size:16px; color:${gColor}; text-transform:uppercase; font-weight:900;">🏆 KATEGORI: ${safeHTML(catName)}</b>
                 </div>`;
             }
 
@@ -1213,21 +1263,23 @@
             groups.forEach((g, gIndex) => {
                 let slotsHtml = '';
                 g.teams.forEach((team, tIndex) => {
-                    // 🔥 SENSOR SMART DROPDOWN DIPASANG DI SINI
+                    // 🔥 KOREKSI ESTETIKA: Tampilan Slot Pemain lebih mewah dan profesional
                     slotsHtml += `<input type="text" class="form-control group-slot-input" placeholder="Slot ${tIndex+1}" value="${safeHTML(team)}" 
                     onfocus="openSmartDropdown(this, '${safeJS(catName)}', ${gIndex}, ${tIndex})" 
                     onkeyup="filterSmartDropdown(this.value)"
                     oninput="updateGroupSlot('${safeJS(catName)}', ${gIndex}, ${tIndex}, this.value)" 
-                    style="font-weight: bold; text-align: center; border: 1px dashed #aaa; color: #1a237e; font-size: 11px; padding: 8px 4px;" ${isAllMode ? 'readonly' : ''}>`;
+                    style="font-weight: 800; text-align: center; border: 1px solid #e0e0e0; background: #fdfdfd; color: #222222; font-size: 12px; padding: 10px 6px; border-radius: 6px; transition: 0.2s;" 
+                    onmouseover="this.style.borderColor='${gColor}'" onmouseout="this.style.borderColor='#e0e0e0'"
+                    ${isAllMode ? 'readonly' : ''}>`;
                 });
 
                 html += `
-                <div style="min-width: 300px; background: white; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; position: relative;">
-                    <div style="background: #1a237e; color: white; padding: 12px; text-align: center; display: flex; align-items: center; justify-content: center;">
-                        <input type="text" value="${safeHTML(g.name)}" oninput="updateGroupName('${safeJS(catName)}', ${gIndex}, this.value)" style="background: transparent; border: none; color: white; font-weight: 900; text-align: center; font-size: 14px; outline: none; letter-spacing: 1px; width: 80%;" ${isAllMode ? 'readonly' : ''}>
-                        <button onclick="removeGroup('${safeJS(catName)}', ${gIndex})" style="position: absolute; right: 8px; top: 12px; background: #c62828; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; padding: 3px 6px;" title="Hapus Grup" ${isAllMode ? 'style="display:none;"' : ''}>✕</button>
+                <div style="min-width: 280px; background: white; border: 1px solid #eee; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.04); overflow: hidden; position: relative;">
+                    <div style="background: linear-gradient(135deg, ${pColor}, ${gColor}); color: ${cColor}; padding: 12px; text-align: center; display: flex; align-items: center; justify-content: center;">
+                        <input type="text" value="${safeHTML(g.name)}" oninput="updateGroupName('${safeJS(catName)}', ${gIndex}, this.value)" style="background: transparent; border: none; color: inherit; font-weight: 900; text-align: center; font-size: 14px; outline: none; letter-spacing: 1px; width: 80%; text-transform: uppercase;" ${isAllMode ? 'readonly' : ''}>
+                        <button onclick="removeGroup('${safeJS(catName)}', ${gIndex})" style="position: absolute; right: 10px; top: 12px; background: rgba(0,0,0,0.2); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; padding: 4px 8px; transition: 0.2s;" onmouseover="this.style.background='#c62828'" onmouseout="this.style.background='rgba(0,0,0,0.2)'" title="Hapus Grup" ${isAllMode ? 'style="display:none;"' : ''}>✕</button>
                     </div>
-                    <div style="padding: 15px; display: flex; flex-direction: column; gap: 10px; background: #fafafa;">
+                    <div style="padding: 15px; display: flex; flex-direction: column; gap: 8px; background: #ffffff;">
                         ${slotsHtml}
                     </div>
                 </div>`;
@@ -1415,6 +1467,8 @@
             document.getElementById('oop-input-location').value = window.GLOBAL_OOP_DATA.settings.location || '';
             document.getElementById('oop-input-referee').value = window.GLOBAL_OOP_DATA.settings.referee || '';
             document.getElementById('oop-input-notes').value = window.GLOBAL_OOP_DATA.settings.notes || '';
+            // 🔥 SUNTIKAN: Recovery Catatan Grup
+            if(document.getElementById('group-input-notes')) document.getElementById('group-input-notes').value = window.GLOBAL_OOP_DATA.settings.groupNotes || '';
             
             // 🔥 OTOMATISASI JUDUL TURNAMEN
             const oopTitle = document.getElementById('oop-dynamic-title');
@@ -1426,12 +1480,22 @@
             renderOOPMatrix();
         }
 
-        function saveOOPSettings() {
+        // 🔥 SUNTIKAN: Mesin penyimpan khusus untuk Catatan Grup
+        function saveGroupNotes() {
+            if(!window.GLOBAL_OOP_DATA.settings) window.GLOBAL_OOP_DATA.settings = {};
+            window.GLOBAL_OOP_DATA.settings.groupNotes = document.getElementById('group-input-notes').value;
+            triggerOOPSave(); 
+            if(typeof renderGroupMatrix === 'function') renderGroupMatrix(); 
+        }
+
+function saveOOPSettings() {
             if(!window.GLOBAL_OOP_DATA.settings) window.GLOBAL_OOP_DATA.settings = {};
             window.GLOBAL_OOP_DATA.settings.location = document.getElementById('oop-input-location').value;
             window.GLOBAL_OOP_DATA.settings.referee = document.getElementById('oop-input-referee').value;
             window.GLOBAL_OOP_DATA.settings.notes = document.getElementById('oop-input-notes').value;
-            renderOOPMatrix(); triggerOOPSave();
+            renderOOPMatrix(); 
+            if(typeof renderGroupMatrix === 'function') renderGroupMatrix();
+            triggerOOPSave();
         }
 
         function renderOOPTabs() {
@@ -1514,7 +1578,7 @@
             
             for(let c = 0; c < oop.cols; c++) {
                 let cName = (oop.courtNames && oop.courtNames[c]) ? oop.courtNames[c] : `COURT ${c+1}`;
-                html += `<th style="background: #ffffff; color: ${primaryColor}; padding: 12px; font-size: 15px; font-weight: 800; border-radius: 8px; position: sticky; top: 0; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.04); border-top: 4px solid ${gradColor};">
+                html += `<th style="background: #ffffff; color: ${gradColor}; padding: 12px; font-size: 15px; font-weight: 800; border-radius: 8px; position: sticky; top: 0; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.04); border-top: 4px solid ${gradColor};">
                             <input type="text" value="${safeHTML(cName)}" onchange="saveOOPCourtName(${c}, this.value)" style="width: 100%; text-align: center; border: none; background: transparent; color: inherit; font-family: inherit; font-size: inherit; font-weight: inherit; outline: none; text-transform: uppercase;">
                         </th>`;
             }
@@ -1549,7 +1613,7 @@
                                 ${safeHTML(cellData.cat)}
                             </div>
                             <div style="padding: 10px;">
-                                <div style="font-size: 11px; font-weight: 800; color: ${primaryColor}; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1.5px;">
+                                <div style="font-size: 11px; font-weight: 800; color: ${gradColor}; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1.5px;">
                                     ${safeHTML(cellData.round)}
                                 </div>
                                 <div style="font-size: 14px; ${styleTA}; margin-bottom: 4px; line-height: 1.2;">
@@ -1846,8 +1910,10 @@
 
             updateBrandingPreview();
             updateTVPreview(); 
+            
+            // 🔥 KOREKSI URUTAN: OOP harus nyala duluan agar Group Stage bisa mencuri datanya
+            initOOP(d); 
             initGroupStage(d);
-            initOOP(d); // 🚀 PENGAPIAN MESIN OOP
             
             // 🔥 RECOVERY TAB MENU (Ingatan Refresh)
             let savedTab = sessionStorage.getItem('activeCockpitTab');
@@ -2401,9 +2467,21 @@
                 title_size: get('s-title-size'), sub_size: get('s-sub-size'), logo_size: get('s-logo-size'), logo_opacity: get('s-logo-opacity'), logo_x: get('s-logo-x'), logo_y: get('s-logo-y'),
                 color_primary: get('s-col-h1'), color_gradient_end: get('s-col-h2'), color_bg: get('s-col-bg'), color_neon: get('s-neon'), card_preset: get('s-card-preset'), rules_text: document.getElementById('rich-editor').innerHTML
             };
+            
+            // 🔥 SUNTIKAN 1: Update memori lokal aplikasi seketika!
+            if(window.RAW_DB_DATA) Object.assign(window.RAW_DB_DATA, pl);
+
             const { error } = await db.from('partners').update(pl).eq('tournament_id', ACTIVE_ID);
-            if (error) { alert("GAGAL MENYIMPAN! ❌\nError: " + error.message); } 
-            else { alert("Pengaturan Berhasil Disimpan! ✅"); }
+            
+            if (error) { 
+                alert("GAGAL MENYIMPAN! ❌\nError: " + error.message); 
+            } else { 
+                alert("Pengaturan Berhasil Disimpan! ✅"); 
+                // 🔥 SUNTIKAN 2: Sinyal Repaint (Melukis Ulang) OOP dan Group Stage!
+                if(typeof renderOOPTabs === 'function') renderOOPTabs();
+                if(typeof renderOOPMatrix === 'function') renderOOPMatrix();
+                if(typeof renderGroupMatrix === 'function') renderGroupMatrix();
+            }
         }
 
         function switchTab(t, btn) { 
