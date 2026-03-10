@@ -623,7 +623,8 @@
                 </div>
                 <div class="form-group" style="grid-column: span 2;">
                     <label>Babak</label>
-                    <input type="text" id="oop-round" class="form-control" placeholder="Ketik Babak (Misal: Grup A / Quarter Final)" style="font-weight:bold;">
+                    <input type="text" id="oop-round" list="sugesti-babak" class="form-control" placeholder="Pilih atau Ketik Babak (Misal: QUARTER FINAL 1)" style="font-weight:bold;">
+                    <datalist id="sugesti-babak"></datalist>
                 </div>
             </div>
             
@@ -1753,49 +1754,90 @@ function saveOOPSettings() {
         function updateOOPTeamOptions() {
             let cat = document.getElementById('oop-cat').value;
             let taSel = document.getElementById('oop-ta-sel'); let tbSel = document.getElementById('oop-tb-sel');
+            let roundDatalist = document.getElementById('sugesti-babak');
             let html = '<option value="">-- Pilih Tim atau Tiket Placeholder --</option>';
             
-            if(cat && window.GLOBAL_GROUP_DATA[cat]) {
-                // 1. DAFTAR PEMAIN ASLI DARI GRUP
-                html += `<optgroup label="👥 PEMAIN FASE GRUP">`;
-                window.GLOBAL_GROUP_DATA[cat].forEach((g) => {
-                    g.teams.forEach((t, tIndex) => {
-                        let pointerStr = `[${g.name}] Slot ${tIndex+1}`;
-                        let displayLabel = t.trim() !== '' ? `${pointerStr} - ${t}` : pointerStr;
-                        html += `<option value="${safeHTML(pointerStr)}">${safeHTML(displayLabel)}</option>`;
-                    });
-                });
-                html += `</optgroup>`;
-
-                // 2. BALOK LEGO: TIKET JUARA GRUP OTOMATIS
-                html += `<optgroup label="🏆 TIKET UTAMA GRUP">`;
-                window.GLOBAL_GROUP_DATA[cat].forEach((g) => {
-                    html += `<option value="[Juara ${safeHTML(g.name)}]">[Juara ${safeHTML(g.name)}]</option>`;
-                    html += `<option value="[Runner-Up ${safeHTML(g.name)}]">[Runner-Up ${safeHTML(g.name)}]</option>`;
-                });
-                html += `</optgroup>`;
-
-                // 3. BALOK LEGO: TIKET WILDCARD
-                html += `<optgroup label="🌟 TIKET WILDCARD / TERBAIK">`;
-                html += `<option value="[Best Runner-Up 1]">[Best Runner-Up 1]</option>`;
-                html += `<option value="[Best Runner-Up 2]">[Best Runner-Up 2]</option>`;
-                html += `<option value="[Best Runner-Up 3]">[Best Runner-Up 3]</option>`;
-                html += `<option value="[Best 3rd Place 1]">[Best 3rd Place 1]</option>`;
-                html += `<option value="[Best 3rd Place 2]">[Best 3rd Place 2]</option>`;
-                html += `</optgroup>`;
-
-                // 4. BALOK LEGO: TIKET PEMENANG BABAK GUGUR
-                html += `<optgroup label="⚔️ TIKET BABAK SELANJUTNYA">`;
-                for(let i=1; i<=8; i++) html += `<option value="[Pemenang R16 - Match ${i}]">[Pemenang R16 - Match ${i}]</option>`;
-                for(let i=1; i<=4; i++) html += `<option value="[Pemenang QF ${i}]">[Pemenang QF ${i}]</option>`;
-                for(let i=1; i<=2; i++) html += `<option value="[Pemenang SF ${i}]">[Pemenang SF ${i}]</option>`;
-                for(let i=1; i<=2; i++) html += `<option value="[Kalah SF ${i}]">[Kalah SF ${i}] (Perebutan Juara 3)</option>`;
-                html += `</optgroup>`;
+            if(!cat || !window.GLOBAL_GROUP_DATA[cat]) {
+                taSel.innerHTML = html; tbSel.innerHTML = html;
+                if(roundDatalist) roundDatalist.innerHTML = '';
+                populateMatchBank(cat);
+                return;
             }
+
+            // 🛡️ RADAR DETEKTIF: Kumpulkan semua Babak dan Tim yang SUDAH TERJADWAL
+            let scheduledTeams = [];
+            let scheduledRounds = [];
+            let days = window.GLOBAL_OOP_DATA.days;
+            for (let d in days) {
+                let cells = days[d].cells;
+                for (let k in cells) {
+                    let c = cells[k];
+                    if (c.cat === cat && c.ta && c.tb) {
+                        scheduledTeams.push(c.ta.trim());
+                        scheduledTeams.push(c.tb.trim());
+                        if(c.round) scheduledRounds.push(c.round.trim().toUpperCase());
+                    }
+                }
+            }
+
+            // 1. CETAK DATALIST BABAK (Hanya yang belum dipakai)
+            let allRounds = [
+                "ROUND OF 16 - MATCH 1", "ROUND OF 16 - MATCH 2", "ROUND OF 16 - MATCH 3", "ROUND OF 16 - MATCH 4",
+                "ROUND OF 16 - MATCH 5", "ROUND OF 16 - MATCH 6", "ROUND OF 16 - MATCH 7", "ROUND OF 16 - MATCH 8",
+                "QUARTER FINAL 1", "QUARTER FINAL 2", "QUARTER FINAL 3", "QUARTER FINAL 4",
+                "SEMI FINAL 1", "SEMI FINAL 2",
+                "3RD PLACE MATCH", "GRAND FINAL"
+            ];
+            let datalistHtml = '';
+            allRounds.forEach(r => {
+                if(!scheduledRounds.includes(r)) datalistHtml += `<option value="${r}">`;
+            });
+            if(roundDatalist) roundDatalist.innerHTML = datalistHtml;
+
+            // 2. CETAK DROPDOWN TIM A & B
+            html += `<optgroup label="👥 PEMAIN FASE GRUP">`;
+            window.GLOBAL_GROUP_DATA[cat].forEach((g) => {
+                g.teams.forEach((t, tIndex) => {
+                    let pointerStr = `[${g.name}] Slot ${tIndex+1}`;
+                    let displayLabel = t.trim() !== '' ? `${pointerStr} - ${t}` : pointerStr;
+                    html += `<option value="${safeHTML(pointerStr)}">${safeHTML(displayLabel)}</option>`;
+                });
+            });
+            html += `</optgroup>`;
+
+            html += `<optgroup label="🏆 TIKET UTAMA GRUP">`;
+            window.GLOBAL_GROUP_DATA[cat].forEach((g) => {
+                let j = `[Juara ${g.name}]`; let ru = `[Runner-Up ${g.name}]`;
+                if(!scheduledTeams.includes(j)) html += `<option value="${safeHTML(j)}">${safeHTML(j)}</option>`;
+                if(!scheduledTeams.includes(ru)) html += `<option value="${safeHTML(ru)}">${safeHTML(ru)}</option>`;
+            });
+            html += `</optgroup>`;
+
+            html += `<optgroup label="🌟 TIKET WILDCARD / TERBAIK">`;
+            let wildcards = ["[Best Runner-Up 1]", "[Best Runner-Up 2]", "[Best Runner-Up 3]", "[Best 3rd Place 1]", "[Best 3rd Place 2]"];
+            wildcards.forEach(w => {
+                if(!scheduledTeams.includes(w)) html += `<option value="${w}">${w}</option>`;
+            });
+            html += `</optgroup>`;
+
+            html += `<optgroup label="⚔️ TIKET BABAK SELANJUTNYA">`;
+            let knockoutTickets = [];
+            for(let i=1; i<=8; i++) knockoutTickets.push(`[Pemenang ROUND OF 16 - MATCH ${i}]`);
+            for(let i=1; i<=4; i++) knockoutTickets.push(`[Pemenang QUARTER FINAL ${i}]`);
+            for(let i=1; i<=2; i++) knockoutTickets.push(`[Pemenang SEMI FINAL ${i}]`);
+            knockoutTickets.push(`[Kalah SEMI FINAL 1]`);
+            knockoutTickets.push(`[Kalah SEMI FINAL 2]`);
+            
+            knockoutTickets.forEach(k => {
+                if(!scheduledTeams.includes(k)) {
+                    let label = k.includes("Kalah") ? `${k} (Perebutan Juara 3)` : k;
+                    html += `<option value="${k}">${label}</option>`;
+                }
+            });
+            html += `</optgroup>`;
             
             taSel.innerHTML = html; tbSel.innerHTML = html;
-            
-            populateMatchBank(cat); // 🔥 PANGGIL PABRIK JADWAL
+            populateMatchBank(cat); 
         }
 
         // 🔥 MESIN PABRIK JADWAL + RADAR ANTI-DOUBLE
