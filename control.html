@@ -319,9 +319,13 @@
                     <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px; border: 1px solid #f0f0f0; flex-shrink: 0;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #f8f9fa; padding-bottom: 15px; margin-bottom: 15px; position: relative;">
                             <div>
-                                <h2 style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 800; color: #1a237e; letter-spacing: 1.5px; font-size: 24px;">ORDER OF PLAY</h2>
+                                <h2 id="oop-dynamic-title" style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 900; color: #1a237e; letter-spacing: 1px; font-size: 22px; text-transform: uppercase;">ORDER OF PLAY</h2>
                                 <div style="display: flex; gap: 10px; margin-top: 8px;">
-                                    <input type="text" id="oop-input-location" class="form-control" placeholder="📍 Ketik Lokasi (Misal: Padel Pro Arena)" style="font-size: 12px; width: 280px; font-weight: 600; color: #555; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px;">
+                                    <input type="text" id="oop-input-location" class="form-control" placeholder="📍 Ketik Lokasi (Misal: Padel Pro Arena)" style="font-size: 11px; width: 200px; font-weight: 600; color: #555; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px;" onchange="saveOOPSettings()">
+                                    <input type="text" id="oop-input-referee" class="form-control" placeholder="👤 Tournament Director (Opsional)" style="font-size: 11px; width: 200px; font-weight: 600; color: #555; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px;" onchange="saveOOPSettings()">
+                                </div>
+                                <div style="margin-top: 8px;">
+                                    <input type="text" id="oop-input-notes" class="form-control" placeholder="📝 Ketik Disclaimer / Catatan (Opsional - Kosongkan jika tidak perlu)" style="font-size: 11px; width: 410px; font-style: italic; color: #777; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px;" onchange="saveOOPSettings()">
                                 </div>
                             </div>
                             <div style="text-align: right; padding-top: 5px;">
@@ -1401,8 +1405,33 @@
                     else { window.GLOBAL_OOP_DATA = { activeDay: 1, days: { 1: { title: "Day 1", cols: parsed.cols || 3, rows: parsed.rows || 3, cells: parsed.cells || {}, times: {} } } }; }
                 } else { window.GLOBAL_OOP_DATA = { activeDay: 1, days: { 1: { title: "Day 1", cols: 3, rows: 3, cells: {}, times: {} } } }; }
             } catch(e) { window.GLOBAL_OOP_DATA = { activeDay: 1, days: { 1: { title: "Day 1", cols: 3, rows: 3, cells: {}, times: {} } } }; }
+            
+            // 🔥 RECOVERY TAB HARI (Ingatan Refresh)
+            let savedDay = sessionStorage.getItem('activeOOPDay');
+            if (savedDay && window.GLOBAL_OOP_DATA.days[savedDay]) { window.GLOBAL_OOP_DATA.activeDay = parseInt(savedDay); }
+            
+            // 🔥 RECOVERY SETTINGS (Lokasi, Wasit, Catatan)
+            if(!window.GLOBAL_OOP_DATA.settings) window.GLOBAL_OOP_DATA.settings = { location: '', referee: '', notes: '' };
+            document.getElementById('oop-input-location').value = window.GLOBAL_OOP_DATA.settings.location || '';
+            document.getElementById('oop-input-referee').value = window.GLOBAL_OOP_DATA.settings.referee || '';
+            document.getElementById('oop-input-notes').value = window.GLOBAL_OOP_DATA.settings.notes || '';
+            
+            // 🔥 OTOMATISASI JUDUL TURNAMEN
+            const oopTitle = document.getElementById('oop-dynamic-title');
+            if(oopTitle && window.RAW_DB_DATA && window.RAW_DB_DATA.event_name) {
+                oopTitle.innerText = "ORDER OF PLAY - " + window.RAW_DB_DATA.event_name;
+            }
+
             renderOOPTabs();
             renderOOPMatrix();
+        }
+
+        function saveOOPSettings() {
+            if(!window.GLOBAL_OOP_DATA.settings) window.GLOBAL_OOP_DATA.settings = {};
+            window.GLOBAL_OOP_DATA.settings.location = document.getElementById('oop-input-location').value;
+            window.GLOBAL_OOP_DATA.settings.referee = document.getElementById('oop-input-referee').value;
+            window.GLOBAL_OOP_DATA.settings.notes = document.getElementById('oop-input-notes').value;
+            renderOOPMatrix(); triggerOOPSave();
         }
 
         function renderOOPTabs() {
@@ -1425,7 +1454,12 @@
             container.innerHTML = html;
         }
 
-        function switchOOPDay(dayStr) { window.GLOBAL_OOP_DATA.activeDay = parseInt(dayStr); renderOOPTabs(); renderOOPMatrix(); }
+        function switchOOPDay(dayStr) { 
+            window.GLOBAL_OOP_DATA.activeDay = parseInt(dayStr); 
+            sessionStorage.setItem('activeOOPDay', dayStr); // 🔥 Simpan Ingatan Hari
+            renderOOPTabs(); renderOOPMatrix(); 
+        }
+        
         function updateOOPDayTitle(dayStr, val) { window.GLOBAL_OOP_DATA.days[dayStr].title = val; triggerOOPSave(); }
         function addOOPDay() {
             let newDay = 1; while(window.GLOBAL_OOP_DATA.days[newDay]) newDay++;
@@ -1445,20 +1479,16 @@
             if(!oop.times) oop.times = {}; oop.times[r] = val; triggerOOPSave();
         }
 
-        // 🔥 FITUR BARU: Simpan Nama Court Custom
         function saveOOPCourtName(c, val) {
             let oop = window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay];
             if(!oop.courtNames) oop.courtNames = {}; oop.courtNames[c] = val; triggerOOPSave();
         }
 
-        // 🔥 ALGORITMA KECERDASAN KONTRAST (YIQ)
         function getOOPContrastColor(hexColor) {
             if(!hexColor) return '#ffffff';
             let hex = hexColor.replace('#', '');
             if(hex.length === 3) hex = hex.split('').map(x => x+x).join('');
-            let r = parseInt(hex.substr(0,2), 16);
-            let g = parseInt(hex.substr(2,2), 16);
-            let b = parseInt(hex.substr(4,2), 16);
+            let r = parseInt(hex.substr(0,2), 16); let g = parseInt(hex.substr(2,2), 16); let b = parseInt(hex.substr(4,2), 16);
             let yiq = ((r*299)+(g*587)+(b*114))/1000;
             return (yiq >= 140) ? '#1a237e' : '#ffffff'; 
         }
@@ -1468,8 +1498,9 @@
             if(!container) return;
             let oop = window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay];
             
-            // 🔥 Ambil Warna Utama dari Tab Branding
+            // 🔥 Ambil Warna Utama & Gradasi
             let primaryColor = (window.RAW_DB_DATA && window.RAW_DB_DATA.color_primary) ? window.RAW_DB_DATA.color_primary : '#1a237e';
+            let gradColor = (window.RAW_DB_DATA && window.RAW_DB_DATA.color_gradient_end) ? window.RAW_DB_DATA.color_gradient_end : '#0d47a1';
             let contrastColor = getOOPContrastColor(primaryColor);
             
             let html = '<table style="width: 100%; min-width: 900px; border-collapse: separate; border-spacing: 12px; text-align: center; font-family: \'Montserrat\', sans-serif;"><thead><tr>';
@@ -1507,25 +1538,21 @@
 
                         html += `
                         <td style="background: #ffffff; border-radius: 12px; padding: 0; vertical-align: top; box-shadow: 0 6px 15px rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border: 1px solid #f5f5f5;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.08)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 6px 15px rgba(0,0,0,0.04)'" onclick="openOOPModal(${r}, ${c})">
-                            <div style="background: ${primaryColor}; color: ${contrastColor}; padding: 8px 10px; border-radius: 12px 12px 0 0; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">
+                            <div style="background: linear-gradient(135deg, ${primaryColor}, ${gradColor}); color: ${contrastColor}; padding: 8px 10px; border-radius: 12px 12px 0 0; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">
                                 ${safeHTML(cellData.cat)}
                             </div>
-                            
                             <div style="padding: 15px 12px;">
                                 <div style="font-size: 11px; font-weight: 800; color: #c5a880; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1.5px;">
                                     ${safeHTML(cellData.round)}
                                 </div>
-                                
                                 <div style="font-size: 13px; ${styleTA}; margin-bottom: 8px; line-height: 1.3;">
                                     ${iconA}${safeHTML(taDisplay)}
                                 </div>
-                                
                                 <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin: 12px 0;">
                                     <div style="flex: 1; height: 1px; border-top: 1px dashed #e0e0e0;"></div>
                                     <div style="font-size: 10px; font-weight: 800; color: #bdbdbd; letter-spacing: 1px;">VS</div>
                                     <div style="flex: 1; height: 1px; border-top: 1px dashed #e0e0e0;"></div>
                                 </div>
-                                
                                 <div style="font-size: 13px; ${styleTB}; margin-top: 8px; line-height: 1.3;">
                                     ${iconB}${safeHTML(tbDisplay)}
                                 </div>
@@ -1543,6 +1570,29 @@
                 html += '</tr>';
             }
             html += '</tbody></table>';
+
+            // 🔥 RENDER FOOTER CETAK (OPSIONAL)
+            let set = window.GLOBAL_OOP_DATA.settings || {};
+            let publishTime = new Date().toLocaleString('id-ID', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'});
+
+            html += `<div style="margin-top: 30px; padding-top: 15px; display: flex; justify-content: space-between; align-items: flex-end; text-align: left; font-family: 'Montserrat', sans-serif;">`;
+            
+            html += `<div style="max-width: 60%;">`;
+            if (set.notes && set.notes.trim() !== '') {
+                html += `<div style="font-size: 10px; font-weight: 800; color: #c62828; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">⚠️ DISCLAIMER / NOTES</div>
+                         <div style="font-size: 11px; color: #555; font-weight: 600; font-style: italic; line-height: 1.4;">${safeHTML(set.notes)}</div>`;
+            }
+            html += `<div style="font-size: 9px; color: #999; margin-top: 10px; font-weight: 700;">Last Updated: ${publishTime}</div>`;
+            html += `</div>`;
+
+            if (set.referee && set.referee.trim() !== '') {
+                html += `<div style="text-align: right; min-width: 200px;">
+                            <div style="font-size: 10px; font-weight: 800; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 30px;">TOURNAMENT DIRECTOR</div>
+                            <div style="font-size: 14px; font-weight: 900; color: #1a237e; border-bottom: 1px solid #ccc; padding-bottom: 5px;">${safeHTML(set.referee)}</div>
+                        </div>`;
+            }
+            html += `</div>`;
+
             container.innerHTML = html;
         }
 
@@ -1794,7 +1844,11 @@
             updateBrandingPreview();
             updateTVPreview(); 
             initGroupStage(d);
-	initOOP(d); // 🚀 PENGAPIAN MESIN OOP
+            initOOP(d); // 🚀 PENGAPIAN MESIN OOP
+            
+            // 🔥 RECOVERY TAB MENU (Ingatan Refresh)
+            let savedTab = sessionStorage.getItem('activeCockpitTab');
+            if(savedTab) switchTab(savedTab, null);
         }
 
         function applyTheme(h1, h2, bg, neon, st) {
@@ -2349,7 +2403,17 @@
             else { alert("Pengaturan Berhasil Disimpan! ✅"); }
         }
 
-        function switchTab(t, btn) { document.querySelectorAll('.view-section').forEach(e=>e.classList.remove('active')); document.getElementById('view-'+t).classList.add('active'); document.querySelectorAll('.nav-pill').forEach(e=>e.classList.remove('active')); btn.classList.add('active'); }
+        function switchTab(t, btn) { 
+            sessionStorage.setItem('activeCockpitTab', t); // 🔥 Simpan Ingatan Tab
+            document.querySelectorAll('.view-section').forEach(e=>e.classList.remove('active')); 
+            document.getElementById('view-'+t).classList.add('active'); 
+            document.querySelectorAll('.nav-pill').forEach(e=>e.classList.remove('active')); 
+            if(btn) { btn.classList.add('active'); }
+            else { 
+                let b = document.querySelector(`.nav-pill[onclick*="'${t}'"]`); 
+                if(b) b.classList.add('active'); 
+            }
+        }
         function openModalMatch() { document.getElementById('modal-match').style.display='flex'; }
         function showQR() { const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://matchlivepro.com/?id=${ACTIVE_ID}`; document.getElementById('qr-img').src = url; document.getElementById('qr-text').innerText = ACTIVE_ID; document.getElementById('modal-qr').style.display='flex'; }
 
