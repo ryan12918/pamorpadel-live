@@ -1753,24 +1753,52 @@ function saveOOPSettings() {
         function updateOOPTeamOptions() {
             let cat = document.getElementById('oop-cat').value;
             let taSel = document.getElementById('oop-ta-sel'); let tbSel = document.getElementById('oop-tb-sel');
-            let html = '<option value="">-- Pilih Tim dari Group Stage --</option>';
+            let html = '<option value="">-- Pilih Tim atau Tiket Placeholder --</option>';
             
             if(cat && window.GLOBAL_GROUP_DATA[cat]) {
+                // 1. DAFTAR PEMAIN ASLI DARI GRUP
+                html += `<optgroup label="👥 PEMAIN FASE GRUP">`;
                 window.GLOBAL_GROUP_DATA[cat].forEach((g) => {
                     g.teams.forEach((t, tIndex) => {
-                        // 🔥 POINTER: Simpan alamatnya (Misal: "[GRUP A] Slot 1"), bukan namanya.
                         let pointerStr = `[${g.name}] Slot ${tIndex+1}`;
                         let displayLabel = t.trim() !== '' ? `${pointerStr} - ${t}` : pointerStr;
                         html += `<option value="${safeHTML(pointerStr)}">${safeHTML(displayLabel)}</option>`;
                     });
                 });
+                html += `</optgroup>`;
+
+                // 2. BALOK LEGO: TIKET JUARA GRUP OTOMATIS
+                html += `<optgroup label="🏆 TIKET UTAMA GRUP">`;
+                window.GLOBAL_GROUP_DATA[cat].forEach((g) => {
+                    html += `<option value="[Juara ${safeHTML(g.name)}]">[Juara ${safeHTML(g.name)}]</option>`;
+                    html += `<option value="[Runner-Up ${safeHTML(g.name)}]">[Runner-Up ${safeHTML(g.name)}]</option>`;
+                });
+                html += `</optgroup>`;
+
+                // 3. BALOK LEGO: TIKET WILDCARD
+                html += `<optgroup label="🌟 TIKET WILDCARD / TERBAIK">`;
+                html += `<option value="[Best Runner-Up 1]">[Best Runner-Up 1]</option>`;
+                html += `<option value="[Best Runner-Up 2]">[Best Runner-Up 2]</option>`;
+                html += `<option value="[Best Runner-Up 3]">[Best Runner-Up 3]</option>`;
+                html += `<option value="[Best 3rd Place 1]">[Best 3rd Place 1]</option>`;
+                html += `<option value="[Best 3rd Place 2]">[Best 3rd Place 2]</option>`;
+                html += `</optgroup>`;
+
+                // 4. BALOK LEGO: TIKET PEMENANG BABAK GUGUR
+                html += `<optgroup label="⚔️ TIKET BABAK SELANJUTNYA">`;
+                for(let i=1; i<=8; i++) html += `<option value="[Pemenang R16 - Match ${i}]">[Pemenang R16 - Match ${i}]</option>`;
+                for(let i=1; i<=4; i++) html += `<option value="[Pemenang QF ${i}]">[Pemenang QF ${i}]</option>`;
+                for(let i=1; i<=2; i++) html += `<option value="[Pemenang SF ${i}]">[Pemenang SF ${i}]</option>`;
+                for(let i=1; i<=2; i++) html += `<option value="[Kalah SF ${i}]">[Kalah SF ${i}] (Perebutan Juara 3)</option>`;
+                html += `</optgroup>`;
             }
+            
             taSel.innerHTML = html; tbSel.innerHTML = html;
             
             populateMatchBank(cat); // 🔥 PANGGIL PABRIK JADWAL
         }
 
-        // 🔥 MESIN PABRIK JADWAL (ROUND ROBIN AUTO-GENERATOR)
+        // 🔥 MESIN PABRIK JADWAL + RADAR ANTI-DOUBLE
         function populateMatchBank(cat) {
             const bankSel = document.getElementById('oop-bank');
             if (!bankSel) return;
@@ -1782,33 +1810,59 @@ function saveOOPSettings() {
             
             let html = '<option value="">-- PILIH UNTUK AUTO-FILL --</option>';
             
+            // 🛡️ RADAR ANTI-DOUBLE: Membaca jadwal yang sudah masuk di OOP
+            let scheduledMatches = [];
+            let days = window.GLOBAL_OOP_DATA.days;
+            for (let d in days) {
+                let cells = days[d].cells;
+                for (let k in cells) {
+                    let c = cells[k];
+                    if (c.cat === cat && !c.isManual) {
+                        scheduledMatches.push(c.ta + "|||" + c.tb);
+                        scheduledMatches.push(c.tb + "|||" + c.ta); // Bolak-balik dianggap sama
+                    }
+                }
+            }
+            
             window.GLOBAL_GROUP_DATA[cat].forEach((g) => {
-                // 🔥 MESIN DETEKTOR BYE: Saring jika Slot Kosong atau tertulis BYE
                 let validIndices = [];
                 g.teams.forEach((t, idx) => {
                     let text = t.trim().toUpperCase();
-                    if (text !== 'BYE' && text !== 'KOSONG') {
-                        validIndices.push(idx + 1); // Indeks Slot (1-based)
-                    }
+                    if (text !== 'BYE' && text !== 'KOSONG') { validIndices.push(idx + 1); }
                 });
 
                 if (validIndices.length > 1) {
-                    html += `<optgroup label="🏆 ${safeHTML(g.name)}">`;
-                    // 🔥 RUMUS KOMBINASI ROUND ROBIN: N x (N-1) / 2
+                    let groupHtml = `<optgroup label="🏆 ${safeHTML(g.name)}">`;
+                    let hasAvailableMatch = false;
+                    
                     for (let i = 0; i < validIndices.length - 1; i++) {
                         for (let j = i + 1; j < validIndices.length; j++) {
                             let s1 = validIndices[i];
                             let s2 = validIndices[j];
                             let valA = `[${g.name}] Slot ${s1}`;
                             let valB = `[${g.name}] Slot ${s2}`;
-                            // Simpan JSON ke dalam option agar mudah diekstrak oleh saraf Auto-Fill
-                            let valJSON = JSON.stringify({ round: g.name, ta: valA, tb: valB });
-                            html += `<option value='${safeHTML(valJSON)}'>Match: Slot ${s1} VS Slot ${s2}</option>`;
+                            
+                            // 🛡️ CEK RADAR: Jika match ini sudah ada di tabel OOP, lewati!
+                            let isScheduled = scheduledMatches.includes(valA + "|||" + valB);
+                            
+                            if (!isScheduled) {
+                                let valJSON = JSON.stringify({ round: g.name, ta: valA, tb: valB });
+                                groupHtml += `<option value='${safeHTML(valJSON)}'>Match: Slot ${s1} VS Slot ${s2}</option>`;
+                                hasAvailableMatch = true;
+                            }
                         }
                     }
-                    html += `</optgroup>`;
+                    groupHtml += `</optgroup>`;
+                    
+                    // Hanya tampilkan grup jika masih ada pertandingan yang belum dijadwalkan
+                    if (hasAvailableMatch) { html += groupHtml; }
                 }
             });
+            
+            // Jika semua pertandingan di kategori ini sudah dijadwalkan
+            if (html === '<option value="">-- PILIH UNTUK AUTO-FILL --</option>') {
+                html = '<option value="">✅ Semua Fase Grup Sudah Terjadwal</option>';
+            }
             
             bankSel.innerHTML = html;
         }
