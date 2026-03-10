@@ -1724,7 +1724,14 @@ function saveOOPSettings() {
             document.getElementById('oop-r').value = r; document.getElementById('oop-c').value = c;
             
             const catSel = document.getElementById('oop-cat');
-            let cats = Object.keys(window.GLOBAL_GROUP_DATA || {});
+            
+            // 🔥 PERBAIKAN: OOP kini membaca Master Kategori (Bukan memori hantu grup)
+            let cats = [];
+            try {
+                let parsedCats = JSON.parse(window.RAW_DB_DATA.categories);
+                if (Array.isArray(parsedCats)) cats = parsedCats.map(c => c.name);
+            } catch(e) {}
+
             let catHtml = '<option value="">-- Pilih Kategori --</option>';
             cats.forEach(cat => { catHtml += `<option value="${safeHTML(cat)}">${safeHTML(cat)}</option>`; });
             catSel.innerHTML = catHtml;
