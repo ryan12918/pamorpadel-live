@@ -140,6 +140,80 @@
             #main-app { min-width: 1200px !important; overflow: visible !important; }
             .view-container { overflow: visible !important; height: auto !important; min-height: 100vh; }
         }
+
+        /* =========================================
+           MESIN CETAK PDF (PRINT CSS) - VERSI DIET KETAT
+           ========================================= */
+        @media print {
+            /* Sembunyikan Navigasi & Tombol */
+            .top-bar, .btn-action, button, i.fa-trash, i.fa-edit { display: none !important; }
+            
+            /* Sembunyikan Dropdown dan Input Pengaturan di atas tabel */
+            select, #group-input-notes, #oop-input-location, #oop-input-referee, #oop-input-notes { display: none !important; }
+            
+            /* Sembunyikan Tab Hari di OOP */
+            #oop-day-tabs { display: none !important; }
+            
+            /* Paksa Layout Full Page ke Kertas */
+            body { background: #fff !important; color: #000; overflow: visible !important; margin:0 !important; }
+            #main-app { display: block !important; }
+            .view-container { overflow: visible !important; height: auto !important; min-height: auto !important; background: #fff !important; }
+            .view-section { display: none !important; }
+            .view-section.print-active { display: block !important; }
+            
+            /* --- SULAP FORM JADI TEKS POLOS --- */
+            input, textarea { border: none !important; background: transparent !important; box-shadow: none !important; resize: none !important; pointer-events: none; }
+            input::placeholder, textarea::placeholder { color: transparent !important; }
+            
+            /* --- DIET KETAT GROUP STAGE (EFISIENSI RUANG) --- */
+            .toolbar, #group-matrix-wrapper, #oop-matrix-container { border: none !important; box-shadow: none !important; background: transparent !important; padding: 0 !important; margin-bottom: 0 !important;}
+            
+            /* Sembunyikan Tulisan Group Stage Asli di Kiri Atas Saat Cetak */
+            #view-group .toolbar b { display: none !important; }
+            
+            /* 1. PAGINASI: 1 Kategori = 1 Halaman Kertas */
+            .print-category-page { page-break-after: always !important; break-after: page !important; width: 100% !important; display: block !important; margin-bottom: 0 !important; }
+            .print-category-page:last-child { page-break-after: auto !important; break-after: auto !important; }
+            
+            /* Pastikan elemen formasi grup menyebar rata */
+            #group-matrix-container > div { display: block !important; } 
+            .groups-flex-box { display: flex !important; flex-wrap: wrap !important; justify-content: center !important; gap: 8px !important; margin-bottom: 15px !important; }
+
+            /* Paksa Footer Tanda Tangan tidak terbelah */
+            .print-footer-layout { page-break-inside: avoid !important; break-inside: avoid !important; }
+            
+            /* 2. Judul Kategori dirapatkan */
+            #group-matrix-container > div > h3, #group-matrix-container > div > h2, .category-title { font-size: 14px !important; margin: 10px 0 5px 0 !important; width: 100% !important; text-align: center !important; flex-basis: 100% !important; }
+            
+            /* 3. Kotak Grup dikecilkan & Anti-Terbelah */
+            .group-card { min-width: 180px !important; padding: 6px !important; margin: 0 !important; page-break-inside: avoid !important; break-inside: avoid !important; flex: 1 1 200px !important; }
+            
+            /* 4. Teks Nama Pemain & Judul Grup diturunkan ukurannya */
+            .group-card h3 { font-size: 12px !important; margin-bottom: 4px !important; }
+            .group-slot-input { font-size: 9px !important; padding: 3px !important; margin-bottom: 2px !important; height: auto !important; }
+            
+            /* Mencegah elemen tabel OOP terpotong saat pindah halaman kertas */
+            tr, th, td { page-break-inside: avoid !important; break-inside: avoid !important; }
+            
+            /* Mode Sesuai Tema (Paksa warna keluar di printer) */
+            body.print-theme * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            
+            /* Mode Hemat Tinta */
+            body.print-hemat * { background: transparent !important; color: #000 !important; border-color: #000 !important; box-shadow: none !important; }
+            body.print-hemat table, body.print-hemat th, body.print-hemat td { border: 1px solid #000 !important; }
+            body.print-hemat .group-card { border: 1px solid #000 !important; }
+            
+            /* SULAP FORM JADI TEKS POLOS & SUSUNAN KERTAS RAPI */
+            input, textarea { border: none !important; background: transparent !important; box-shadow: none !important; resize: none !important; pointer-events: none; }
+            input::placeholder, textarea::placeholder { color: transparent !important; }
+            
+            /* Mencegah elemen terpotong saat pindah halaman kertas */
+            tr, th, td { page-break-inside: avoid !important; break-inside: avoid !important; }
+            
+            /* Paksa Grup agar turun ke bawah (tidak menembus batas kanan kertas) */
+            #group-matrix-container > div { flex-wrap: wrap !important; overflow: hidden !important; justify-content: center !important; }
+            #group-matrix-container > div > div { page-break-inside: avoid !important; break-inside: avoid !important; margin-bottom: 15px !important; }
+        }
     </style>
 </head>
 <body>
@@ -303,7 +377,8 @@
 
                             <select id="group-cat-select" class="form-control" style="width: 200px; font-weight: bold; cursor: pointer; background: #e8eaf6; border: 1px solid #c5cae9; color: #1a237e;" onchange="renderGroupMatrix()">
                             </select>
-                            <div id="group-action-btns" style="display: flex; gap: 5px;">
+                            <button class="btn-action btn-purple" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px; margin-left: 5px;" onclick="openPrintModal('view-group', 'portrait')">🖨️ CETAK</button>
+                            <div id="group-action-btns" style="display: flex; gap: 5px; margin-left: 5px;">
                                 <button class="btn-action btn-blue" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="addGroup()">+ GRUP</button>
                                 <button class="btn-action btn-red" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="popGroup()">- GRUP</button>
                                 <button class="btn-action btn-green" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="addSlot()">+ SLOT</button>
@@ -335,9 +410,10 @@
                                 </div>
                             </div>
                             <div style="text-align: right; padding-top: 5px;">
-                                <span id="oop-save-status" style="position: absolute; top: -10px; right: 0; font-size: 11px; font-weight: 800; background: #e8f5e9; color: #2e7d32; padding: 6px 12px; border-radius: 20px; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 20; border: 1px solid #c8e6c9;">✅ Tersimpan</span>
-                                <div style="display: flex; gap: 6px; justify-content: flex-end;">
-                                    <button class="btn-action btn-blue" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="addOOPCourt()">+ COURT</button>
+                            <span id="oop-save-status" style="position: absolute; top: -10px; right: 0; font-size: 11px; font-weight: 800; background: #e8f5e9; color: #2e7d32; padding: 6px 12px; border-radius: 20px; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 20; border: 1px solid #c8e6c9;">✅ Tersimpan</span>
+                            <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                                <button class="btn-action btn-purple" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="openPrintModal('view-oop', 'landscape')">🖨️ CETAK</button>
+                                <button class="btn-action btn-blue" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="addOOPCourt()">+ COURT</button>
                                     <button class="btn-action btn-red" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="popOOPCourt()">- COURT</button>
                                     <button class="btn-action btn-green" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="addOOPMatch()">+ MATCH</button>
                                     <button class="btn-action btn-red" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="popOOPMatch()">- MATCH</button>
@@ -769,6 +845,31 @@
                 </div>
         </div>
     </div>
+
+    <div id="print-modal" class="modal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8);">
+        <div class="modal-content" style="background:#222; margin: 15% auto; padding: 25px; width: 320px; border-radius:10px; color:#fff; border: 1px solid var(--primary);">
+            <h3 style="text-align:center; color:#29b6f6; margin-top:0;">🖨️ STUDIO CETAK</h3>
+            <input type="hidden" id="print-target-view" value="">
+            
+            <label style="display:block; margin-top:20px; margin-bottom:5px; font-weight:bold; font-size:12px;">Orientasi Kertas:</label>
+            <select id="print-orientation" class="form-control" style="width:100%; padding:10px; background:#111; color:#fff; border:1px solid #555; border-radius:5px;">
+                <option value="portrait">Portrait (Berdiri)</option>
+                <option value="landscape">Landscape (Mendatar)</option>
+            </select>
+
+            <label style="display:block; margin-top:20px; margin-bottom:5px; font-weight:bold; font-size:12px;">Mode Warna:</label>
+            <select id="print-color" class="form-control" style="width:100%; padding:10px; background:#111; color:#fff; border:1px solid #555; border-radius:5px;">
+                <option value="theme">Sesuai Tema (Full Color)</option>
+                <option value="hemat">Hemat Tinta (Hitam Putih)</option>
+            </select>
+
+            <div style="margin-top:30px; display:flex; gap:10px;">
+                <button onclick="closePrintModal()" class="btn-action btn-grey" style="flex:1; padding:12px; border-radius:5px; justify-content:center; font-size:12px;">BATAL</button>
+                <button onclick="executePrint()" class="btn-action btn-blue" style="flex:1; padding:12px; border-radius:5px; justify-content:center; font-size:12px;">CETAK PDF</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const SUPABASE_URL = 'https://gubcvxiupehbdpigrdct.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_k1y6fNI2opEXhwqKMbGYcA__2nD0yT6';
@@ -1186,11 +1287,20 @@
             
             let set = (window.GLOBAL_OOP_DATA && window.GLOBAL_OOP_DATA.settings) ? window.GLOBAL_OOP_DATA.settings : {};
             let eventName = (window.RAW_DB_DATA && window.RAW_DB_DATA.event_name) ? window.RAW_DB_DATA.event_name : "TURNAMEN";
-            let locText = set.location ? `<div style="font-size: 11px; font-weight: 600; color: #555; margin-top: 4px;">📍 ${safeHTML(set.location)}</div>` : '';
+            
+            // TARIK TANGGAL DARI TAB OOP & GABUNGKAN DENGAN LOKASI
+            let dateText = '';
+            if(window.GLOBAL_OOP_DATA && window.GLOBAL_OOP_DATA.days) {
+                let dayTitles = Object.values(window.GLOBAL_OOP_DATA.days).map(d => d.title).filter(t => t && t.trim() !== '');
+                if(dayTitles.length > 0) dateText = dayTitles.join(' | ');
+            }
+            let locOnly = set.location ? set.location : '';
+            let comboInfo = [dateText, locOnly].filter(x => x).join(' - ');
+            let locText = comboInfo ? `<div style="font-size: 12px; font-weight: 600; color: #555; margin-top: 4px;">📍 ${safeHTML(comboInfo)}</div>` : '';
 
             let docHeader = `
-                <div style="width: 100%; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 20px; flex-shrink: 0;">
-                    <h2 style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 900; color: #222222; letter-spacing: 1px; font-size: 22px; text-transform: uppercase;">MATRIKS GRUP - ${safeHTML(eventName)}</h2>
+                <div class="print-header-layout" style="width: 100%; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 20px; flex-shrink: 0; text-align: center;">
+                    <h2 style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 900; color: #222222; letter-spacing: 1px; font-size: 22px; text-transform: uppercase;">GROUP STAGE - ${safeHTML(eventName)}</h2>
                     ${locText}
                 </div>
             `;
@@ -1199,9 +1309,14 @@
                 if(actionBtns) actionBtns.style.display = 'none'; 
                 let allCats = Array.from(document.getElementById('group-cat-select').options).map(opt => opt.value).filter(v => v !== 'ALL' && v !== '');
                 
-                let html = docHeader;
-                allCats.forEach(cName => { html += buildCategoryMatrixHTML(cName, true, primaryColor, gradColor, contrastColor); });
-                html += buildGroupFooter(set);
+                let html = '';
+                allCats.forEach(cName => { 
+                    html += '<div class="print-category-page">';
+                    html += docHeader;
+                    html += buildCategoryMatrixHTML(cName, true, primaryColor, gradColor, contrastColor); 
+                    html += buildGroupFooter(set);
+                    html += '</div>';
+                });
                 
                 container.innerHTML = html;
                 return;
@@ -1227,7 +1342,7 @@
         function buildGroupFooter(set) {
             let publishTime = new Date().toLocaleString('id-ID', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'});
             // 🔥 KOREKSI: Lebar dipatok 100% dan ditambahkan border-top agar memisah dari area grup
-            let html = `<div style="margin-top: 30px; padding-top: 15px; display: flex; justify-content: space-between; align-items: flex-end; text-align: left; font-family: 'Montserrat', sans-serif; width: 100%; border-top: 1px solid #f0f0f0;">`;
+            let html = `<div class="print-footer-layout" style="margin-top: 30px; padding-top: 15px; display: flex; justify-content: space-between; align-items: flex-end; text-align: left; font-family: 'Montserrat', sans-serif; width: 100%; border-top: 1px solid #f0f0f0;">`;
             
             html += `<div style="max-width: 60%;">`;
             // 🔥 KOREKSI: Gunakan groupNotes, bukan notes dari OOP
@@ -1261,7 +1376,7 @@
                 </div>`;
             }
 
-            html += `<div style="display: flex; gap: 15px; overflow-x: auto; align-items: flex-start; padding-bottom:10px; width:100%;">`;
+            html += `<div class="groups-flex-box" style="display: flex; gap: 15px; overflow-x: auto; align-items: flex-start; padding-bottom:10px; width:100%;">`;
             
             groups.forEach((g, gIndex) => {
                 let slotsHtml = '';
@@ -1474,10 +1589,11 @@
             // 🔥 SUNTIKAN: Recovery Catatan Grup
             if(document.getElementById('group-input-notes')) document.getElementById('group-input-notes').value = window.GLOBAL_OOP_DATA.settings.groupNotes || '';
             
-            // 🔥 OTOMATISASI JUDUL TURNAMEN
+            // 🔥 OTOMATISASI JUDUL TURNAMEN & TANGGAL
             const oopTitle = document.getElementById('oop-dynamic-title');
-            if(oopTitle && window.RAW_DB_DATA && window.RAW_DB_DATA.event_name) {
-                oopTitle.innerText = "ORDER OF PLAY - " + window.RAW_DB_DATA.event_name;
+            if(oopTitle && window.RAW_DB_DATA) {
+                let evName = window.RAW_DB_DATA.event_name || 'TURNAMEN';
+                oopTitle.innerText = "ORDER OF PLAY - " + evName;
             }
 
             renderOOPTabs();
@@ -1505,6 +1621,20 @@ function saveOOPSettings() {
         function renderOOPTabs() {
             let container = document.getElementById('oop-day-tabs');
             if(!container) return;
+
+            // 🔥 SUNTIKAN: Baca Nama Tab (Sabtu/Minggu) & Jadikan Tanggal Resmi OOP!
+            let activeDayTitle = window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay].title || '';
+            const oopTitleEl = document.getElementById('oop-dynamic-title');
+            if (oopTitleEl) {
+                let dateEl = document.getElementById('oop-dynamic-date');
+                if (!dateEl) {
+                    dateEl = document.createElement('div');
+                    dateEl.id = 'oop-dynamic-date';
+                    dateEl.style.cssText = 'font-size: 13px; font-weight: 800; color: #d81b60; margin-top: 6px; text-transform: uppercase;';
+                    oopTitleEl.parentNode.insertBefore(dateEl, oopTitleEl.nextSibling);
+                }
+                dateEl.innerHTML = `📅 ${safeHTML(activeDayTitle)}`;
+            }
             
             // 🔥 Ambil Warna untuk Tab Aktif
             let primaryColor = (window.RAW_DB_DATA && window.RAW_DB_DATA.color_primary) ? window.RAW_DB_DATA.color_primary : '#1a237e';
@@ -3305,6 +3435,86 @@ if(document.getElementById('reg-sponsor-size')) {
             try { let cats = JSON.parse(d.categories); if(Array.isArray(cats)) { cats.forEach(c => addCategoryRow(c.name, c.price, c.quota, c.format)); } } catch(e) {}
             
             setupRealtimeCockpit();
+        }
+
+	// ==========================================
+        // MESIN STUDIO CETAK PDF
+        // ==========================================
+        function openPrintModal(targetView, defaultOrientation) {
+            document.getElementById('print-target-view').value = targetView;
+            document.getElementById('print-orientation').value = defaultOrientation;
+            document.getElementById('print-modal').style.display = 'flex';
+        }
+
+        function closePrintModal() {
+            document.getElementById('print-modal').style.display = 'none';
+        }
+
+        function executePrint() {
+            closePrintModal();
+            let viewId = document.getElementById('print-target-view').value;
+            let ori = document.getElementById('print-orientation').value;
+            let color = document.getElementById('print-color').value;
+
+            // --- TRIK PINTAR: PAKSA TAMPIL SEMUA KATEGORI SEBELUM CETAK ---
+            let originalGroupCat = null;
+            let catSelect = document.getElementById('group-cat-select');
+            if(viewId === 'view-group' && catSelect) {
+                originalGroupCat = catSelect.value;
+                catSelect.value = 'ALL';
+                if(typeof renderGroupMatrix === 'function') renderGroupMatrix();
+            }
+
+            // 1. Suntik orientasi kertas (Portrait/Landscape)
+            let styleTag = document.getElementById('dynamic-print-style');
+            if(!styleTag) {
+                styleTag = document.createElement('style');
+                styleTag.id = 'dynamic-print-style';
+                document.head.appendChild(styleTag);
+            }
+            styleTag.innerHTML = `@media print { @page { size: ${ori}; margin: 10mm; } }`;
+
+            // 2. Terapkan Mode Warna (Tema vs Hemat Tinta)
+            document.body.classList.remove('print-theme', 'print-hemat');
+            document.body.classList.add('print-' + color);
+
+            // 3. Sembunyikan semua tab lain, fokuskan ke tab yang mau dicetak
+            document.querySelectorAll('.view-section').forEach(c => c.classList.remove('print-active'));
+            let targetContainer = document.getElementById(viewId);
+            if(targetContainer) targetContainer.classList.add('print-active');
+
+            if(targetContainer) {
+                // HAPUS SUNTIKAN HEADER KOP SURAT (Mencegah Judul Dobel)
+                let oldHeader = targetContainer.querySelector('.print-header');
+                if(oldHeader) oldHeader.remove();
+
+                // --- SUNTIKAN FOOTER (WAKTU CETAK) - HANYA UNTUK OOP ---
+                if(viewId === 'view-oop') {
+                    let printFooter = targetContainer.querySelector('.print-footer');
+                    if(!printFooter) {
+                        printFooter = document.createElement('div');
+                        printFooter.className = 'print-only print-footer';
+                        targetContainer.appendChild(printFooter);
+                    }
+                    let now = new Date();
+                    printFooter.innerHTML = `<p style="text-align:center; margin-top:30px; padding-top:10px; border-top:1px solid currentColor; font-style:italic; font-size:12px;">Dokumen ini dicetak pada: ${now.toLocaleString('id-ID')} | Sistem Master Control Pro</p>`;
+                }
+            }
+
+            // 4. Panggil mesin printer browser
+            setTimeout(() => {
+                window.print();
+                
+                // 5. Kembalikan ke normal setelah selesai
+                if(targetContainer) targetContainer.classList.remove('print-active');
+                document.body.classList.remove('print-theme', 'print-hemat');
+                
+                // KEMBALIKAN POSISI DROPDOWN KATEGORI SEPERTI SEMULA
+                if(originalGroupCat !== null && catSelect) {
+                    catSelect.value = originalGroupCat;
+                    if(typeof renderGroupMatrix === 'function') renderGroupMatrix();
+                }
+            }, 500); 
         }
 
 	// --- FITUR FULL SCREEN INSTAN ---
