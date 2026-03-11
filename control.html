@@ -185,12 +185,24 @@
             /* 2. Judul Kategori dirapatkan */
             #group-matrix-container > div > h3, #group-matrix-container > div > h2, .category-title { font-size: 14px !important; margin: 10px 0 5px 0 !important; width: 100% !important; text-align: center !important; flex-basis: 100% !important; }
             
-            /* 3. Kotak Grup dikecilkan & Anti-Terbelah */
-            .group-card { min-width: 180px !important; padding: 6px !important; margin: 0 !important; page-break-inside: avoid !important; break-inside: avoid !important; flex: 1 1 200px !important; }
+            /* 3. DIET KETAT VERTIKAL (Merapatkan Ruang Atas-Bawah Grup) */
+            .groups-flex-box > div { page-break-inside: avoid !important; break-inside: avoid !important; margin-bottom: 10px !important; }
             
-            /* 4. Teks Nama Pemain & Judul Grup diturunkan ukurannya */
-            .group-card h3 { font-size: 12px !important; margin-bottom: 4px !important; }
-            .group-slot-input { font-size: 9px !important; padding: 3px !important; margin-bottom: 2px !important; height: auto !important; }
+            /* Memipihkan Header Judul Grup (Warna Gradasi) */
+            .groups-flex-box > div > div:first-child { padding: 6px !important; }
+            .groups-flex-box > div > div:first-child input { font-size: 13px !important; }
+            
+            /* Memipihkan Jarak Spasi Antar Nama Peserta (Gap) */
+            .groups-flex-box > div > div:last-child { padding: 6px 10px !important; gap: 2px !important; }
+            
+            /* 4. TEKS PEMAIN DIBESARKAN & KOTAK DIPIPIHKAN */
+            .group-slot-input { 
+                font-size: 12px !important; /* Huruf peserta dibesarkan! */
+                font-weight: 800 !important; /* Ditebalkan agar sangat jelas dibaca */
+                padding: 3px 6px !important; /* Ruang kosong atas-bawah dibabat habis */
+                margin-bottom: 0 !important; 
+                height: auto !important; 
+            }
             
             /* Mencegah elemen tabel OOP terpotong saat pindah halaman kertas */
             tr, th, td { page-break-inside: avoid !important; break-inside: avoid !important; }
