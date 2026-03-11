@@ -168,8 +168,45 @@
             /* --- DIET KETAT GROUP STAGE (EFISIENSI RUANG) --- */
             .toolbar, #group-matrix-wrapper, #oop-matrix-container { border: none !important; box-shadow: none !important; background: transparent !important; padding: 0 !important; margin-bottom: 0 !important;}
             
-            /* Sembunyikan Tulisan Group Stage Asli di Kiri Atas Saat Cetak */
+            /* Sembunyikan Tulisan Group Stage Asli & Header OOP Asli Saat Cetak */
             #view-group .toolbar b { display: none !important; }
+            #view-oop > div > div:first-child { display: none !important; }
+            
+            /* KUNCI HEADER OOP ANTI-HILANG DI HALAMAN 2+ (BONGKAR STICKY) */
+            table { page-break-inside: auto !important; }
+            thead { display: table-header-group !important; }
+            th { position: static !important; } /* INI DALANGNYA! Sticky bikin thead hilang saat diprint */
+            
+            /* Sembunyikan elemen khusus layar saat dicetak */
+            .screen-only { display: none !important; }
+            /* Munculkan header tabel siluman khusus saat dicetak */
+            tr.print-only-table-header { display: table-row !important; }
+
+            /* --- DIET KETAT VERTIKAL & HORIZONTAL OOP (PAKSA MUAT DI PORTRAIT) --- */
+            /* Hancurkan gembok min-width: 900px bawaan tabel agar bisa mengecil di Portrait! */
+            #oop-matrix-container table { border-spacing: 2px !important; width: 100% !important; min-width: 0 !important; table-layout: fixed !important; } 
+            #oop-matrix-container th, #oop-matrix-container td { min-width: 0 !important; max-width: none !important; word-wrap: break-word !important; overflow-wrap: break-word !important; }
+            
+            #oop-matrix-container th { padding: 4px !important; height: auto !important; font-size: 10px !important; } 
+            #oop-matrix-container th input { display: none !important; } /* Sembunyikan input asli saat cetak agar trik sulap berjalan */
+            .print-court-name { display: block !important; font-size: 12px !important; font-weight: 900 !important; text-align: center; }
+            
+            /* Pengecilan ruang & huruf dalam kotak jadwal */
+            #oop-matrix-container td { padding: 0 !important; }
+            #oop-matrix-container td > div { padding: 2px !important; font-size: 9px !important; } /* Huruf pemain dikecilkan agar muat */
+            #oop-matrix-container td > div:last-child { padding: 2px 4px !important; }
+            #oop-matrix-container td > div > div { margin-bottom: 1px !important; margin-top: 1px !important; line-height: 1.2 !important; }
+            
+            /* Kunci mati lebar kotak TIME (Kiri) sebesar 90px saat cetak */
+            #oop-matrix-container tr > th:first-child:not([colspan]),
+            #oop-matrix-container tr > td:first-child { 
+                padding: 8px 4px !important; 
+                width: 90px !important; 
+                min-width: 90px !important; 
+                max-width: 90px !important; 
+            } 
+            #oop-matrix-container td:first-child div { margin-bottom: 4px !important; } /* Hapus paksaan font-size agar angka Match kembali ke 24px */
+            #oop-matrix-container td:first-child textarea { height: 22px !important; padding: 2px !important; font-size: 10px !important; }
             
             /* 1. PAGINASI: 1 Kategori = 1 Halaman Kertas */
             .print-category-page { page-break-after: always !important; break-after: page !important; width: 100% !important; display: block !important; margin-bottom: 0 !important; }
@@ -1719,7 +1756,28 @@ function saveOOPSettings() {
             let gradColor = (window.RAW_DB_DATA && window.RAW_DB_DATA.color_gradient_end) ? window.RAW_DB_DATA.color_gradient_end : '#0d47a1';
             let contrastColor = getOOPContrastColor(primaryColor);
             
-            let html = '<table style="width: 100%; min-width: 900px; border-collapse: separate; border-spacing: 8px; text-align: center; font-family: \'Montserrat\', sans-serif;"><thead><tr>';
+            let eventName = (window.RAW_DB_DATA && window.RAW_DB_DATA.event_name) ? window.RAW_DB_DATA.event_name : "TURNAMEN";
+            let activeDayTitle = window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay].title || `DAY ${window.GLOBAL_OOP_DATA.activeDay}`;
+            let locOnly = (window.GLOBAL_OOP_DATA.settings && window.GLOBAL_OOP_DATA.settings.location) ? window.GLOBAL_OOP_DATA.settings.location : '';
+            let comboInfo = [activeDayTitle, locOnly].filter(x => x).join(' | ');
+
+            // --- TABEL OOP ASLI ---
+            let html = '<table style="width: 100%; min-width: 900px; border-collapse: separate; border-spacing: 8px; text-align: center; font-family: \'Montserrat\', sans-serif;">';
+            
+            // --- CETAKAN BESI (COLGROUP MUTLAK) ---
+            // Mengunci kolom Match (90px) sebelum tabel digambar oleh Chrome (Hanya berfungsi saat cetak PDF)
+            html += '<colgroup><col style="width: 90px !important; min-width: 90px !important;">';
+            for(let i = 0; i < oop.cols; i++) { html += '<col>'; }
+            html += '</colgroup><thead>';
+            
+            // --- SUNTIKAN HEADER REPEATER (Masuk ke THEAD utama agar berulang di setiap halaman) ---
+            html += `<tr class="print-only-table-header" style="display: none;">
+                        <th colspan="${oop.cols + 1}" style="text-align: center; border-bottom: 2px solid #222; padding-bottom: 10px; background: #fff; color: #000;">
+                            <h2 style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 900; letter-spacing: 1px; font-size: 20px; text-transform: uppercase;">ORDER OF PLAY - ${safeHTML(eventName)}</h2>
+                            <div style="font-size: 12px; font-weight: 600; margin-top: 5px;">📍 ${safeHTML(comboInfo)}</div>
+                        </th>
+                    </tr><tr>`;
+            
             html += `<th style="background: linear-gradient(135deg, ${primaryColor}, ${gradColor}); color: ${contrastColor}; padding: 12px; width: 90px; border-radius: 8px; font-weight: 800; letter-spacing: 1px; position: sticky; top: 0; z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">TIME / ORDER</th>`;
             
             for(let c = 0; c < oop.cols; c++) {
@@ -1777,7 +1835,7 @@ function saveOOPSettings() {
                         html += `
                         <td style="background: transparent; padding: 8px; vertical-align: middle; cursor: pointer; transition: 0.2s;" onclick="openOOPModal(${r}, ${c})">
                             <div style="height: 100%; min-height: 110px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #bdbdbd; background: #ffffff; border: 2px dashed #e0e0e0; border-radius: 12px; transition: 0.2s;" onmouseover="this.style.borderColor='${gradColor}'; this.style.color='${primaryColor}'; this.style.background='#fffcf9';" onmouseout="this.style.borderColor='#e0e0e0'; this.style.background='#ffffff';">
-                                + KLIK ISI JADWAL
+                                <span class="screen-only">+ KLIK ISI JADWAL</span>
                             </div>
                         </td>`;
                     }
@@ -1789,7 +1847,7 @@ function saveOOPSettings() {
             let set = window.GLOBAL_OOP_DATA.settings || {};
             let publishTime = new Date().toLocaleString('id-ID', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'});
 
-            html += `<div style="margin-top: 30px; padding-top: 15px; display: flex; justify-content: space-between; align-items: flex-end; text-align: left; font-family: 'Montserrat', sans-serif;">`;
+            html += `<div class="print-footer-layout" style="margin-top: 30px; padding-top: 15px; display: flex; justify-content: space-between; align-items: flex-end; text-align: left; font-family: 'Montserrat', sans-serif; border-top: 1px solid #f0f0f0; width: 100%;">`;
             html += `<div style="max-width: 60%;">`;
             if (set.notes && set.notes.trim() !== '') {
                 html += `<div style="font-size: 10px; font-weight: 800; color: #c62828; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">⚠️ DISCLAIMER / NOTES</div>
@@ -3477,6 +3535,33 @@ if(document.getElementById('reg-sponsor-size')) {
                 if(typeof renderGroupMatrix === 'function') renderGroupMatrix();
             }
 
+            // --- TRIK PINTAR OOP: PAKSA TAMPIL SEMUA HARI (DAY) SEBELUM CETAK ---
+            let originalOOPDay = null;
+            if(viewId === 'view-oop' && window.GLOBAL_OOP_DATA && window.GLOBAL_OOP_DATA.days) {
+                originalOOPDay = window.GLOBAL_OOP_DATA.activeDay;
+                let container = document.getElementById('oop-matrix-container');
+                let allDaysHTML = '';
+                let days = window.GLOBAL_OOP_DATA.days;
+                let eventName = (window.RAW_DB_DATA && window.RAW_DB_DATA.event_name) ? window.RAW_DB_DATA.event_name : "TURNAMEN";
+                let set = window.GLOBAL_OOP_DATA.settings || {};
+                
+                for(let key in days) {
+                    window.GLOBAL_OOP_DATA.activeDay = parseInt(key);
+                    if(typeof renderOOPMatrix === 'function') renderOOPMatrix(); 
+                    
+                    let matrixHTML = container.innerHTML;
+                    let dayTitle = days[key].title || `DAY ${key}`;
+                    let locText = set.location ? set.location : '';
+                    let comboInfo = [dayTitle, locText].filter(x => x).join(' | ');
+                    
+                    allDaysHTML += `
+                    <div class="print-category-page">
+                        ${matrixHTML}
+                    </div>`;
+                }
+                container.innerHTML = allDaysHTML;
+            }
+
             // 1. Suntik orientasi kertas (Portrait/Landscape)
             let styleTag = document.getElementById('dynamic-print-style');
             if(!styleTag) {
@@ -3499,19 +3584,23 @@ if(document.getElementById('reg-sponsor-size')) {
                 // HAPUS SUNTIKAN HEADER KOP SURAT (Mencegah Judul Dobel)
                 let oldHeader = targetContainer.querySelector('.print-header');
                 if(oldHeader) oldHeader.remove();
-
-                // --- SUNTIKAN FOOTER (WAKTU CETAK) - HANYA UNTUK OOP ---
-                if(viewId === 'view-oop') {
-                    let printFooter = targetContainer.querySelector('.print-footer');
-                    if(!printFooter) {
-                        printFooter = document.createElement('div');
-                        printFooter.className = 'print-only print-footer';
-                        targetContainer.appendChild(printFooter);
-                    }
-                    let now = new Date();
-                    printFooter.innerHTML = `<p style="text-align:center; margin-top:30px; padding-top:10px; border-top:1px solid currentColor; font-style:italic; font-size:12px;">Dokumen ini dicetak pada: ${now.toLocaleString('id-ID')} | Sistem Master Control Pro</p>`;
-                }
+                
+                // Footer bawaan browser lama kita matikan sepenuhnya 
+                let oldFooter = targetContainer.querySelector('.print-footer');
+                if(oldFooter) oldFooter.remove();
             }
+
+            // --- TRIK SULAP: UBAH INPUT HEADER COURT MENJADI TEKS POLOS AGAR TIDAK HILANG DI HALAMAN 2 ---
+            let courtHeaders = document.querySelectorAll('#oop-matrix-container th');
+            courtHeaders.forEach(th => {
+                let inp = th.querySelector('input');
+                if(inp && !th.querySelector('.print-court-name')) {
+                    let span = document.createElement('span');
+                    span.className = 'print-court-name print-only';
+                    span.innerText = inp.value;
+                    th.appendChild(span);
+                }
+            });
 
             // 4. Panggil mesin printer browser
             setTimeout(() => {
@@ -3521,10 +3610,21 @@ if(document.getElementById('reg-sponsor-size')) {
                 if(targetContainer) targetContainer.classList.remove('print-active');
                 document.body.classList.remove('print-theme', 'print-hemat');
                 
+                // BERSIHKAN TRIK SULAP (Hapus teks polos agar bisa diedit kembali)
+                document.querySelectorAll('.print-court-name').forEach(el => el.remove());
+                if(targetContainer) targetContainer.classList.remove('print-active');
+                document.body.classList.remove('print-theme', 'print-hemat');
+                
                 // KEMBALIKAN POSISI DROPDOWN KATEGORI SEPERTI SEMULA
                 if(originalGroupCat !== null && catSelect) {
                     catSelect.value = originalGroupCat;
                     if(typeof renderGroupMatrix === 'function') renderGroupMatrix();
+                }
+
+                // KEMBALIKAN POSISI TAB HARI OOP SEPERTI SEMULA
+                if(originalOOPDay !== null) {
+                    window.GLOBAL_OOP_DATA.activeDay = originalOOPDay;
+                    if(typeof renderOOPMatrix === 'function') renderOOPMatrix();
                 }
             }, 500); 
         }
