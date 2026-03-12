@@ -616,7 +616,7 @@ window.GLOBAL_PARTNER_DATA = d; // Simpan ke memori lokal
             const klasemenKeywords = ['grup', 'group', 'pool', 'penyisihan', 'liga'];
             const isKlasemen = (r) => klasemenKeywords.some(kw => (r||'').toLowerCase().includes(kw));
 
-            const baganKeywords = ['16', '32', '64', 'quarter', 'qf', '8 besar', 'perempat', 'semi', 'sf', '4 besar', 'final', 'puncak', 'juara 3', 'third', 'tiga'];
+            const baganKeywords = ['16', '32', '64', 'quarter', 'qf', '8 besar', 'perempat', 'semi', 'sf', '4 besar', 'final', 'puncak', 'juara 3', 'third', 'tiga', '3rd'];
             const isBagan = (r) => baganKeywords.some(kw => (r||'').toLowerCase().includes(kw));
             
             let jadwalMatches = [];
@@ -673,7 +673,7 @@ window.GLOBAL_PARTNER_DATA = d; // Simpan ke memori lokal
                         let num = getNum(rawRound);
                         let targetTier = null;
                         
-                        if(r.includes('juara 3') || r.includes('third') || r.includes('tiga') || r.includes('perebutan')) targetTier = tiers.find(t=>t.id==='third');
+                        if(r.includes('juara 3') || r.includes('third') || r.includes('tiga') || r.includes('perebutan') || r.includes('3rd')) targetTier = tiers.find(t=>t.id==='third');
                         else if(r.includes('quarter') || r.includes('qf') || r.includes('8 besar') || r.includes('perempat')) targetTier = tiers.find(t=>t.id==='qf');
                         else if(r.includes('semi') || r.includes('sf') || r.includes('4 besar')) targetTier = tiers.find(t=>t.id==='sf');
                         else if(r.includes('16')) targetTier = tiers.find(t=>t.id==='r16');
