@@ -357,6 +357,7 @@
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-club"> Tampilkan Input Asal Klub</label>
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-ig"> Tampilkan Input Akun Instagram</label>
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-jersey"> Tampilkan Input Ukuran Jersey</label>
+<label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#d81b60;"><input type="checkbox" id="reg-req-umur"> Tampilkan Input Tahun Lahir (Auto-Umur)</label>
                             <hr style="border:0; border-top:1px dashed #ccc; margin:2px 0;">
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#1565c0;"><input type="checkbox" id="reg-multi-wa"> Izinkan 1 WA Mendaftar Banyak Tim</label>
                         </div>
@@ -3791,6 +3792,7 @@ function openEstimasiModal() {
                     reqClub: document.getElementById('reg-req-club').checked, 
                     reqIg: document.getElementById('reg-req-ig').checked,
                     reqJersey: document.getElementById('reg-req-jersey').checked,
+reqUmur: document.getElementById('reg-req-umur') ? document.getElementById('reg-req-umur').checked : false,
                     multiWa: document.getElementById('reg-multi-wa').checked,
                     regTitle: document.getElementById('reg-title') ? document.getElementById('reg-title').value : '',
                     regSub: document.getElementById('reg-sub') ? document.getElementById('reg-sub').value : '',
@@ -3818,6 +3820,7 @@ function openEstimasiModal() {
                 document.getElementById('reg-req-club').checked = fs.reqClub === false ? false : true; 
                 document.getElementById('reg-req-ig').checked = fs.reqIg === false ? false : true;
                 document.getElementById('reg-req-jersey').checked = fs.reqJersey === false ? false : true;
+if(document.getElementById('reg-req-umur')) document.getElementById('reg-req-umur').checked = fs.reqUmur === true ? true : false;
                 document.getElementById('reg-multi-wa').checked = fs.multiWa === true ? true : false;
                 
                 if(document.getElementById('reg-title')) document.getElementById('reg-title').value = fs.regTitle || '';

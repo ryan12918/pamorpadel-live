@@ -510,6 +510,14 @@
                                 if(document.getElementById('wrap-jersey-capt')) document.getElementById('wrap-jersey-capt').style.display = 'none';
                                 if(document.getElementById('wrap-jersey-partner')) document.getElementById('wrap-jersey-partner').style.display = 'none';
                             }
+// --- SENSOR SAKLAR TAHUN LAHIR ---
+                            if(fs.reqUmur !== true) {
+                                if(document.getElementById('wrap-tahun-capt')) document.getElementById('wrap-tahun-capt').style.display = 'none';
+                                if(document.getElementById('wrap-tahun-partner')) document.getElementById('wrap-tahun-partner').style.display = 'none';
+                            } else {
+                                if(document.getElementById('wrap-tahun-capt')) document.getElementById('wrap-tahun-capt').style.display = 'block';
+                                if(document.getElementById('wrap-tahun-partner')) document.getElementById('wrap-tahun-partner').style.display = 'block';
+                            }
                             globalMultiWa = fs.multiWa === true;
 // --- SUNTIKAN 7 FITUR COCKPIT (LUXURY AUTO-HIDE) ---
                             // 1. Judul Utama (Eyebrow)
