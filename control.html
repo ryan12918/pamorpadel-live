@@ -1672,18 +1672,10 @@ function saveOOPSettings() {
             let container = document.getElementById('oop-day-tabs');
             if(!container) return;
 
-            // 🔥 SUNTIKAN: Baca Nama Tab (Sabtu/Minggu) & Jadikan Tanggal Resmi OOP!
-            let activeDayTitle = window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay].title || '';
-            const oopTitleEl = document.getElementById('oop-dynamic-title');
-            if (oopTitleEl) {
-                let dateEl = document.getElementById('oop-dynamic-date');
-                if (!dateEl) {
-                    dateEl = document.createElement('div');
-                    dateEl.id = 'oop-dynamic-date';
-                    dateEl.style.cssText = 'font-size: 13px; font-weight: 800; color: #d81b60; margin-top: 6px; text-transform: uppercase;';
-                    oopTitleEl.parentNode.insertBefore(dateEl, oopTitleEl.nextSibling);
-                }
-                dateEl.innerHTML = `📅 ${safeHTML(activeDayTitle)}`;
+            // 🔥 PENGHAPUSAN: Tanggal dinamis di bawah judul OOP dinonaktifkan sesuai komando.
+            let dateEl = document.getElementById('oop-dynamic-date');
+            if (dateEl) {
+                dateEl.remove(); // Sapu bersih elemen jika masih tersisa di layar
             }
             
             // 🔥 Ambil Warna untuk Tab Aktif
