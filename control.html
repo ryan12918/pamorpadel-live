@@ -393,6 +393,7 @@
             <div id="view-matches" class="view-section active">
                 <div class="toolbar">
                     <button class="btn-action btn-blue" onclick="openModalMatch()">+ BARU</button>
+                    <button id="btn-radar-est" class="btn-action" style="background:#ffb300; color:#000;" onclick="openEstimasiModal()">⏱️ RADAR: MATI</button>
                     <button class="btn-action btn-green" onclick="exportToExcel()">📊 REKAP EXCEL</button>
                     <button class="btn-action btn-purple" onclick="openStudioTV()">📺 STUDIO TV</button>
                     <button class="btn-action btn-red" onclick="deleteSelected()">🗑️ HAPUS TERPILIH</button>
@@ -775,6 +776,28 @@
         </div>
     </div>
 
+<div id="modal-estimasi" class="modal">
+        <div class="modal-box" style="width: 400px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin:0; color:#ef6c00;">⏱️ RADAR ESTIMASI WAKTU</h3>
+                <div style="cursor:pointer; font-weight:bold; color:#aaa; font-size:18px;" onclick="document.getElementById('modal-estimasi').style.display='none'">✕</div>
+            </div>
+            <div style="background:#fff3e0; padding:10px; border-radius:6px; border:1px solid #ffcc80; margin-bottom:15px;">
+                <label style="font-size:12px; font-weight:900; color:#e65100; cursor:pointer; display:flex; align-items:center; gap:8px;">
+                    <input type="checkbox" id="est-active" style="width:18px; height:18px;"> AKTIFKAN AUTO-ESTIMASI
+                </label>
+                <p style="font-size:10px; color:#555; margin:5px 0 0 0;">Jika aktif, jam pertandingan akan otomatis menyesuaikan (Efek Domino) berdasarkan Court yang sama.</p>
+            </div>
+            <div class="form-group">
+                <label>Durasi Default (Jika kategori asing)</label>
+                <input type="number" id="est-default" class="form-control" value="30" style="font-weight:bold; font-size:14px;">
+            </div>
+            <div class="section-title" style="font-size:11px;">DURASI PER KATEGORI (MENIT)</div>
+            <div id="est-cat-list" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; max-height: 200px; overflow-y:auto; padding-right:5px; margin-bottom:15px;">
+            </div>
+            <button class="btn-action btn-green" onclick="saveEstimasi()" style="width:100%; justify-content:center; padding:12px; font-size:12px;">💾 SIMPAN & TERAPKAN</button>
+        </div>
+    </div>
         </div> </div> <div id="modal-tv" class="modal">
         <div class="modal-box" style="width:350px;">
             <h3 style="margin-top:0; color:#6a1b9a;">📺 STUDIO TV DISPLAY</h3>
@@ -1223,7 +1246,26 @@
             }, 500); 
         }
 
-        async function tog(id) { const index = window.GLOBAL_MATCHES.findIndex(m => m.id === id); if (index === -1) return; let ns = window.GLOBAL_MATCHES[index].status === 'LIVE' ? 'PENDING' : 'LIVE'; window.GLOBAL_MATCHES[index].status = ns; let btn = document.getElementById('btn-status-' + id); if (btn) { btn.innerText = ns === 'LIVE' ? 'STOP' : 'LIVE'; btn.style.background = ns === 'LIVE' ? '#e91e63' : '#90a4ae'; } updateBrandingPreview(); await db.from('matches_pro').update({status: ns}).eq('id', id); }
+        async function tog(id) { 
+            const index = window.GLOBAL_MATCHES.findIndex(m => m.id === id); 
+            if (index === -1) return; 
+            let ns = window.GLOBAL_MATCHES[index].status === 'LIVE' ? 'PENDING' : 'LIVE'; 
+            window.GLOBAL_MATCHES[index].status = ns; 
+            let payload = { status: ns };
+            
+            // 🚀 EFEK DOMINO: AUTO TIME STAMP (Jam akan terisi otomatis saat LIVE diklik)
+            let estSet = window.GLOBAL_OOP_DATA?.settings?.estimation;
+            if (ns === 'LIVE' && estSet && estSet.active) {
+                let now = new Date(); let tStr = ("0"+now.getHours()).slice(-2) + ":" + ("0"+now.getMinutes()).slice(-2);
+                window.GLOBAL_MATCHES[index].time = tStr; payload.time = tStr;
+                let timeInp = document.querySelector(`tr[data-id="${id}"] input[data-field="time"]`);
+                if(timeInp) timeInp.value = tStr;
+            }
+
+            let btn = document.getElementById('btn-status-' + id); 
+            if (btn) { btn.innerText = ns === 'LIVE' ? 'STOP' : 'LIVE'; btn.style.background = ns === 'LIVE' ? '#e91e63' : '#90a4ae'; } 
+            updateBrandingPreview(); await db.from('matches_pro').update(payload).eq('id', id); 
+        }
         async function fin(id) { if(!confirm('Tandai Selesai?')) return; const index = window.GLOBAL_MATCHES.findIndex(m => m.id === id); if (index === -1) return; window.GLOBAL_MATCHES[index].status = 'FINISHED'; let btn = document.getElementById('btn-status-' + id); if (btn) { btn.innerText = 'DONE'; btn.style.background = '#43a047'; } updateBrandingPreview(); await db.from('matches_pro').update({status: 'FINISHED'}).eq('id', id); }
         async function del(id) { if(!confirm('Hapus Match?')) return; window.GLOBAL_MATCHES = window.GLOBAL_MATCHES.filter(m => m.id !== id); let row = document.querySelector(`tr[data-id="${id}"]`); if (row) row.remove(); updateBrandingPreview(); await db.from('matches_pro').delete().eq('id', id); }
         
@@ -1650,6 +1692,7 @@
 
             renderOOPTabs();
             renderOOPMatrix();
+            updateRadarButtonUI(); // <-- Tambahkan baris ini agar lampu mendeteksi saat pertama kali web dimuat
         }
 
         // 🔥 SUNTIKAN: Mesin penyimpan khusus untuk Catatan Grup
@@ -2934,7 +2977,47 @@ function saveOOPSettings() {
 
                         function go(id, btn) { document.querySelectorAll('.container').forEach(c=>c.classList.add('hidden')); document.getElementById('view-'+id).classList.remove('hidden'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); window.scrollTo(0,0); }
                         
-                        function processAndRender() { renderTabs(); renderAll(); }
+                        let GLOBAL_EST_SETTINGS = null;
+                        function applyEstimationLogic(matchList) {
+                            try { if (window.parent && window.parent.GLOBAL_OOP_DATA && window.parent.GLOBAL_OOP_DATA.settings) { GLOBAL_EST_SETTINGS = window.parent.GLOBAL_OOP_DATA.settings.estimation; } } catch(e) {}
+                            if (!GLOBAL_EST_SETTINGS || !GLOBAL_EST_SETTINGS.active) return;
+                            
+                            let courts = {};
+                            matchList.forEach(m => { 
+                                let cName = String(m.court_name || 'TBD').trim().toUpperCase();
+                                let dName = String(m.date || 'TBD').trim().toUpperCase();
+                                let key = cName + "|||" + dName; 
+                                if(!courts[key]) courts[key] = []; 
+                                courts[key].push(m); 
+                            });
+                            
+                            for (let key in courts) {
+                                let currentEst = null;
+                                courts[key].forEach(m => {
+                                    let dur = parseInt(GLOBAL_EST_SETTINGS.cats[m.category]) || parseInt(GLOBAL_EST_SETTINGS.default) || 30;
+                                    let timeStr = String(m.time || '').trim();
+                                    let statusStr = String(m.status || '').trim().toUpperCase();
+                                    
+                                    // PENTING: Jangan ubah double backslash (\\d) di bawah ini
+                                    let matchTime = timeStr.match(/([01]\\d|2[0-3]):([0-5]\\d)/); 
+                                    
+                                    if (matchTime) {
+                                        currentEst = (parseInt(matchTime[1]) * 60) + parseInt(matchTime[2]);
+                                        m.display_time = timeStr; 
+                                    } else {
+                                        if (currentEst !== null && statusStr === 'PENDING') {
+                                            let h = Math.floor(currentEst / 60) % 24; 
+                                            let mm = currentEst % 60;
+                                            m.display_time = "EST: " + ("0" + h).slice(-2) + ":" + ("0" + mm).slice(-2);
+                                            m.is_estimated = true;
+                                        } else { m.display_time = timeStr; }
+                                    }
+                                    if (currentEst !== null) currentEst += dur;
+                                });
+                            }
+                        }
+
+                        function processAndRender() { applyEstimationLogic(matches); renderTabs(); renderAll(); }
                         processAndRender();
                     <\/script>
                 </body>
@@ -2987,6 +3070,42 @@ function saveOOPSettings() {
             }
         }
         function openModalMatch() { document.getElementById('modal-match').style.display='flex'; }
+function openEstimasiModal() {
+            let set = (window.GLOBAL_OOP_DATA && window.GLOBAL_OOP_DATA.settings && window.GLOBAL_OOP_DATA.settings.estimation) ? window.GLOBAL_OOP_DATA.settings.estimation : { active: false, default: 30, cats: {} };
+            document.getElementById('est-active').checked = set.active;
+            document.getElementById('est-default').value = set.default || 30;
+            let cats = [];
+            try { cats = JSON.parse(window.RAW_DB_DATA.categories).map(c => c.name); } catch(e) {}
+            let html = '';
+            cats.forEach(c => {
+                let val = set.cats[c] || set.default || 30;
+                html += `<div class="form-group"><label>${safeHTML(c)}</label><input type="number" class="form-control est-cat-val" data-cat="${safeHTML(c)}" value="${val}"></div>`;
+            });
+            document.getElementById('est-cat-list').innerHTML = html;
+            document.getElementById('modal-estimasi').style.display = 'flex';
+        }
+
+        function saveEstimasi() {
+            let est = { active: document.getElementById('est-active').checked, default: parseInt(document.getElementById('est-default').value) || 30, cats: {} };
+            document.querySelectorAll('.est-cat-val').forEach(inp => { est.cats[inp.getAttribute('data-cat')] = parseInt(inp.value) || est.default; });
+            if(!window.GLOBAL_OOP_DATA.settings) window.GLOBAL_OOP_DATA.settings = {};
+            window.GLOBAL_OOP_DATA.settings.estimation = est;
+            triggerOOPSave(); document.getElementById('modal-estimasi').style.display = 'none'; updateBrandingPreview();
+            updateRadarButtonUI(); // <-- Sinyal ke tombol
+            alert("Radar Estimasi Waktu berhasil diterapkan!");
+        }
+
+        // 🚀 MESIN PENGUBAH WARNA TOMBOL RADAR
+        function updateRadarButtonUI() {
+            let btn = document.getElementById('btn-radar-est');
+            if(!btn) return;
+            let estActive = window.GLOBAL_OOP_DATA?.settings?.estimation?.active;
+            if(estActive) {
+                btn.style.background = "#2e7d32"; btn.style.color = "#fff"; btn.innerHTML = "⏱️ RADAR: AKTIF";
+            } else {
+                btn.style.background = "#ffb300"; btn.style.color = "#000"; btn.innerHTML = "⏱️ RADAR: MATI";
+            }
+        }
         function showQR() { const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://matchlivepro.com/?id=${ACTIVE_ID}`; document.getElementById('qr-img').src = url; document.getElementById('qr-text').innerText = ACTIVE_ID; document.getElementById('modal-qr').style.display='flex'; }
 
         // ==========================================

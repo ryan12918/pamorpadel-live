@@ -180,6 +180,7 @@
 
         function applyTheme(d) {
             const r = document.documentElement.style;
+window.GLOBAL_PARTNER_DATA = d; // Simpan ke memori lokal
             r.setProperty('--font-main', d.font_family || 'Montserrat');
             r.setProperty('--primary-start', d.color_primary || '#222');
             r.setProperty('--primary-end', d.color_gradient_end || d.color_primary);

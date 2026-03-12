@@ -317,6 +317,7 @@
 
         function applyTheme(d) {
             const r = document.documentElement.style;
+window.GLOBAL_PARTNER_DATA = d; // Simpan ke memori lokal
             r.setProperty('--font-main', d.font_family || 'Montserrat');
             r.setProperty('--primary-start', d.color_primary || '#222');
             r.setProperty('--primary-end', d.color_gradient_end || d.color_primary);
@@ -374,7 +375,59 @@
             if(mData) { mData.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); matches = mData; processAndRender(); }
         }
 
-        function processAndRender() { renderTabs(); renderAll(); }
+        // 🚀 MESIN KALKULASI BAYANGAN (EFEK DOMINO V3 - ANTI BADAI)
+        let GLOBAL_EST_SETTINGS = null;
+        function applyEstimationLogic(matchList) {
+            if (!GLOBAL_EST_SETTINGS || !GLOBAL_EST_SETTINGS.active) return;
+            
+            let courts = {};
+            // KELOMPOKKAN BERDASARKAN COURT & TGL (Kebal Spasi & Huruf Kecil)
+            matchList.forEach(m => { 
+                let cName = String(m.court_name || 'TBD').trim().toUpperCase();
+                let dName = String(m.date || 'TBD').trim().toUpperCase();
+                let key = cName + "|||" + dName; 
+                if(!courts[key]) courts[key] = []; 
+                courts[key].push(m); 
+            });
+            
+            for (let key in courts) {
+                let currentEst = null;
+                courts[key].forEach(m => {
+                    let dur = parseInt(GLOBAL_EST_SETTINGS.cats[m.category]) || parseInt(GLOBAL_EST_SETTINGS.default) || 30;
+                    let timeStr = String(m.time || '').trim();
+                    let statusStr = String(m.status || '').trim().toUpperCase();
+                    
+                    // RADAR PENDETEKSI JAM TANGGUH (00:00 s/d 23:59)
+                    let matchTime = timeStr.match(/([01]\d|2[0-3]):([0-5]\d)/); 
+                    
+                    if (matchTime) {
+                        // KUNCI JANGKAR! Ditemukan jam (Bisa dari LIVE atau ketikan manual)
+                        currentEst = (parseInt(matchTime[1]) * 60) + parseInt(matchTime[2]);
+                        m.display_time = timeStr; 
+                    } else {
+                        // JIKA KOSONG / FOLLOWED BY (Berstatus PENDING)
+                        if (currentEst !== null && statusStr === 'PENDING') {
+                            let h = Math.floor(currentEst / 60) % 24; 
+                            let mm = currentEst % 60;
+                            m.display_time = "EST: " + ("0" + h).slice(-2) + ":" + ("0" + mm).slice(-2);
+                            m.is_estimated = true;
+                        } else { 
+                            m.display_time = timeStr; 
+                        }
+                    }
+                    // DOMINO BERGERAK MAJU TERUS KE BAWAH!
+                    if (currentEst !== null) currentEst += dur;
+                });
+            }
+        }
+
+        function processAndRender() { 
+            if (window.GLOBAL_PARTNER_DATA && window.GLOBAL_PARTNER_DATA.oop_data) {
+                try { GLOBAL_EST_SETTINGS = JSON.parse(window.GLOBAL_PARTNER_DATA.oop_data).settings.estimation; } catch(e) {}
+            }
+            applyEstimationLogic(matches); // Ledakkan Domino
+            renderTabs(); renderAll(); 
+        }
 
         function renderTabs() {
             if(isTVMode || reqCourt || isOBSMode) return; 
@@ -447,7 +500,11 @@
             let timeInfo = '';
             if (isLive) { timeInfo = '<div class="live-tag"><div class="dot-live"></div> LIVE</div>'; } 
             else if (isDone) { timeInfo = '<div style="font-weight:800; font-size:9px; background:rgba(100,100,100,0.1); padding:2px 8px; border-radius:10px; opacity:0.8;">🏁 FT</div>'; } 
-            else { timeInfo = `<span style="font-size:11px; font-weight:600; opacity:0.8;">${(m.date ? m.date + ' • ' : '') + (m.time || '')}</span>`; } 
+            else { 
+                let showTime = m.display_time || m.time || '';
+                let styleEst = m.is_estimated ? 'color: var(--primary-start); background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px;' : '';
+                timeInfo = `<span style="font-size:11px; font-weight:600; opacity:0.8; ${styleEst}">${(m.date ? m.date + ' • ' : '') + showTime}</span>`; 
+            } 
 
             let centerHTML = scoreStr === 'VS' ? '<div class="vs-text">VS</div>' : `<div class="${scoreCls}">${scoreStr}${smallPt}</div>`;
             let teamA_Formatted = formatTeamName(m.team_a, m.server, true);
