@@ -391,7 +391,7 @@
                 let hasLive = matches.some(m => (m.category||'UMUM') === c && m.status === 'LIVE');
                 let dot = hasLive ? '<span class="neon-dot" style="margin:0"></span>' : '';
                 let act = currentCategory === c ? 'active' : '';
-                html += `<div class="cat-pill ${act}" onclick="setCat('${c}')">${c} ${dot}</div>`;
+                html += `<div class="cat-pill ${act}" onclick="setCat('${c.replace(/'/g, "\\'")}')">${c} ${dot}</div>`;
             });
             tabEl.innerHTML = html;
         }
