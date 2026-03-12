@@ -1728,7 +1728,7 @@ function saveOOPSettings() {
 
         function saveOOPCourtName(c, val) {
             let oop = window.GLOBAL_OOP_DATA.days[window.GLOBAL_OOP_DATA.activeDay];
-            if(!oop.courtNames) oop.courtNames = {}; oop.courtNames[c] = val; triggerOOPSave();
+            if(!oop.courtNames) oop.courtNames = {}; oop.courtNames[c] = val.toUpperCase(); triggerOOPSave();
         }
 
         function getOOPContrastColor(hexColor) {
@@ -2237,7 +2237,7 @@ function saveOOPSettings() {
                         let timeVal = day.times ? (day.times[r] || `Match ${r+1}`) : `Match ${r+1}`;
 
                         for (let c = 0; c < day.cols; c++) {
-                            let courtName = (day.courtNames && day.courtNames[c]) ? day.courtNames[c] : `COURT ${c+1}`;
+                            let courtName = (day.courtNames && day.courtNames[c]) ? day.courtNames[c].toUpperCase() : `COURT ${c+1}`;
                             let cellKey = r + '_' + c;
                             let cellData = day.cells[cellKey];
 
