@@ -461,6 +461,7 @@
                             <div style="text-align: right; padding-top: 5px;">
                             <span id="oop-save-status" style="position: absolute; top: -10px; right: 0; font-size: 11px; font-weight: 800; background: #e8f5e9; color: #2e7d32; padding: 6px 12px; border-radius: 20px; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 20; border: 1px solid #c8e6c9;">✅ Tersimpan</span>
                             <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                                <button id="btn-sync-oop" class="btn-action" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px; background: linear-gradient(135deg, #00c6ff, #0072ff); color: white;" onclick="syncOOPToMatch()">🚀 SYNC TO DATA MATCH</button>
                                 <button class="btn-action btn-purple" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="openPrintModal('view-oop', 'landscape')">🖨️ CETAK</button>
                                 <button class="btn-action btn-blue" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="addOOPCourt()">+ COURT</button>
                                     <button class="btn-action btn-red" style="font-size: 10px; padding: 8px 12px; font-weight: 700; border-radius: 6px;" onclick="popOOPCourt()">- COURT</button>
@@ -2201,6 +2202,179 @@ function saveOOPSettings() {
                 }
             }, 800);
         }
+
+        // --- MESIN SINKRONISASI OOP KE DATA MATCH (ANTI-DOBEL & ANTI-CRASH) ---
+        async function syncOOPToMatch() {
+            if (!window.GLOBAL_OOP_DATA || !window.GLOBAL_OOP_DATA.days) {
+                alert("⚠️ Data OOP tidak ditemukan!");
+                return;
+            }
+
+            const btnSync = document.getElementById('btn-sync-oop');
+            if(btnSync) {
+                btnSync.disabled = true;
+                btnSync.innerHTML = "⏳ MENGHITUNG...";
+            }
+
+            try {
+                // 1. Ambil data pertandingan yang sudah ada di database (Tabel: matches_pro)
+                const { data: existingMatches, error: errFetch } = await db
+                    .from('matches_pro')
+                    .select('*')
+                    .eq('tournament_id', ACTIVE_ID)
+                    .order('match_no', { ascending: true });
+
+                if (errFetch) throw errFetch;
+
+                let existingMap = {};
+                if (existingMatches) {
+                    existingMatches.forEach(m => { existingMap[m.match_no] = m; });
+                }
+
+                // 2. Ekstraksi OOP dan berikan Global Match Number secara diam-diam
+                let globalMatchNo = 1;
+                let payload = [];
+                let days = window.GLOBAL_OOP_DATA.days;
+                let baseTime = new Date().getTime(); // Untuk menjaga urutan saat di layar
+
+                for (let dayKey in days) {
+                    let day = days[dayKey];
+                    let dayTitle = day.title || `Day ${dayKey}`;
+
+                    for (let r = 0; r < day.rows; r++) {
+                        let timeVal = day.times ? (day.times[r] || `Match ${r+1}`) : `Match ${r+1}`;
+
+                        for (let c = 0; c < day.cols; c++) {
+                            let courtName = (day.courtNames && day.courtNames[c]) ? day.courtNames[c] : `COURT ${c+1}`;
+                            let cellKey = r + '_' + c;
+                            let cellData = day.cells[cellKey];
+
+                            // Jika ada isinya, buatkan data sinkronisasi
+                            if (cellData && (cellData.cat || cellData.ta || cellData.tb)) {
+                                let taName = cellData.isManual ? cellData.ta : resolveOOPPointer(cellData.cat, cellData.ta);
+                                let tbName = cellData.isManual ? cellData.tb : resolveOOPPointer(cellData.cat, cellData.tb);
+                                
+                                let existing = existingMap[globalMatchNo];
+                                let shouldSkip = false;
+                                let isUpdate = false;
+                                let matchId = null;
+
+                                if (existing) {
+                                    // GEMBOK KESELAMATAN: Jika sudah LIVE atau DONE, jangan disentuh!
+                                    if (existing.status === 'LIVE' || existing.status === 'FINISHED' || existing.status === 'DONE') {
+                                        shouldSkip = true;
+                                    } else {
+                                        isUpdate = true;
+                                        matchId = existing.id;
+                                    }
+                                }
+
+                                if (!shouldSkip) {
+                                    let virtualTime = new Date(baseTime + (globalMatchNo * 1000)).toISOString();
+                                    
+                                    let matchObj = {
+                                        tournament_id: ACTIVE_ID,
+                                        match_no: globalMatchNo,
+                                        category: cellData.cat || "-",
+                                        round: cellData.round || "-",
+                                        team_a: taName || "-",
+                                        team_b: tbName || "-",
+                                        date: dayTitle,
+                                        time: timeVal,
+                                        court_name: courtName,
+                                        status: 'PENDING',
+                                        created_at: virtualTime
+                                    };
+                                    
+                                    // Injeksi pelengkap wajib jika data baru (INSERT)
+                                    if (!isUpdate) {
+                                        matchObj.set1_a = 0; matchObj.set1_b = 0;
+                                        matchObj.set2_a = 0; matchObj.set2_b = 0;
+                                        matchObj.set3_a = 0; matchObj.set3_b = 0;
+                                        matchObj.set4_a = 0; matchObj.set4_b = 0;
+                                        matchObj.set5_a = 0; matchObj.set5_b = 0;
+                                        matchObj.points_a = '0'; matchObj.points_b = '0';
+                                        matchObj.is_wo = false;
+                                        matchObj.pin = '';
+                                        matchObj.referee_name = '';
+                                    }
+                                    
+                                    if (isUpdate) {
+                                        matchObj.id = matchId; 
+                                        matchObj._action = 'UPDATE';
+                                    } else {
+                                        matchObj._action = 'INSERT';
+                                    }
+                                    
+                                    payload.push(matchObj);
+                                }
+                                
+                                globalMatchNo++;
+                            }
+                        }
+                    }
+                }
+
+                if (payload.length === 0) {
+                    if(btnSync) { btnSync.disabled = false; btnSync.innerHTML = "🚀 SYNC TO DATA MATCH"; }
+                    alert("✅ Sinkronisasi selesai. Tidak ada data baru atau revisi yang perlu di-push (Semua data aman/LIVE).");
+                    return;
+                }
+
+                // 3. Eksekusi Batching (Sistem Nyicil 50 Data per gelombang agar tidak Crash)
+                let chunkSize = 50;
+                let totalData = payload.length;
+                let successCount = 0;
+
+                for (let i = 0; i < totalData; i += chunkSize) {
+                    let chunk = payload.slice(i, i + chunkSize);
+                    
+                    if(btnSync) {
+                        btnSync.innerHTML = `⏳ SINKRONISASI: ${Math.min(i + chunkSize, totalData)} / ${totalData}...`;
+                    }
+
+                    let inserts = chunk.filter(x => x._action === 'INSERT').map(x => { let { _action, ...rest } = x; return rest; });
+                    let updates = chunk.filter(x => x._action === 'UPDATE').map(x => { let { _action, ...rest } = x; return rest; });
+
+                    // Tembak Data Baru
+                    if (inserts.length > 0) {
+                        const { error: errIns } = await db.from('matches_pro').insert(inserts);
+                        if (errIns) throw errIns;
+                    }
+
+                    // Tembak Revisi Data Lama
+                    if (updates.length > 0) {
+                        const { error: errUpd } = await db.from('matches_pro').upsert(updates);
+                        if (errUpd) throw errUpd;
+                    }
+
+                    successCount += chunk.length;
+                    
+                    // Beri jeda 500ms agar browser dan server Supabase bernafas
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+
+                // 4. Selesai
+                if(btnSync) {
+                    btnSync.disabled = false;
+                    btnSync.innerHTML = "🚀 SYNC TO DATA MATCH";
+                }
+                
+                // Refresh Data Match Table Otomatis
+                if (typeof loadMatches === 'function') { loadMatches(); }
+
+                alert(`✅ SINKRONISASI SUKSES!\nTotal ${successCount} jadwal berhasil di-push/direvisi ke Data Match.`);
+
+            } catch (error) {
+                console.error("Error Sync OOP:", error);
+                alert("❌ Gagal Sinkronisasi: " + error.message);
+                if(btnSync) {
+                    btnSync.disabled = false;
+                    btnSync.innerHTML = "🚀 SYNC TO DATA MATCH";
+                }
+            }
+        }
+
         function loadSettings(d) {
             window.RAW_DB_DATA = d; 
             const set = (id, v) => { if(document.getElementById(id)) document.getElementById(id).value = v || ''; };
