@@ -1083,11 +1083,13 @@
         function generateTVLink() {
             const checkboxes = document.querySelectorAll('.tv-court-cb:checked');
             let selectedCourts = Array.from(checkboxes).map(cb => cb.value);
-            let currentUrl = window.location.href;
-            let baseUrl = currentUrl.replace('control.html', 'tv.html');
-            if (baseUrl.includes('?')) baseUrl = baseUrl.split('?')[0]; 
-            let finalUrl = baseUrl + '?id=' + ACTIVE_ID;
-            if (selectedCourts.length > 0) { finalUrl += '&courts=' + encodeURIComponent(selectedCourts.join(',')); }
+            
+            // 🚀 PERBAIKAN: Menggunakan Relative Path agar selalu berhasil
+            let finalUrl = 'tv.html?id=' + ACTIVE_ID;
+            
+            if (selectedCourts.length > 0) { 
+                finalUrl += '&courts=' + encodeURIComponent(selectedCourts.join(',')); 
+            }
             window.open(finalUrl, '_blank');
             document.getElementById('modal-tv').style.display = 'none';
         }
