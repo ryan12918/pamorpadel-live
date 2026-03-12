@@ -192,6 +192,11 @@
                 <input type="tel" id="captWa" class="form-control" placeholder="E-Ticket dikirim ke nomor ini">
                 <div class="error-text" id="err-captWa">⚠️ Wajib diisi!</div>
             </div>
+
+<div class="form-group" id="wrap-tahun-capt">
+                <label id="lbl-p1-tahun">Tahun Lahir Pemain 1 (Cth: 1990)</label>
+                <input type="number" id="captTahun" class="form-control" placeholder="Masukkan 4 digit tahun" min="1940" max="2015">
+            </div>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div class="form-group" id="wrap-jersey-capt">
@@ -221,6 +226,11 @@
                 <label>Nama Lengkap (Pemain 2)</label>
                 <input type="text" id="partnerName" class="form-control" placeholder="Sesuai KTP">
                 <div class="error-text" id="err-partnerName">⚠️ Wajib diisi!</div>
+            </div>
+
+<div class="form-group" id="wrap-tahun-partner">
+                <label>Tahun Lahir Pemain 2 (Cth: 1995)</label>
+                <input type="number" id="partnerTahun" class="form-control" placeholder="Masukkan 4 digit tahun" min="1940" max="2015">
             </div>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -271,6 +281,12 @@
                 <div id="vip-msg" style="font-size: 11px; margin-top: 8px; font-weight: 600;"></div>
             </div>
 
+<div style="background: rgba(255, 0, 0, 0.05); border: 1px solid rgba(255, 0, 0, 0.2); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 11px; line-height: 1.5; color: #333;">
+                    <input type="checkbox" id="klausul_medis" style="margin-top: 2px; transform: scale(1.2);">
+                    <span><b>PERSETUJUAN MEDIS:</b> Saya dan partner menyatakan dalam kondisi sehat. Segala bentuk cedera di lapangan sepenuhnya menjadi tanggung jawab pribadi, dan membebaskan panitia dari tuntutan hukum.</span>
+                </label>
+            </div>
             <button class="btn-primary" id="btn-submit" onclick="submitRegistration()">SELESAIKAN REGISTRASI</button>
             <a href="#" class="back-link" onclick="nextStep(3)">Kembali ke Data Partner</a>
         </div>
@@ -768,6 +784,14 @@
 
             let jCapt = document.getElementById('captJersey') ? document.getElementById('captJersey').value : '';
             let jPartner = document.getElementById('partnerJersey') ? document.getElementById('partnerJersey').value : '';
+let tLahirA = document.getElementById('captTahun') ? document.getElementById('captTahun').value : '';
+            let tLahirB = document.getElementById('partnerTahun') ? document.getElementById('partnerTahun').value : '';
+            let ckMedis = document.getElementById('klausul_medis');
+
+            if (ckMedis && !ckMedis.checked) {
+                alert("⚠️ PERHATIAN: Anda wajib mencentang kotak PERSETUJUAN MEDIS di atas tombol submit untuk melanjutkan pendaftaran.");
+                return;
+            }
 
             let tName = sanitizeName(rawTeam) || "Tanpa Nama";
             let cName = sanitizeName(rawCapt);
@@ -833,9 +857,11 @@
                     status: isVip ? 'LUNAS' : 'PENDING',
                     vip_code: vCode,
                     asal_klub: club,
-                    instagram: combinedIg, // INI YANG KITA PERBAIKI
+                    instagram: combinedIg,
                     jersey_capt: jCapt,
-                    jersey_partner: jPartner
+                    jersey_partner: jPartner,
+                    tahun_lahir_a: tLahirA,
+                    tahun_lahir_b: tLahirB
                 };
 
                 const { error } = await db.from('registrations').insert([payload]);
