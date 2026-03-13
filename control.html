@@ -881,6 +881,10 @@
                 <div class="form-group"><label>Nama Tim</label><input type="text" id="edit-reg-team" class="form-control"></div>
                 <div class="form-group"><label>Kategori</label><input type="text" id="edit-reg-cat" class="form-control" style="font-weight:bold; color:#1a237e;"></div>
             </div>
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div class="form-group"><label>Thn Lahir P1 (Umur)</label><input type="number" id="edit-reg-thn1" class="form-control"></div>
+                <div class="form-group"><label>Thn Lahir P2 (Umur)</label><input type="number" id="edit-reg-thn2" class="form-control"></div>
+            </div>
             
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                 <div class="form-group"><label>Asal Klub</label><input type="text" id="edit-reg-club" class="form-control"></div>
@@ -3645,6 +3649,8 @@ function openEstimasiModal() {
             document.getElementById('edit-reg-ig').value = r.instagram || '';
             document.getElementById('edit-reg-p1').value = r.capt_name || '';
             document.getElementById('edit-reg-p2').value = r.partner_name || '';
+document.getElementById('edit-reg-thn1').value = r.tahun_lahir_a || '';
+            document.getElementById('edit-reg-thn2').value = r.tahun_lahir_b || '';
             document.getElementById('edit-reg-jc').value = r.jersey_capt || '';
             document.getElementById('edit-reg-jp').value = r.jersey_partner || '';
             
@@ -3663,6 +3669,8 @@ function openEstimasiModal() {
                 instagram: document.getElementById('edit-reg-ig').value,
                 capt_name: document.getElementById('edit-reg-p1').value,
                 partner_name: document.getElementById('edit-reg-p2').value,
+tahun_lahir_a: document.getElementById('edit-reg-thn1').value,
+                tahun_lahir_b: document.getElementById('edit-reg-thn2').value,
                 jersey_capt: document.getElementById('edit-reg-jc').value,
                 jersey_partner: document.getElementById('edit-reg-jp').value
             };
