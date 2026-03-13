@@ -398,6 +398,7 @@
                     <button class="btn-action btn-blue" onclick="openModalMatch()">+ BARU</button>
                     <button id="btn-radar-est" class="btn-action" style="background:#ffb300; color:#000;" onclick="openEstimasiModal()">⏱️ RADAR: MATI</button>
                     <button class="btn-action btn-green" onclick="exportToExcel()">📊 REKAP EXCEL</button>
+<button id="btn-backup-excel" class="btn-action" style="background:#d81b60; color:white; font-weight:bold; box-shadow:0 2px 10px rgba(216,27,96,0.3);" onclick="downloadBackupExcel()">📥 BACKUP OFFLINE (EXCEL)</button>
                     <button class="btn-action btn-purple" onclick="openStudioTV()">📺 STUDIO TV</button>
                     <button class="btn-action btn-red" onclick="deleteSelected()">🗑️ HAPUS TERPILIH</button>
                     <button id="btn-refresh" class="btn-action btn-grey" onclick="loadMatches()">REFRESH</button>
@@ -1196,6 +1197,173 @@
             let timestamp = dateObj.getFullYear() + "-" + String(dateObj.getMonth() + 1).padStart(2, '0') + "-" + String(dateObj.getDate()).padStart(2, '0');
             
             XLSX.writeFile(wb, `REKAP_${ACTIVE_ID.toUpperCase()}_${timestamp}.xlsx`);
+        }
+	// ==========================================
+        // 📥 MESIN BACKUP OFFLINE (ANTI KIAMAT)
+        // ==========================================
+        function downloadBackupExcel() {
+            if (!window.GLOBAL_MATCHES || window.GLOBAL_MATCHES.length === 0) {
+                alert("⚠️ Tidak ada Data Match! Silakan buat jadwal dan klik Sync to Data Match terlebih dahulu."); return;
+            }
+
+            let btn = document.getElementById('btn-backup-excel');
+            let oriTxt = btn.innerHTML;
+            btn.innerHTML = "⏳ MENCETAK RUMUS EXCEL...";
+            btn.disabled = true;
+
+            try {
+                var wb = XLSX.utils.book_new();
+
+                // ----------------------------------------------------
+                // SHEET 1: DATA MATCH (Master Input Manual Panitia)
+                // ----------------------------------------------------
+                let dmData = [
+                    ["NO", "KATEGORI", "BABAK", "TIM A", "S1 A", "S1 B", "S2 A", "S2 B", "S3 A", "S3 B", "S4 A", "S4 B", "S5 A", "S5 B", "TOTAL A", "TOTAL B", "TIM B", "PEMENANG", "MAIN"]
+                ];
+                
+                let matches = [...window.GLOBAL_MATCHES].sort((a,b) => parseInt(a.match_no) - parseInt(b.match_no));
+                
+                matches.forEach((m, idx) => {
+                    let r = idx + 2; // Mulai dari baris 2 di Excel
+                    
+                    // Rumus Excel Otomatis (Akan aktif saat panitia mengetik skor offline)
+                    let fTotalA = { t: 'n', f: `SUM(E${r},G${r},I${r},K${r},M${r})` };
+                    let fTotalB = { t: 'n', f: `SUM(F${r},H${r},J${r},L${r},N${r})` };
+                    let fWinner = { t: 's', f: `IF(O${r}>P${r},D${r},IF(P${r}>O${r},Q${r},""))` };
+                    let fMain = { t: 'n', f: `IF((O${r}+P${r})>0,1,0)` }; // Deteksi apakah sudah main
+
+                    dmData.push([
+                        m.match_no, m.category, m.round, m.team_a, 
+                        m.set1_a||0, m.set1_b||0, m.set2_a||0, m.set2_b||0, m.set3_a||0, m.set3_b||0, 
+                        m.set4_a||0, m.set4_b||0, m.set5_a||0, m.set5_b||0, 
+                        fTotalA, fTotalB, m.team_b, fWinner, fMain
+                    ]);
+                });
+
+                var wsDM = XLSX.utils.aoa_to_sheet(dmData);
+                wsDM['!cols'] = [{wch:5}, {wch:20}, {wch:15}, {wch:25}, {wch:5},{wch:5},{wch:5},{wch:5},{wch:5},{wch:5},{wch:5},{wch:5},{wch:5},{wch:5}, {wch:10}, {wch:10}, {wch:25}, {wch:25}, {wch:5}];
+                XLSX.utils.book_append_sheet(wb, wsDM, "DATA_MATCH");
+
+                // ----------------------------------------------------
+                // SHEET 2: KLASEMEN (Matriks Silang & Kolom Bunglon)
+                // ----------------------------------------------------
+                let isPct = document.getElementById('s-standings-format') ? (document.getElementById('s-standings-format').value === 'PCT') : false;
+                let formatHeader = isPct ? "PRESENTASE (%)" : "TOTAL SCORE (GD)";
+                
+                let klData = [];
+                
+                if (window.GLOBAL_GROUP_DATA) {
+                    for (let cat in window.GLOBAL_GROUP_DATA) {
+                        let groups = window.GLOBAL_GROUP_DATA[cat];
+                        groups.forEach(g => {
+                            let teams = g.teams.filter(t => t.trim() !== '' && t.toUpperCase() !== 'BYE' && t.toUpperCase() !== 'KOSONG');
+                            if(teams.length > 1) {
+                                klData.push([`🏆 ${cat} - ${g.name}`]);
+                                
+                                // A. CETAK MATRIKS SILANG (Cross-Table)
+                                let matrixHeader = ["MATRIKS"];
+                                teams.forEach(t => matrixHeader.push(t));
+                                klData.push(matrixHeader);
+
+                                let rStartMatrix = klData.length + 1;
+                                teams.forEach((t1, idx1) => {
+                                    let row = [t1];
+                                    teams.forEach((t2, idx2) => {
+                                        if(idx1 === idx2) {
+                                            row.push("X"); // Arsiran Diri Sendiri
+                                        } else {
+                                            let myCol = String.fromCharCode(66 + idx2); // B, C, D...
+                                            let myRow = rStartMatrix + idx1;
+                                            // Rumus KACAMATA KUDA: Wajib filter berdasarkan Kolom C (Babak) == g.name
+                                            let fScore = { t: 's', f: `(SUMIFS(DATA_MATCH!$O:$O, DATA_MATCH!$D:$D, $A${myRow}, DATA_MATCH!$Q:$Q, ${myCol}$${rStartMatrix-1}, DATA_MATCH!$C:$C, "${g.name}") + SUMIFS(DATA_MATCH!$P:$P, DATA_MATCH!$Q:$Q, $A${myRow}, DATA_MATCH!$D:$D, ${myCol}$${rStartMatrix-1}, DATA_MATCH!$C:$C, "${g.name}")) & " - " & (SUMIFS(DATA_MATCH!$P:$P, DATA_MATCH!$D:$D, $A${myRow}, DATA_MATCH!$Q:$Q, ${myCol}$${rStartMatrix-1}, DATA_MATCH!$C:$C, "${g.name}") + SUMIFS(DATA_MATCH!$O:$O, DATA_MATCH!$Q:$Q, $A${myRow}, DATA_MATCH!$D:$D, ${myCol}$${rStartMatrix-1}, DATA_MATCH!$C:$C, "${g.name}"))` };
+                                            row.push(fScore);
+                                        }
+                                    });
+                                    klData.push(row);
+                                });
+                                
+                                klData.push([]); // Jeda spasi
+                                
+                                // B. CETAK TABEL REKAPITULASI (W, L, GD/PCT)
+                                let rStartTable = klData.length + 2;
+                                klData.push(["TIM", "MAIN", "W", "L", "GW", "GL", formatHeader, "RANK"]);
+                                
+                                teams.forEach((t, idx) => {
+                                    let tr = rStartTable + idx;
+                                    // Semua rumus dipasangi Kacamata Kuda: DATA_MATCH!$C:$C, "${g.name}"
+                                    let fMain = {t:'n', f:`SUMIFS(DATA_MATCH!$S:$S, DATA_MATCH!$D:$D, $A${tr}, DATA_MATCH!$C:$C, "${g.name}") + SUMIFS(DATA_MATCH!$S:$S, DATA_MATCH!$Q:$Q, $A${tr}, DATA_MATCH!$C:$C, "${g.name}")`};
+                                    let fW = {t:'n', f:`COUNTIFS(DATA_MATCH!$R:$R, $A${tr}, DATA_MATCH!$C:$C, "${g.name}")`};
+                                    let fL = {t:'n', f:`B${tr} - C${tr}`};
+                                    let fGW = {t:'n', f:`SUMIFS(DATA_MATCH!$O:$O, DATA_MATCH!$D:$D, $A${tr}, DATA_MATCH!$C:$C, "${g.name}") + SUMIFS(DATA_MATCH!$P:$P, DATA_MATCH!$Q:$Q, $A${tr}, DATA_MATCH!$C:$C, "${g.name}")`};
+                                    let fGL = {t:'n', f:`SUMIFS(DATA_MATCH!$P:$P, DATA_MATCH!$D:$D, $A${tr}, DATA_MATCH!$C:$C, "${g.name}") + SUMIFS(DATA_MATCH!$O:$O, DATA_MATCH!$Q:$Q, $A${tr}, DATA_MATCH!$C:$C, "${g.name}")`};
+                                    
+                                    // Logika Kolom Bunglon
+                                    let fGD_PCT;
+                                    if(isPct) {
+                                        fGD_PCT = {t:'n', f:`IF((E${tr}+F${tr})=0, 0, (E${tr}/(E${tr}+F${tr}))*100)`};
+                                    } else {
+                                        fGD_PCT = {t:'n', f:`E${tr}-F${tr}`};
+                                    }
+                                    
+                                    // Rumus Abadi & Anti-Error IFERROR untuk RANK
+                                    let fRank = {t:'n', f:`IFERROR(RANK(G${tr}, $G$${rStartTable}:$G$${rStartTable+teams.length-1}, 0), 0)`};
+                                    
+                                    klData.push([t, fMain, fW, fL, fGW, fGL, fGD_PCT, fRank]);
+                                });
+                                
+                                klData.push([]); klData.push([]);
+                            }
+                        });
+                    }
+                }
+
+                if(klData.length === 0) klData.push(["Belum ada data grup"]);
+                var wsKL = XLSX.utils.aoa_to_sheet(klData);
+                wsKL['!cols'] = [{wch:25}, {wch:15}, {wch:15}, {wch:15}, {wch:15}, {wch:15}, {wch:15}, {wch:10}];
+                XLSX.utils.book_append_sheet(wb, wsKL, "KLASEMEN");
+
+                // ----------------------------------------------------
+                // SHEET 3: BAGAN (Pohon Gugur Vertical Semi-Manual)
+                // ----------------------------------------------------
+                const baganKeywords = ['16', '32', '64', 'quarter', 'qf', '8 besar', 'perempat', 'semi', 'sf', '4 besar', 'final', 'puncak', 'juara 3', 'third', 'tiga', '3rd'];
+                const isBagan = (r) => baganKeywords.some(kw => (r||'').toLowerCase().includes(kw));
+                
+                let bgData = [];
+                let baganMatches = matches.filter(m => isBagan(m.round));
+                
+                if(baganMatches.length > 0) {
+                    baganMatches.forEach(m => {
+                        let dmRow = matches.findIndex(x => x.id === m.id) + 2; // Cari barisnya di DATA_MATCH
+                        
+                        bgData.push([`🏆 ${m.category} - ${m.round}`]);
+                        bgData.push([{f: `DATA_MATCH!D${dmRow}`}, {f: `DATA_MATCH!O${dmRow}`}]); // Tim A & Total A
+                        bgData.push(["VS", ""]);
+                        bgData.push([{f: `DATA_MATCH!Q${dmRow}`}, {f: `DATA_MATCH!P${dmRow}`}]); // Tim B & Total B
+                        bgData.push(["PEMENANG:", {f: `DATA_MATCH!R${dmRow}`}]); // Otomatis terisi jika ada skor
+                        bgData.push([]);
+                    });
+                } else {
+                    bgData.push(["Belum ada jadwal babak gugur."]);
+                }
+
+                var wsBG = XLSX.utils.aoa_to_sheet(bgData);
+                wsBG['!cols'] = [{wch:30}, {wch:10}];
+                XLSX.utils.book_append_sheet(wb, wsBG, "BAGAN");
+
+                // ----------------------------------------------------
+                // EKSEKUSI PENGUNDUHAN
+                // ----------------------------------------------------
+                let dateObj = new Date(); 
+                let ts = dateObj.getFullYear() + "-" + String(dateObj.getMonth() + 1).padStart(2, '0') + "-" + String(dateObj.getDate()).padStart(2, '0');
+                XLSX.writeFile(wb, `BACKUP_OFFLINE_${ACTIVE_ID.toUpperCase()}_${ts}.xlsx`);
+
+            } catch(e) {
+                console.error(e);
+                alert("Terjadi kesalahan saat membuat Excel: " + e.message);
+            }
+
+            btn.innerHTML = oriTxt;
+            btn.disabled = false;
         }
 
         function upd(id, f, v) {
@@ -2878,7 +3046,7 @@ function saveOOPSettings() {
                             const klasemenKeywords = ['grup', 'group', 'pool', 'penyisihan', 'liga'];
                             const isKlasemen = (r) => klasemenKeywords.some(kw => (r||'').toLowerCase().includes(kw));
 
-                            const baganKeywords = ['16', '32', '64', 'quarter', 'qf', '8 besar', 'perempat', 'semi', 'sf', '4 besar', 'final', 'puncak', 'juara 3', 'third', 'tiga'];
+                            const baganKeywords = ['16', '32', '64', 'quarter', 'qf', '8 besar', 'perempat', 'semi', 'sf', '4 besar', 'final', 'puncak', 'juara 3', 'third', 'tiga', '3rd'];
                             const isBagan = (r) => baganKeywords.some(kw => (r||'').toLowerCase().includes(kw));
                             
                             let jadwalMatches = [];
@@ -2930,7 +3098,7 @@ function saveOOPSettings() {
                                         let num = getNum(rawRound);
                                         let targetTier = null;
                                         
-                                        if(r.includes('juara 3') || r.includes('third') || r.includes('tiga') || r.includes('perebutan')) targetTier = tiers.find(t=>t.id==='third');
+                                        if(r.includes('juara 3') || r.includes('third') || r.includes('tiga') || r.includes('perebutan') || r.includes('3rd')) targetTier = tiers.find(t=>t.id==='third');
                                         else if(r.includes('quarter') || r.includes('qf') || r.includes('8 besar') || r.includes('perempat')) targetTier = tiers.find(t=>t.id==='qf');
                                         else if(r.includes('semi') || r.includes('sf') || r.includes('4 besar')) targetTier = tiers.find(t=>t.id==='sf');
                                         else if(r.includes('16')) targetTier = tiers.find(t=>t.id==='r16');
