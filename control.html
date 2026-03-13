@@ -1099,7 +1099,7 @@
             if(window.GLOBAL_MATCHES && window.GLOBAL_MATCHES.length > 0) {
                 window.GLOBAL_MATCHES.forEach((m) => {
                     const inp = (f, v, c='') => `<input class="tbl-inp ${c}" data-field="${f}" value="${safeHTML(v)}" onchange="upd('${m.id}','${f}',this.value)">`;
-                    const num = (f, v) => `<input type="text" class="tbl-inp inp-score" data-field="${f}" value="${v||''}" oninput="upd('${m.id}','${f}',this.value)">`; 
+                    const num = (f, v) => `<input type="text" class="tbl-inp inp-score" data-field="${f}" value="${(v !== null && v !== undefined && v !== '') ? v : ''}" oninput="upd('${m.id}','${f}',this.value)">`; 
                     const txt = (f, v, c='') => `<textarea class="inp-wrap ${c}" data-field="${f}" onchange="upd('${m.id}','${f}',this.value)">${safeHTML(v)}</textarea>`;
                     const cbox = (f, v) => `<input type="checkbox" data-field="${f}" ${v?'checked':''} onchange="upd('${m.id}','${f}',this.checked)">`;
                     let bCls = m.status==='LIVE'?'#e91e63':(m.status==='FINISHED'?'#43a047':'#90a4ae');
@@ -1398,11 +1398,15 @@
             
             clearTimeout(updateTimer); 
             updateTimer = setTimeout(async () => { 
-                const matchIds = Object.keys(pendingUpdates);
+                // SOP KURIR BARU: Pindahkan isi keranjang ke tas kurir, lalu KOSONGKAN keranjang SEKARANG JUGA
+                // Jadi jika panitia mengetik lagi saat kurir sedang di jalan, ketikan baru masuk ke keranjang yang bersih!
+                const currentUpdates = { ...pendingUpdates };
+                pendingUpdates = {}; 
+
+                const matchIds = Object.keys(currentUpdates);
                 if(matchIds.length > 0) { 
-                    const promises = matchIds.map(matchId => db.from('matches_pro').update(pendingUpdates[matchId]).eq('id', matchId)); 
+                    const promises = matchIds.map(matchId => db.from('matches_pro').update(currentUpdates[matchId]).eq('id', matchId)); 
                     await Promise.all(promises); 
-                    pendingUpdates = {}; 
                 }
                 
                 isUnsavedData = false; 
