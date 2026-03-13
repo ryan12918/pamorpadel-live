@@ -883,7 +883,22 @@ let tLahirA = document.getElementById('captTahun') ? document.getElementById('ca
                     
                     // CEK APAKAH PANITIA SUDAH MEMASUKKAN NOMOR WA MEREKA
                     if (globalWaAdmin) {
-                        let textWA = `Halo Admin, ini konfirmasi pendaftaran turnamen:\n\nTim: *${tName}*\nKlub: *${club || '-'}*\nKategori: *${selectedCat}*\nKapten: *${cName}* (Jersey: ${jCapt || '-'}) \nPartner: *${pName}* (Jersey: ${jPartner || '-'}) \nTagihan: *Rp ${finalPrice.toLocaleString('id-ID')}*\n\nBerikut saya lampirkan bukti transfernya. Terima kasih.`;
+                        // Mesin perakit detail Kapten
+                        let cDet = [];
+                        if(jCapt) cDet.push(`Jersey: ${jCapt}`);
+                        if(tLahirA) cDet.push(`Thn: ${tLahirA}`);
+                        if(ig1) cDet.push(`IG: ${ig1}`);
+                        let cStr = cDet.length > 0 ? ` (${cDet.join(' | ')})` : '';
+
+                        // Mesin perakit detail Partner
+                        let pDet = [];
+                        if(jPartner) pDet.push(`Jersey: ${jPartner}`);
+                        if(tLahirB) pDet.push(`Thn: ${tLahirB}`);
+                        if(ig2) pDet.push(`IG: ${ig2}`);
+                        let pStr = pDet.length > 0 ? ` (${pDet.join(' | ')})` : '';
+
+                        let textWA = `Halo Admin, ini konfirmasi pendaftaran turnamen:\n\nTim: *${tName}*\nKlub: *${club || '-'}*\nKategori: *${selectedCat}*\nKapten: *${cName}*${cStr}\nPartner: *${pName}*${pStr}\nTagihan: *Rp ${finalPrice.toLocaleString('id-ID')}*\n\nBerikut saya lampirkan bukti transfernya. Terima kasih.`;
+                        
                         // Arahkan ke WA Panitia yang asli (Bukan nomor bohongan lagi)
                         window.location.href = `https://wa.me/${globalWaAdmin}?text=${encodeURIComponent(textWA)}`;
                     } else {
