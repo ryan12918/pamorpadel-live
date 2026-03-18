@@ -431,7 +431,7 @@ window.GLOBAL_PARTNER_DATA = d; // Simpan ke memori lokal
 
         function renderTabs() {
             if(isTVMode || reqCourt || isOBSMode) return; 
-            let cats = [...new Set(matches.map(m => m.category || 'UMUM'))].filter(c => c);
+            let cats = [...new Set(matches.map(m => String(m.category || 'UMUM')))].filter(c => c.trim() !== '-' && c.trim().toUpperCase() !== 'UMUM');
             
             if (currentCategory !== 'SEMUA' && !cats.includes(currentCategory)) {
                 currentCategory = 'SEMUA';
@@ -457,6 +457,7 @@ window.GLOBAL_PARTNER_DATA = d; // Simpan ke memori lokal
 
         // TATA LETAK HP: TETAP RATA KIRI KANAN NORMAL (BUKAN CENTER-HUGGING TV)
         function formatTeamName(teamString, serverState, isTeamA) {
+            teamString = String(teamString || ''); // VAKSIN DOSIS TINGGI
             if(hideServeGlobal) return `<div style="font-weight: 800; line-height: 1.15; ${!isTeamA ? 'text-align:right;' : ''}">${teamString}</div>`; 
             const dotHTML = '<span class="neon-dot"></span>';
             if(!teamString.includes('/')) {
@@ -471,7 +472,33 @@ window.GLOBAL_PARTNER_DATA = d; // Simpan ke memori lokal
         }
 
         function createCardHTML(m) {
+            let themeClass = 'theme-' + cardPreset;
             let status = String(m.status||'').trim().toUpperCase();
+            
+            let tb = String(m.team_b || '').trim();
+            let cat = String(m.category || '').trim();
+            let rnd = String(m.round || '').trim();
+
+            // SIHIR BUNGLON ELEGAN: Jika Tim B kosong atau strip (-)
+            if (tb === '' || tb === '-') {
+                let cardClass = status === 'LIVE' ? 'match-card is-live' : 'match-card';
+                let showCat = (cat !== '' && cat !== '-') ? cat : 'SPECIAL EVENT';
+                let showRound = (rnd !== '' && rnd !== '-') ? ' • ' + rnd : '';
+                return `
+                <div class="${cardClass} ${themeClass}" style="${status === 'FINISHED' ? 'opacity: 0.85;' : ''} display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding: 20px; text-transform:uppercase; margin-bottom: 12px; border-radius: var(--card-radius);">
+                    <div style="font-size: 10px; font-weight: 800; opacity: 0.8; margin-bottom: 12px; border-bottom: 1px solid rgba(128,128,128,0.2); padding-bottom: 6px; letter-spacing: 1px;">
+                        🌟 ${showCat}${showRound} 🌟
+                    </div>
+                    <div style="font-size: 18px; font-weight: 900; line-height: 1.3;">
+                        ${m.team_a || 'ACARA / EVENT'}
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <span class="court-badge">${m.court_name || ''}</span>
+                    </div>
+                </div>`;
+            }
+
+            // --- RENDER PERTANDINGAN NORMAL ---
             let isLive = status === 'LIVE'; let isDone = status === 'FINISHED'; let isPending = status === 'PENDING';
             let totalA = (parseInt(m.set1_a)||0)+(parseInt(m.set2_a)||0)+(parseInt(m.set3_a)||0)+(parseInt(m.set4_a)||0)+(parseInt(m.set5_a)||0);
             let totalB = (parseInt(m.set1_b)||0)+(parseInt(m.set2_b)||0)+(parseInt(m.set3_b)||0)+(parseInt(m.set4_b)||0)+(parseInt(m.set5_b)||0);
@@ -494,7 +521,7 @@ window.GLOBAL_PARTNER_DATA = d; // Simpan ke memori lokal
             let scoreCls = (scoreStr === 'VS') ? 'score-pill empty' : 'score-pill';
             let smallPt = isLive ? `<div style="font-size:12px; margin-top:5px; color:inherit; font-weight:900; letter-spacing:1px; background:rgba(0,0,0,0.15); padding:2px 10px; border-radius:6px;"><span style="color:var(--live-neon)">${m.points_a||0} - ${m.points_b||0}</span></div>` : '';
 
-            let themeClass = 'theme-' + cardPreset;
+            let themeClassObj = 'theme-' + cardPreset;
             let metaHTML = `<span class="meta-text">${m.category} • ${m.round}</span>`;
             
             let timeInfo = '';
@@ -513,7 +540,7 @@ window.GLOBAL_PARTNER_DATA = d; // Simpan ke memori lokal
             let styleTA = ''; let styleTB = '';
             if (isDone) { if (totalA > totalB) { styleTB = 'opacity: 0.3;'; } else if (totalB > totalA) { styleTA = 'opacity: 0.3;'; } else { styleTA = 'opacity: 0.8;'; styleTB = 'opacity: 0.8;'; } }
             
-            return `<div class="match-card ${themeClass} ${isLive?'is-live':''}" style="${isDone ? 'opacity: 0.85;' : ''}">
+            return `<div class="match-card ${themeClassObj} ${isLive?'is-live':''}" style="${isDone ? 'opacity: 0.85;' : ''}">
                 <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(0,0,0,0.05); padding-bottom:5px; margin-bottom:8px;">${metaHTML} <div style="display:flex; gap:10px; align-items:center;">${timeInfo}</div></div>
                 <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
                     <div class="team" style="text-align:left; ${styleTA}">${teamA_Formatted}</div>

@@ -16,6 +16,7 @@
         
         body { font-family: var(--font-main); background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-color); overflow: hidden; display: flex; flex-direction: column; height: 100vh; user-select: none; box-sizing: border-box;}
         
+        /* 🏆 CSS GRID ORIGINAL ANDA (DIKEMBALIKAN 100%) 🏆 */
         #tv-grid { flex: 1; padding: 2vh 2vw; display: grid; gap: 2vw; align-content: center; width: 100vw; box-sizing: border-box; overflow: hidden; position: relative; z-index: 5;}
         
         #tv-grid.grid-1 { grid-template-columns: 1fr; grid-template-rows: 1fr; padding: 5vh 10vw;}
@@ -35,7 +36,6 @@
         
         .team { flex: 1; font-weight: 800; line-height: 1.3; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
         
-        /* SKOR DI-PRES AUTO AGAR NAMA BISA LEBAR */
         .score-pill { background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); color: white; border-radius: 15px; min-width: auto; max-width: 35%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin: 0 1.5vw; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0; padding: 0.8vh 1.5vw;}
         .set-txt { font-weight: 900; }
         .point-txt { font-weight: 900; letter-spacing: 2px; background: rgba(0,0,0,0.2); border-radius: 10px; display: inline-block; color: inherit; text-align: center; }
@@ -48,9 +48,7 @@
         @keyframes blinker-live { 0% { opacity: 0.2; } 100% { opacity: 1; box-shadow: 0 0 15px var(--live-neon); } }
         .neon-dot { flex-shrink: 0; width: 0.8vw; height: 0.8vw; background-color: var(--live-neon); border-radius: 50%; box-shadow: 0 0 10px var(--live-neon); }
 
-        /* ========================================================
-           IMPORT ALL 80 THEMES (SINKRON DENGAN CONTROL PANEL)
-           ======================================================== */
+        /* THEMES */
         .theme-classic-white { background: white; color: #333; } .theme-classic-white .meta-text { color: #C2185B; } .theme-classic-white .court-badge { background: #f5f5f5; color: #666; border: 1px solid #ddd; } 
         .theme-midnight-blue { background: #0d1b2a; color: #e0e1dd; border: 1px solid #1b263b; } .theme-midnight-blue .meta-text { color: #4CC9F0; } .theme-midnight-blue .court-badge { background: #1b263b; color: #4CC9F0; } 
         .theme-royal-gold { background: #fffcf5; color: #5d4037; border: 1px solid #daa520; } .theme-royal-gold .meta-text { color: #b8860b; } .theme-royal-gold .court-badge { background: linear-gradient(to bottom, #fff8dc, #f0e68c); color: #5d4037; border: 1px solid #daa520; }
@@ -102,7 +100,6 @@
         .theme-demantoid { background: #33691e; color: #f1f8e9; border: 1px solid #558b2f; } .theme-demantoid .meta-text { color: #ccff90; } .theme-demantoid .court-badge { background: #558b2f; color: white; }
         .theme-padparadscha { background: #ffccbc; color: #bf360c; border: 1px solid #ff8a65; } .theme-padparadscha .court-badge { background: #bf360c; color: white; }
         
-        /* THEMES BARU */
         .theme-ivory-minimal { background: #FFFFF0; color: #333; border: 1px solid #EEE8AA; } .theme-ivory-minimal .meta-text { color: #8B4513; } .theme-ivory-minimal .court-badge { background: #EEE8AA; color: #333; }
         .theme-platinum-light { background: #E5E4E2; color: #2C2C2C; border: 1px solid #B0C4DE; } .theme-platinum-light .meta-text { color: #4682B4; } .theme-platinum-light .court-badge { background: #B0C4DE; color: #2C2C2C; }
         .theme-ghost-white { background: #F8F8FF; color: #191970; border: 1px solid #DCDCDC; } .theme-ghost-white .meta-text { color: #4169E1; } .theme-ghost-white .court-badge { background: #DCDCDC; color: #191970; }
@@ -257,6 +254,7 @@ window.GLOBAL_PARTNER_DATA = d; // Simpan ke memori lokal
 
         // 💡 LOGIKA CENTER-HUGGING (MEMELUK TENGAH) & NEON DOT DI DALAM
         function formatTeamName(teamString, serverState, isTeamA) {
+            teamString = String(teamString || ''); // VAKSIN DOSIS TINGGI
             const renderRow = (name, isServ) => {
                 let dot = isServ ? '<span class="neon-dot"></span>' : '';
                 
@@ -316,6 +314,39 @@ window.GLOBAL_PARTNER_DATA = d; // Simpan ke memori lokal
             gridEl.innerHTML = "";
 
             liveMatches.forEach(m => {
+                let themeClass = 'theme-' + cardPreset;
+                
+                let tb = String(m.team_b || '').trim();
+                let cat = String(m.category || '').trim();
+                let rnd = String(m.round || '').trim();
+
+                // SIHIR BUNGLON ELEGAN TV: Jika Tim B kosong atau strip (-)
+                if (tb === '' || tb === '-') {
+                    let cardClass = m.status === 'LIVE' ? 'match-card is-live' : 'match-card';
+                    let showCat = (cat !== '' && cat !== '-') ? cat : 'SPECIAL EVENT';
+                    let showRound = (rnd !== '' && rnd !== '-') ? ' • ' + rnd : '';
+                    
+                    // MENGGUNAKAN CLASS CSS ASLI AGAR UKURAN SCALING TETAP SEMPURNA
+                    gridEl.innerHTML += `
+                    <div class="${cardClass} ${themeClass}">
+                        <div style="display:flex; justify-content:center; align-items:center; border-bottom:2px solid rgba(0,0,0,0.1); padding-bottom:1vh; margin-bottom:1.5vh; min-width:0; flex-shrink:0;">
+                            <span class="meta-text" style="text-align:center;">🌟 ${showCat}${showRound} 🌟</span>
+                        </div>
+                        
+                        <div style="display:flex; align-items:center; justify-content:center; flex:1; min-width:0; min-height:0; text-align:center;">
+                            <div class="team" style="align-items:center;">
+                                <span class="team-name" style="white-space:normal; line-height:1.2; text-transform:uppercase;">${m.team_a || 'ACARA / EVENT'}</span>
+                            </div>
+                        </div>
+
+                        <div style="text-align:center; margin-top:1.5vh; min-width:0; flex-shrink:0;">
+                            <span class="court-badge">${m.court_name || ''}</span>
+                        </div>
+                    </div>`;
+                    return; 
+                }
+
+                // --- RENDER PERTANDINGAN NORMAL ---
                 let sets = []; let maxSet = m.current_set || 1;
                 for(let i=1; i<=5; i++) {
                     let sa = parseInt(m[`set${i}_a`]) || 0; let sb = parseInt(m[`set${i}_b`]) || 0; let isCurr = ((m.current_set || 1) == i);
@@ -329,7 +360,6 @@ window.GLOBAL_PARTNER_DATA = d; // Simpan ke memori lokal
                 let scoreStr = `<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:0.5vw; align-items:center; line-height:1.2;">` + sets.join('<span style="opacity:0.3; font-size:0.6em;">•</span>') + `</div>`;
                 let smallPt = `<div class="point-txt"><span style="color:var(--live-neon)">${m.points_a||0} - ${m.points_b||0}</span></div>`;
 
-                let themeClass = 'theme-' + cardPreset;
                 let metaHTML = `<span class="meta-text">${m.category} • ${m.round}</span>`;
                 let timeInfo = '<div class="live-tag"><div class="dot-live"></div> LIVE</div>'; 
 
