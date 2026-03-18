@@ -585,25 +585,19 @@
                                 <div class="card" style="background:#f5f5f5; border-color:#e0e0e0; cursor:not-allowed; opacity:0.8;" onclick="showWaitingList('${safeName}')">
                                     <div style="display: flex; justify-content: space-between; align-items: center;">
                                         <span class="cat-name" style="color:#999;">${c.name}</span>
-                                        <span class="cat-price" style="color:#d9534f; font-weight:900;">🔴 SLOT PENUH</span>
-                                    </div>
-                                    <div style="font-size: 11px; color: #999; margin-top: 8px; font-weight: 700;">
-                                        Batas Kuota: ${c.quota} Tim (Terisi Penuh)
+                                        <span class="cat-price" style="color:#d9534f; font-weight:900;">🚫 SOLD OUT</span>
                                     </div>
                                 </div>
                                 `;
                             } else {
-                                // FOMO RADAR
-                                let fomoHtml = `<div class="fomo-tag" style="animation: pulse-fomo 1.2s infinite alternate ease-in-out;">🔥 Sisa Kuota: ${sisa} Tim Lagi!</div>`;
+                                // FOMO RADAR BAHASA INGGRIS & HILANGKAN TOTAL KUOTA
+                                let fomoHtml = `<div class="fomo-tag" style="animation: pulse-fomo 1.2s infinite alternate ease-in-out;">🔥 ${sisa} slots left!</div>`;
                                 
                                 html += `
                                 <div class="card" onclick="selectCategory('${safeName}', ${c.price}, '${cFormat}')">
                                     <div style="display: flex; justify-content: space-between; align-items: center;">
                                         <span class="cat-name">${c.name}</span>
                                         <span class="cat-price">Rp ${c.price.toLocaleString('id-ID')}</span>
-                                    </div>
-                                    <div style="font-size: 11px; color: #666; margin-top: 8px; font-weight: 700;">
-                                        Batas Kuota: ${c.quota} Tim
                                     </div>
                                     ${fomoHtml}
                                 </div>
@@ -817,6 +811,53 @@ let tLahirA = document.getElementById('captTahun') ? document.getElementById('ca
             btn.style.pointerEvents = "none";
 
             try {
+                // ==========================================
+                // 🛡️ LAPIS 1: VAKSIN ANTI-TBA & ANTI-STRIP
+                // ==========================================
+                let cNameCheck = cName.trim().toLowerCase();
+                let pNameCheck = pName.trim().toLowerCase();
+                
+                if (cNameCheck === 'tba' || cNameCheck === '-' || cNameCheck === '') {
+                    alert("⚠️ PENDAFTARAN DITOLAK!\n\nNama Pemain 1 tidak valid. Penggunaan TBA atau tanda strip (-) tidak diperbolehkan.");
+                    btn.innerText = oriText; btn.style.pointerEvents = "auto"; return;
+                }
+                
+                if (globalFormat !== 'single' && (pNameCheck === 'tba' || pNameCheck === '-' || pNameCheck === '')) {
+                    alert("⚠️ PENDAFTARAN DITOLAK!\n\nNama Pemain 2 (Partner) tidak valid. Karena kategori ini ganda, Anda wajib memasukkan nama partner dengan benar.");
+                    btn.innerText = oriText; btn.style.pointerEvents = "auto"; return;
+                }
+
+                // ==========================================
+                // 🛡️ LAPIS 2: SENSOR ANTI-KLONING (CEK DATABASE)
+                // ==========================================
+                btn.innerText = "⏳ MEMERIKSA DUPLIKAT...";
+                const { data: exRegs, error: errCek } = await db.from('registrations')
+                    .select('capt_name, partner_name')
+                    .eq('tournament_id', TOURNAMENT_ID)
+                    .eq('category', selectedCat); 
+                
+                if (exRegs && exRegs.length > 0) {
+                    let isDuplicate = false;
+                    let duplicateName = "";
+                    
+                    for (let r of exRegs) {
+                        let ecC = (r.capt_name || '').trim().toLowerCase();
+                        let ecP = (r.partner_name || '').trim().toLowerCase();
+                        
+                        if (cNameCheck === ecC || (cNameCheck !== '' && cNameCheck === ecP)) { 
+                            isDuplicate = true; duplicateName = cName; break; 
+                        }
+                        if (globalFormat !== 'single' && pNameCheck !== '' && (pNameCheck === ecC || pNameCheck === ecP)) { 
+                            isDuplicate = true; duplicateName = pName; break; 
+                        }
+                    }
+                    
+                    if (isDuplicate) {
+                        alert(`⚠️ PENDAFTARAN DITOLAK!\n\nNama "${duplicateName}" sudah terdaftar di kategori ini. Satu pemain tidak boleh berada di dua tim berbeda pada kategori yang sama.\n\nJika Anda merasa belum menyelesaikan pembayaran, silakan hubungi Admin.`);
+                        btn.innerText = oriText; btn.style.pointerEvents = "auto"; return;
+                    }
+                }
+
                 // SENSOR 2: CEK SAKLAR MULTI-WA DARI COCKPIT
                 if (!globalMultiWa) {
                     const { data: existing, error: errCheck } = await db.from('registrations')
