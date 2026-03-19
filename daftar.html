@@ -317,12 +317,14 @@
         let basePrice = 0;
         let finalPrice = 0;
         let isVip = false;
+        let isWaitingList = false; // 🔥 SUNTIKAN MEMORI WL
 
-        function selectCategory(catName, catPrice, format) {
+        function selectCategory(catName, catPrice, format, isWL = false) {
             selectedCat = catName;
             basePrice = catPrice;
             finalPrice = catPrice;
-            globalFormat = format || 'double'; // Simpan format khusus kategori ini
+            globalFormat = format || 'double'; 
+            isWaitingList = isWL; // 🔥 SIMPAN STATUS JALUR PENDAFTARAN
 
             // ADAPTASI UI SEKETIKA (SINGLE / DOUBLE)
             if (globalFormat === 'single') {
@@ -430,10 +432,32 @@
             document.getElementById('lbl-cat').innerText = selectedCat;
             document.getElementById('lbl-team').innerText = tName;
             
-            if(!isVip) {
-                document.getElementById('lbl-price').innerText = 'Rp ' + finalPrice.toLocaleString('id-ID');
-                document.getElementById('lbl-price').style.color = 'var(--accent-gold)';
+            // 🔥 LOGIKA TAMPILAN JALUR WL VS NORMAL
+            if (isWaitingList) {
+                document.getElementById('lbl-price').innerText = 'JALUR WAITING LIST';
+                document.getElementById('lbl-price').style.color = 'var(--danger)';
+                document.getElementById('btn-submit').innerText = "MASUK DAFTAR TUNGGU";
+                
+                // Munculkan peringatan agar tidak transfer
+                let warnEl = document.getElementById('wl-warning');
+                if(!warnEl) {
+                    warnEl = document.createElement('div');
+                    warnEl.id = 'wl-warning';
+                    warnEl.innerHTML = `<div style="background:#ffebee; color:#c62828; padding:15px; border-radius:8px; border:1px solid #ffcdd2; margin-bottom:15px; font-size:11px; font-weight:bold; line-height:1.5;">⚠️ ANDA BERADA DI JALUR WAITING LIST<br>Mohon JANGAN melakukan pembayaran / transfer apapun sampai panitia menghubungi Anda bahwa ada slot yang kosong.</div>`;
+                    document.querySelector('.invoice-box').after(warnEl);
+                }
+                warnEl.style.display = 'block';
+            } else {
+                document.getElementById('btn-submit').innerText = "SELESAIKAN REGISTRASI";
+                let warnEl = document.getElementById('wl-warning');
+                if(warnEl) warnEl.style.display = 'none';
+                
+                if(!isVip) {
+                    document.getElementById('lbl-price').innerText = 'Rp ' + finalPrice.toLocaleString('id-ID');
+                    document.getElementById('lbl-price').style.color = 'var(--accent-gold)';
+                }
             }
+            
             nextStep(4);
         }
 
@@ -476,14 +500,22 @@
                     .eq('tournament_id', TOURNAMENT_ID)
                     .single();
                 
-                // MENGAMBIL DATA REGISTRASI UNTUK MENGHITUNG SISA KUOTA
+                // MENGAMBIL DATA REGISTRASI UNTUK MENGHITUNG SISA KUOTA (DENGAN STATUS)
                 const { data: regData } = await db.from('registrations')
-                    .select('category')
+                    .select('category, status')
                     .eq('tournament_id', TOURNAMENT_ID);
                 
-                let catCounts = {};
+                let mainCounts = {}; // Kuota Utama
+                let wlCounts = {};   // Kuota Waiting List
+                
                 if (regData) {
-                    regData.forEach(r => { catCounts[r.category] = (catCounts[r.category] || 0) + 1; });
+                    regData.forEach(r => { 
+                        if (r.status === 'WAITING LIST') {
+                            wlCounts[r.category] = (wlCounts[r.category] || 0) + 1;
+                        } else {
+                            mainCounts[r.category] = (mainCounts[r.category] || 0) + 1;
+                        }
+                    });
                 }
 
                 if (data) {
@@ -574,34 +606,52 @@
                             let safeName = c.name.replace(/'/g, "\\'"); 
                             let cFormat = c.format || 'double';
                             
-                            // MESIN PENGHITUNG SISA SLOT
-                            let currentCount = catCounts[c.name] || 0;
+                            // 🔥 MESIN 3 FASE: KUOTA UTAMA & WAITING LIST
+                            let currentMain = mainCounts[c.name] || 0;
+                            let currentWL = wlCounts[c.name] || 0;
                             let quota = parseInt(c.quota) || 0;
-                            let sisa = quota - currentCount;
+                            let sisaUtama = quota - currentMain;
                             
-                            if (sisa <= 0) {
-                                // AUTO-LOCK (KUNCI OTOMATIS JIKA PENUH)
+                            let wlLimit = Math.ceil(quota * 0.5); // WL maksimal 50% dibulatkan ke atas
+                            let sisaWL = wlLimit - currentWL;
+                            
+                            if (sisaUtama > 0) {
+                                // FASE 1: KUOTA UTAMA MASIH ADA
+                                let fomoHtml = `<div class="fomo-tag" style="animation: pulse-fomo 1.2s infinite alternate ease-in-out;">🔥 ${sisaUtama} slots left!</div>`;
                                 html += `
-                                <div class="card" style="background:#f5f5f5; border-color:#e0e0e0; cursor:not-allowed; opacity:0.8;" onclick="showWaitingList('${safeName}')">
-                                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <span class="cat-name" style="color:#999;">${c.name}</span>
-                                        <span class="cat-price" style="color:#d9534f; font-weight:900;">🚫 SOLD OUT</span>
-                                    </div>
-                                </div>
-                                `;
-                            } else {
-                                // FOMO RADAR BAHASA INGGRIS & HILANGKAN TOTAL KUOTA
-                                let fomoHtml = `<div class="fomo-tag" style="animation: pulse-fomo 1.2s infinite alternate ease-in-out;">🔥 ${sisa} slots left!</div>`;
-                                
-                                html += `
-                                <div class="card" onclick="selectCategory('${safeName}', ${c.price}, '${cFormat}')">
+                                <div class="card" onclick="selectCategory('${safeName}', ${c.price}, '${cFormat}', false)">
                                     <div style="display: flex; justify-content: space-between; align-items: center;">
                                         <span class="cat-name">${c.name}</span>
                                         <span class="cat-price">Rp ${c.price.toLocaleString('id-ID')}</span>
                                     </div>
                                     ${fomoHtml}
-                                </div>
-                                `;
+                                </div>`;
+                            } 
+                            else if (sisaWL > 0) {
+                                // FASE 2: KUOTA UTAMA HABIS, TAPI WL MASIH BUKA
+                                html += `
+                                <div class="card" style="border-color:#ff9800; background:#fffde7;" onclick="selectCategory('${safeName}', ${c.price}, '${cFormat}', true)">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span class="cat-name" style="color:#e65100;">${c.name}</span>
+                                        <span class="cat-price" style="color:#e65100; font-weight:900;">⚠️ SOLD OUT</span>
+                                    </div>
+                                    <div class="fomo-tag" style="background:#ffcc80; color:#b26a00; margin-top:8px;">
+                                        ⏳ Join Waiting List (${sisaWL} slots left)
+                                    </div>
+                                </div>`;
+                            } 
+                            else {
+                                // FASE 3: MATI TOTAL (KUOTA & WL PENUH)
+                                html += `
+                                <div class="card" style="background:#f5f5f5; border-color:#e0e0e0; cursor:not-allowed; opacity:0.8;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span class="cat-name" style="color:#999;">${c.name}</span>
+                                        <span class="cat-price" style="color:#d9534f; font-weight:900;">🛑 FULLY BOOKED</span>
+                                    </div>
+                                    <div style="font-size: 11px; color: #999; margin-top: 8px; font-weight: 700;">
+                                        Quota & Waiting List are completely full.
+                                    </div>
+                                </div>`;
                             }
                         });
                         catContainer.innerHTML = html;
@@ -885,13 +935,26 @@ let tLahirA = document.getElementById('captTahun') ? document.getElementById('ca
                     let targetCat = cats.find(c => c.name === selectedCat);
                     if (targetCat) quotaLimit = parseInt(targetCat.quota) || 0;
                 }
-                const { data: currentRegs } = await db.from('registrations').select('id').eq('tournament_id', TOURNAMENT_ID).eq('category', selectedCat);
-                let currentFill = currentRegs ? currentRegs.length : 0;
                 
-                if (currentFill >= quotaLimit) {
-                    alert("🔴 MOHON MAAF!\n\nSlot terakhir untuk kategori ini baru saja diambil oleh pendaftar lain beberapa detik yang lalu.\n\nSilakan klik OK untuk merefresh halaman.");
-                    location.reload();
-                    return;
+                // Ambil semua data di kategori ini dan abaikan yang status WL
+                const { data: currentRegs } = await db.from('registrations').select('status').eq('tournament_id', TOURNAMENT_ID).eq('category', selectedCat);
+                
+                let currentMainFill = 0;
+                let currentWLFill = 0;
+                if(currentRegs) {
+                    currentRegs.forEach(r => { if(r.status === 'WAITING LIST') currentWLFill++; else currentMainFill++; });
+                }
+                
+                let wlLimit = Math.ceil(quotaLimit * 0.5);
+
+                // Cek bocor berdasarkan jalurnya
+                if (!isWaitingList && currentMainFill >= quotaLimit) {
+                    alert("🔴 MOHON MAAF!\n\nSlot UTAMA terakhir baru saja diambil oleh pendaftar lain.\n\nSilakan klik OK untuk merefresh halaman dan masuk ke jalur Waiting List.");
+                    location.reload(); return;
+                }
+                if (isWaitingList && currentWLFill >= wlLimit) {
+                    alert("🔴 MOHON MAAF!\n\nSlot WAITING LIST terakhir baru saja diambil oleh pendaftar lain.\n\nKategori ini sudah dikunci sepenuhnya.");
+                    location.reload(); return;
                 }
                 // --- END SATPAM ANTI-BOCOR ---
 
@@ -903,7 +966,7 @@ let tLahirA = document.getElementById('captTahun') ? document.getElementById('ca
                     capt_wa: cWa,
                     partner_name: pName,
                     price: finalPrice,
-                    status: isVip ? 'LUNAS' : 'PENDING',
+                    status: isWaitingList ? 'WAITING LIST' : (isVip ? 'LUNAS' : 'PENDING'), // 🔥 SUNTIKAN STATUS WL
                     vip_code: vCode,
                     asal_klub: club,
                     instagram: combinedIg,

@@ -309,9 +309,10 @@
                                 <select id="reg-filter-cat" class="form-control" style="width:130px; padding:6px; font-size:10px; font-weight:bold; cursor:pointer;" onchange="renderTableRegistrations()">
                                     <option value="ALL">Semua Kategori</option>
                                 </select>
-                                <select id="reg-filter-stat" class="form-control" style="width:110px; padding:6px; font-size:10px; font-weight:bold; cursor:pointer;" onchange="renderTableRegistrations()">
+                                <select id="reg-filter-stat" class="form-control" style="width:110px; padding:6px 2px; font-size:9px; font-weight:bold; cursor:pointer; text-align:center;" onchange="renderTableRegistrations()">
                                     <option value="ALL">Semua Status</option>
                                     <option value="PENDING">PENDING</option>
+                                    <option value="WAITING LIST">WAITING LIST</option>
                                     <option value="LUNAS">LUNAS</option>
                                     <option value="HADIR">HADIR</option>
                                 </select>
@@ -3713,8 +3714,9 @@ function openEstimasiModal() {
             filteredData.forEach((r, idx) => {
                 if(r.status === 'LUNAS' || r.status === 'HADIR') lunasHadirCount++;
                 let d = new Date(r.created_at); let timeStr = ("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2) + " " + ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
-                let statCol = r.status === 'PENDING' ? '#ef6c00' : (r.status === 'LUNAS' ? '#2e7d32' : '#546e7a');
+                let statCol = r.status === 'PENDING' ? '#ef6c00' : (r.status === 'WAITING LIST' ? '#6a1b9a' : (r.status === 'LUNAS' ? '#2e7d32' : '#546e7a'));
                 let selP = r.status === 'PENDING' ? 'selected' : '';
+                let selW = r.status === 'WAITING LIST' ? 'selected' : '';
                 let selL = r.status === 'LUNAS' ? 'selected' : '';
                 let selH = r.status === 'HADIR' ? 'selected' : '';
                 
@@ -3743,6 +3745,7 @@ function openEstimasiModal() {
                     <td style="padding:8px;">
                         <select onchange="updateRegStatus('${r.id}', this.value)" style="padding:5px; border-radius:6px; border:2px solid ${statCol}; color:${statCol}; font-weight:bold; cursor:pointer; outline:none; background:#fff;">
                             <option value="PENDING" ${selP}>⏳ PENDING</option>
+                            <option value="WAITING LIST" ${selW}>📝 WAITING LIST</option>
                             <option value="LUNAS" ${selL}>✅ LUNAS</option>
                             <option value="HADIR" ${selH}>📍 HADIR</option>
                         </select>
