@@ -779,20 +779,29 @@
                     html += `<div style="font-size:11px; color:#666; margin-bottom:15px; text-align:center; font-weight:800; background:#f5f5f5; padding:5px; border-radius:6px;">Ditemukan ${data.length} Tiket untuk nomor WA ini</div>`;
                     
                     data.forEach(t => {
-                        // 3 FASE WARNA DAN STATUS TIKET
-                        let bg = t.status === 'PENDING' ? '#fff3e0' : (t.status === 'HADIR' ? '#eceff1' : '#f1f8e9');
-                        let col = t.status === 'PENDING' ? '#e65100' : (t.status === 'HADIR' ? '#546e7a' : '#2e7d32');
-                        let icon = t.status === 'PENDING' ? '⏳ PENDING (BELUM BAYAR)' : (t.status === 'HADIR' ? '📍 CHECKED-IN (HADIR)' : '✅ LUNAS (SIAP TANDING)');
-                        let infoText = t.status === 'PENDING' ? 'Segera selesaikan pembayaran.' : (t.status === 'HADIR' ? 'Tiket sudah ditukarkan / dipakai.' : 'Tunjukkan QR Code ini ke Panitia.');
-                        
-                        // LOGIKA VISUAL: QR CODE ATAU STEMPEL HADIR
-                        let visualHTML = '';
-                        if (t.status === 'HADIR') {
+                        // 🔥 4 FASE WARNA DAN STATUS TIKET (DISEMPURNAKAN)
+                        let bg, col, icon, infoText, visualHTML = '';
+
+                        if (t.status === 'WAITING LIST') {
+                            bg = '#fffde7'; col = '#f57f17';
+                            icon = '📝 WAITING LIST (DAFTAR TUNGGU)';
+                            infoText = 'Tim Anda berada dalam antrean. ⚠️ MOHON JANGAN TRANSFER DULU sampai Panitia mengonfirmasi ketersediaan slot.';
+                        } else if (t.status === 'PENDING') {
+                            bg = '#e8eaf6'; col = '#1a237e';
+                            icon = '🔎 TAHAP SCREENING / VERIFIKASI';
+                            infoText = 'Data Anda sedang diverifikasi. Panitia akan menghubungi Anda via WhatsApp jika tim Anda dinyatakan lolos.';
+                        } else if (t.status === 'HADIR') {
+                            bg = '#eceff1'; col = '#546e7a';
+                            icon = '📍 CHECKED-IN (HADIR)';
+                            infoText = 'Tiket sudah ditukarkan / dipakai.';
                             visualHTML = `
                             <div style="margin:15px 0; text-align:center; background:#e0e0e0; padding:20px; border-radius:8px; border:2px dashed #999; position:relative; overflow:hidden;">
                                 <div style="font-size:18px; font-weight:900; letter-spacing:2px; color:#555; transform: rotate(-10deg); border: 4px solid #555; display:inline-block; padding:10px 20px; border-radius:10px; opacity:0.8;">📍 TICKET USED</div>
                             </div>`;
-                        } else if (t.status === 'LUNAS') {
+                        } else {
+                            bg = '#f1f8e9'; col = '#2e7d32';
+                            icon = '✅ LUNAS (SIAP TANDING)';
+                            infoText = 'Tunjukkan QR Code ini ke Panitia saat registrasi ulang di lapangan.';
                             visualHTML = `
                             <div style="margin:15px 0; display:flex; flex-direction:column; align-items:center; background:white; padding:15px; border-radius:8px; border:1px solid rgba(0,0,0,0.05);">
                                 <div id="qr-${t.id}" style="padding:10px; background:white; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.1);"></div>
@@ -800,10 +809,13 @@
                             </div>`;
                         }
 
+                        // 🔥 LOGIKA PENYEMBUNYI "TANPA NAMA"
+                        let teamNameDisplay = (t.team_name === 'Tanpa Nama' || t.team_name.trim() === '') ? '' : `<h2 style="margin:0 0 5px 0; color:#111; font-size:20px; font-weight:900;">${t.team_name}</h2>`;
+
                         html += `
                             <div style="background:${bg}; border:2px dashed ${col}; border-radius:16px; padding:20px; text-align:center; margin-bottom:15px; animation: fadeInDown 0.4s ease; position:relative;">
                                 <div style="font-size:10px; font-weight:900; color:${col}; margin-bottom:12px; background:white; display:inline-block; padding:6px 15px; border-radius:20px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">${icon}</div>
-                                <h2 style="margin:0 0 5px 0; color:#111; font-size:20px; font-weight:900;">${t.team_name}</h2>
+                                ${teamNameDisplay}
                                 <div style="font-size:12px; color:#555; font-weight:800; text-transform:uppercase;">${t.category}</div>
                                 ${visualHTML}
                                 <hr style="border:0; border-top:1px dashed rgba(0,0,0,0.1); margin:15px 0;">
@@ -1056,7 +1068,7 @@ let tLahirA = document.getElementById('captTahun') ? document.getElementById('ca
                         <div style="background:#fffcf5; border:1px solid #daa520; border-radius:12px; padding:20px; font-size:13px; font-weight:600; line-height:1.6; color:#555; text-align:left;">
                             Kode VIP valid. Status Anda sudah <b style="color:#2e7d32;">LUNAS</b>. Silakan cek E-Ticket Anda di halaman utama kapan saja.
                         </div>
-                        <button class="btn-primary" onclick="location.reload()" style="margin-top:20px;">KEMBALI KE BERANDA</button>
+                        <button class="btn-primary" onclick="document.querySelectorAll('input, select').forEach(el => el.value = ''); location.reload();" style="margin-top:20px;">KEMBALI KE BERANDA</button>
                     `;
                     nextStep(5);
                 } 
@@ -1069,7 +1081,7 @@ let tLahirA = document.getElementById('captTahun') ? document.getElementById('ca
                             Terima kasih! Data pendaftaran Anda telah kami catat dan dimasukkan ke dalam antrean Waiting List untuk kategori <b style="color:#111;">${selectedCat}</b>.<br><br>
                             <span style="color:#c62828;">⚠️ <b>MOHON PERHATIAN:</b> JANGAN melakukan transfer atau pembayaran apa pun saat ini.</span><br><br>Panitia akan menghubungi Anda secara langsung via WhatsApp JIKA ada tim utama yang batal dan slot tersedia untuk Anda.
                         </div>
-                        <button class="btn-primary" onclick="location.reload()" style="margin-top:20px; background:#555;">🔄 KEMBALI KE BERANDA</button>
+                        <button class="btn-primary" onclick="document.querySelectorAll('input, select').forEach(el => el.value = ''); location.reload();" style="margin-top:20px; background:#555;">🔄 KEMBALI KE BERANDA</button>
                     `;
                     nextStep(5);
                 }
@@ -1087,7 +1099,7 @@ let tLahirA = document.getElementById('captTahun') ? document.getElementById('ca
                                 Saat ini, Komite Pertandingan sedang melakukan <b>Screening & Verifikasi</b> kelayakan pemain.<br><br>
                                 <span style="color:#c62828;">⚠️ <b>MOHON JANGAN TRANSFER DULU.</b> Jika Anda lolos tahap verifikasi, Panitia akan menghubungi Anda via WhatsApp untuk memberikan instruksi pembayaran.</span>
                             </div>
-                            <button class="btn-primary" onclick="location.reload()" style="margin-top:20px; background:#555;">🔄 KEMBALI KE BERANDA</button>
+                            <button class="btn-primary" onclick="document.querySelectorAll('input, select').forEach(el => el.value = ''); location.reload();" style="margin-top:20px; background:#555;">🔄 KEMBALI KE BERANDA</button>
                         `;
                         nextStep(5);
                     }
