@@ -958,7 +958,7 @@
     </div>
 
     <div id="modal-jersey" class="modal">
-        <div class="modal-box" style="width: max-content; min-width: 320px; max-width: 95%; max-height:85vh; overflow-y:auto; margin: 0 auto;">
+        <div class="modal-box" style="width: 95%; max-width: 500px; max-height:85vh; overflow-y:auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h3 style="margin:0; color:#00695c;">📦 REKAP PESANAN JERSEY</h3>
                 <div style="cursor:pointer; font-weight:bold; color:#aaa; font-size:18px;" onclick="document.getElementById('modal-jersey').style.display='none'">✕</div>
@@ -4324,14 +4324,14 @@ if(document.getElementById('reg-sponsor-size')) {
                 if (Object.keys(sizes).length === 0) continue; // Skip jika kategori ini tidak pesan jersey
 
                 // 🔥 KUNCI RAHASIA: width:100% dibuang! Diganti width:max-content dan tabel dipusatkan.
-                html += `<div style="background:#fdfdfd; border:1px solid #eee; border-radius:8px; padding:15px; margin-bottom:15px;">
-                            <div style="font-weight:900; color:#1a237e; font-size:12px; margin-bottom:10px; border-bottom:2px solid #e8eaf6; padding-bottom:5px; text-transform:uppercase; text-align:center;">${cat}</div>
-                            <table style="width:100%; border-collapse:collapse; font-size:11px; text-align:center; margin: 0 auto;">
+                html += `<div style="background:#fdfdfd; border:1px solid #eee; border-radius:8px; padding:15px;">
+                            <div style="font-weight:900; color:#1a237e; font-size:12px; margin-bottom:10px; border-bottom:2px solid #e8eaf6; padding-bottom:5px; text-transform:uppercase;">${cat}</div>
+                            <table style="width:100%; border-collapse:collapse; font-size:11px; text-align:center;">
                                 <thead>
                                     <tr style="background:#f5f5f5;">
-                                        <th style="padding:6px 10px; border:1px solid #ddd; text-align:center; white-space:nowrap;">Ukuran</th>
-                                        <th style="padding:6px 10px; border:1px solid #ddd; color:#2e7d32; text-align:center; white-space:nowrap;">LUNAS ✅</th>
-                                        <th style="padding:6px 10px; border:1px solid #ddd; color:#ef6c00; text-align:center; white-space:nowrap;">PENDING ⏳</th>
+                                        <th style="padding:5px; border:1px solid #ddd; width:40%;">Ukuran</th>
+                                        <th style="padding:5px; border:1px solid #ddd; color:#2e7d32;">LUNAS ✅</th>
+                                        <th style="padding:5px; border:1px solid #ddd; color:#ef6c00;">PENDING ⏳</th>
                                     </tr>
                                 </thead>
                                 <tbody>`;
@@ -4345,9 +4345,9 @@ if(document.getElementById('reg-sponsor-size')) {
 
                 sortedKeys.forEach(s => {
                     html += `<tr>
-                                <td style="padding:6px 10px; border:1px solid #ddd; font-weight:bold; text-align:center;">${s}</td>
-                                <td style="padding:6px 10px; border:1px solid #ddd; font-weight:900; color:#2e7d32; text-align:center;">${sizes[s].lunas}</td>
-                                <td style="padding:6px 10px; border:1px solid #ddd; color:#ef6c00; text-align:center;">${sizes[s].pending}</td>
+                                <td style="padding:5px; border:1px solid #ddd; font-weight:bold;">${s}</td>
+                                <td style="padding:5px; border:1px solid #ddd; font-weight:900; color:#2e7d32;">${sizes[s].lunas}</td>
+                                <td style="padding:5px; border:1px solid #ddd; color:#ef6c00;">${sizes[s].pending}</td>
                             </tr>`;
                 });
                 
