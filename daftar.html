@@ -256,21 +256,8 @@
         <div id="step-4" class="step">
             <div class="step-title"><div class="step-number">4</div> Konfirmasi & Pembayaran</div>
             
-            <div class="invoice-box">
-                <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:14px; font-weight:600;">
-                    <span style="color:#888;">Kategori</span>
-                    <span id="lbl-cat" style="color:#111;">-</span>
+            <div class="invoice-box" id="dynamic-invoice">
                 </div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:14px; font-weight:600;">
-                    <span style="color:#888;">Nama Tim</span>
-                    <span id="lbl-team" style="color:#111;">-</span>
-                </div>
-                <hr style="border:0; border-top:1px dashed #ddd; margin:20px 0;">
-                <div style="display:flex; justify-content:space-between; font-size:18px; font-weight:800;">
-                    <span>Total Tagihan</span>
-                    <span id="lbl-price" style="color:var(--accent-gold);">Rp 0</span>
-                </div>
-            </div>
 
             <div class="form-group">
                 <label>Punya Kode Undangan VIP?</label>
@@ -431,25 +418,78 @@
         }
 
         function goToCheckout() {
-            let tName = document.getElementById('teamName').value;
-            if(!tName) tName = "Tanpa Nama";
-
-            document.getElementById('lbl-cat').innerText = selectedCat;
-            document.getElementById('lbl-team').innerText = tName;
+            // Deteksi Status Saklar Panitia & Input Peserta
+            let wrapTeam = document.getElementById('wrap-team').style.display !== 'none';
+            let tName = wrapTeam ? document.getElementById('teamName').value.trim() : '';
+            let wrapClub = document.getElementById('wrap-club').style.display !== 'none';
+            let cClub = wrapClub ? document.getElementById('clubName').value.trim() : '';
             
+            let cName = document.getElementById('captName').value.trim();
+            let wrapTahunC = document.getElementById('wrap-tahun-capt').style.display !== 'none';
+            let cTahun = wrapTahunC ? document.getElementById('captTahun').value.trim() : '';
+            let wrapJerseyC = document.getElementById('wrap-jersey-capt').style.display !== 'none';
+            let cJersey = wrapJerseyC ? document.getElementById('captJersey').value : '';
+            let wrapIgC = document.getElementById('wrap-ig-capt').style.display !== 'none';
+            let cIg = wrapIgC ? document.getElementById('captIg').value.trim() : '';
+
+            let pName = document.getElementById('partnerName') ? document.getElementById('partnerName').value.trim() : '';
+            let wrapTahunP = document.getElementById('wrap-tahun-partner') ? document.getElementById('wrap-tahun-partner').style.display !== 'none' : false;
+            let pTahun = wrapTahunP ? document.getElementById('partnerTahun').value.trim() : '';
+            let wrapJerseyP = document.getElementById('wrap-jersey-partner') ? document.getElementById('wrap-jersey-partner').style.display !== 'none' : false;
+            let pJersey = wrapJerseyP ? document.getElementById('partnerJersey').value : '';
+            let wrapIgP = document.getElementById('wrap-ig-partner') ? document.getElementById('wrap-ig-partner').style.display !== 'none' : false;
+            let pIg = wrapIgP ? document.getElementById('partnerIg').value.trim() : '';
+
+            // Merakit Struk Pintar
+            let html = '';
+            const rowHtml = (label, val, isBold=false) => {
+                if(!val) return '';
+                return `<div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:13px;">
+                            <span style="color:#888;">${label}</span>
+                            <span style="color:#111; ${isBold?'font-weight:800;':''} text-align:right;">${val}</span>
+                        </div>`;
+            };
+
+            html += rowHtml('Kategori', selectedCat, true);
+            if(tName) html += rowHtml('Nama Tim', tName, true);
+            if(cClub) html += rowHtml('Asal Klub', cClub);
+            
+            html += `<hr style="border:0; border-top:1px dashed #ddd; margin:15px 0;">`;
+            html += `<div style="font-size:11px; font-weight:800; color:#555; margin-bottom:10px; text-transform:uppercase;">Identitas Pemain 1</div>`;
+            html += rowHtml('Nama Lengkap', cName);
+            if(cTahun) html += rowHtml('Tahun Lahir', cTahun);
+            if(cJersey) html += rowHtml('Ukuran Jersey', cJersey);
+            if(cIg) html += rowHtml('Akun Instagram', cIg);
+
+            if (globalFormat !== 'single' && pName) {
+                html += `<hr style="border:0; border-top:1px dashed #ddd; margin:15px 0;">`;
+                html += `<div style="font-size:11px; font-weight:800; color:#555; margin-bottom:10px; text-transform:uppercase;">Identitas Pemain 2</div>`;
+                html += rowHtml('Nama Lengkap', pName);
+                if(pTahun) html += rowHtml('Tahun Lahir', pTahun);
+                if(pJersey) html += rowHtml('Ukuran Jersey', pJersey);
+                if(pIg) html += rowHtml('Akun Instagram', pIg);
+            }
+
+            html += `<hr style="border:0; border-top:1px dashed #ddd; margin:15px 0;">`;
+            html += `<div style="display:flex; justify-content:space-between; font-size:16px; font-weight:800; align-items:center;">
+                        <span>Total Tagihan</span>
+                        <span id="lbl-price" style="color:var(--accent-gold);">Rp 0</span>
+                    </div>`;
+
+            document.getElementById('dynamic-invoice').innerHTML = html;
+
             // 🔥 LOGIKA TAMPILAN JALUR WL VS NORMAL
             if (isWaitingList) {
                 document.getElementById('lbl-price').innerText = 'JALUR WAITING LIST';
                 document.getElementById('lbl-price').style.color = 'var(--danger)';
                 document.getElementById('btn-submit').innerText = "MASUK DAFTAR TUNGGU";
                 
-                // Munculkan peringatan agar tidak transfer
                 let warnEl = document.getElementById('wl-warning');
                 if(!warnEl) {
                     warnEl = document.createElement('div');
                     warnEl.id = 'wl-warning';
                     warnEl.innerHTML = `<div style="background:#ffebee; color:#c62828; padding:15px; border-radius:8px; border:1px solid #ffcdd2; margin-bottom:15px; font-size:11px; font-weight:bold; line-height:1.5;">⚠️ ANDA BERADA DI JALUR WAITING LIST<br>Mohon JANGAN melakukan pembayaran / transfer apapun sampai panitia menghubungi Anda bahwa ada slot yang kosong.</div>`;
-                    document.querySelector('.invoice-box').after(warnEl);
+                    document.getElementById('dynamic-invoice').after(warnEl);
                 }
                 warnEl.style.display = 'block';
             } else {
@@ -1021,33 +1061,31 @@ let tLahirA = document.getElementById('captTahun') ? document.getElementById('ca
                     nextStep(5);
                 } 
                 else if (isWaitingList) {
-                    // FASE 2: WAITING LIST
+                    // FASE 2: WAITING LIST (Teks Opsi B)
                     successBox.innerHTML = `
                         <div style="font-size:60px; margin-bottom:10px; text-shadow:0 10px 20px rgba(0,0,0,0.1);">⏳</div>
                         <h2 style="font-family:'Playfair Display',serif; color:#e65100; margin-bottom:10px; font-size:22px;">MASUK DAFTAR TUNGGU</h2>
                         <div style="background:#fff3e0; border:1px solid #ffcc80; border-radius:12px; padding:20px; font-size:12px; font-weight:600; line-height:1.6; color:#555; text-align:left;">
-                            Terima kasih! Data tim <b style="color:#111;">${tName}</b> telah kami catat di antrean Waiting List kategori <b style="color:#111;">${selectedCat}</b>.<br><br>
-                            <span style="color:#c62828;">⚠️ <b>MOHON PERHATIAN:</b> JANGAN melakukan transfer atau pembayaran apa pun saat ini.</span><br><br>Panitia akan menghubungi Anda via WhatsApp JIKA ada tim utama yang batal dan slot tersedia.
+                            Terima kasih! Data pendaftaran Anda telah kami catat dan dimasukkan ke dalam antrean Waiting List untuk kategori <b style="color:#111;">${selectedCat}</b>.<br><br>
+                            <span style="color:#c62828;">⚠️ <b>MOHON PERHATIAN:</b> JANGAN melakukan transfer atau pembayaran apa pun saat ini.</span><br><br>Panitia akan menghubungi Anda secara langsung via WhatsApp JIKA ada tim utama yang batal dan slot tersedia untuk Anda.
                         </div>
                         <button class="btn-primary" onclick="location.reload()" style="margin-top:20px; background:#555;">🔄 KEMBALI KE BERANDA</button>
                     `;
                     nextStep(5);
                 }
                 else {
-                    // FASE 1: JALUR NORMAL (PENDING & SCREENING)
+                    // FASE 1: JALUR NORMAL (Teks Opsi B)
                     if (globalAutoWa && globalWaAdmin) {
-                        // AUTO-WA ON: Langsung lempar ke WA
                         alert('✅ DATA DITERIMA!\n\nKlik OK untuk diarahkan ke WhatsApp Panitia.');
                         window.location.href = waLink;
                     } else {
-                        // AUTO-WA OFF: Munculkan Layar Sukses Screening
                         successBox.innerHTML = `
                             <div style="font-size:60px; margin-bottom:10px; text-shadow:0 10px 20px rgba(0,0,0,0.1);">🔎</div>
                             <h2 style="font-family:'Playfair Display',serif; color:#1a237e; margin-bottom:10px; font-size:22px;">TAHAP SCREENING</h2>
                             <div style="background:#e8eaf6; border:1px solid #c5cae9; border-radius:12px; padding:20px; font-size:12px; font-weight:600; line-height:1.6; color:#555; text-align:left;">
-                                Selamat! Data tim <b style="color:#111;">${tName}</b> telah masuk ke sistem kami dan slot Anda untuk kategori <b style="color:#111;">${selectedCat}</b> telah dikunci sementara.<br><br>
+                                Selamat! Data pendaftaran Anda untuk kategori <b style="color:#111;">${selectedCat}</b> telah masuk ke sistem kami dan slot Anda telah dikunci sementara.<br><br>
                                 Saat ini, Komite Pertandingan sedang melakukan <b>Screening & Verifikasi</b> kelayakan pemain.<br><br>
-                                <span style="color:#c62828;">⚠️ <b>MOHON JANGAN TRANSFER DULU.</b> Jika tim Anda lolos verifikasi, Panitia akan menghubungi Anda via WhatsApp untuk memberikan instruksi pembayaran.</span>
+                                <span style="color:#c62828;">⚠️ <b>MOHON JANGAN TRANSFER DULU.</b> Jika Anda lolos tahap verifikasi, Panitia akan menghubungi Anda via WhatsApp untuk memberikan instruksi pembayaran.</span>
                             </div>
                             <button class="btn-primary" onclick="location.reload()" style="margin-top:20px; background:#555;">🔄 KEMBALI KE BERANDA</button>
                         `;
