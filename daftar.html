@@ -1046,11 +1046,33 @@ let tLahirA = document.getElementById('captTahun') ? document.getElementById('ca
                 let textWA = '';
                 let waLink = '#';
                 if (globalWaAdmin) {
-                    let cDet = []; if(jCapt) cDet.push(`Jersey: ${jCapt}`); if(tLahirA) cDet.push(`Thn: ${tLahirA}`); if(ig1) cDet.push(`IG: ${ig1}`);
-                    let cStr = cDet.length > 0 ? ` (${cDet.join(' | ')})` : '';
-                    let pDet = []; if(jPartner) pDet.push(`Jersey: ${jPartner}`); if(tLahirB) pDet.push(`Thn: ${tLahirB}`); if(ig2) pDet.push(`IG: ${ig2}`);
-                    let pStr = pDet.length > 0 ? ` (${pDet.join(' | ')})` : '';
-                    textWA = `Halo Admin, ini konfirmasi pendaftaran turnamen:\n\nTim: *${tName}*\nKlub: *${club || '-'}*\nKategori: *${selectedCat}*\nKapten: *${cName}*${cStr}\nPartner: *${pName}*${pStr}\nTagihan: *Rp ${finalPrice.toLocaleString('id-ID')}*\n\nBerikut saya lampirkan bukti transfernya. Terima kasih.`;
+                    let waLines = [];
+                    waLines.push(`Halo Admin, saya ingin mengirimkan data pendaftaran untuk diverifikasi:\n`);
+                    waLines.push(`*Kategori:* ${selectedCat}`);
+                    
+                    if (tName && tName !== "Tanpa Nama") waLines.push(`*Nama Tim:* ${tName}`);
+                    if (club && club !== "-") waLines.push(`*Asal Klub:* ${club}`);
+                    
+                    let p1Details = [];
+                    if (jCapt) p1Details.push(`Jersey: ${jCapt}`);
+                    if (tLahirA) p1Details.push(`Thn: ${tLahirA}`);
+                    if (ig1) p1Details.push(`IG: ${ig1}`);
+                    let p1Str = p1Details.length > 0 ? ` (${p1Details.join(', ')})` : '';
+                    waLines.push(`*Pemain 1:* ${cName}${p1Str}`);
+                    
+                    if (globalFormat !== 'single' && pName) {
+                        let p2Details = [];
+                        if (jPartner) p2Details.push(`Jersey: ${jPartner}`);
+                        if (tLahirB) p2Details.push(`Thn: ${tLahirB}`);
+                        if (ig2) p2Details.push(`IG: ${ig2}`);
+                        let p2Str = p2Details.length > 0 ? ` (${p2Details.join(', ')})` : '';
+                        waLines.push(`*Pemain 2:* ${pName}${p2Str}`);
+                    }
+                    
+                    waLines.push(`\n*Total Tagihan:* Rp ${finalPrice.toLocaleString('id-ID')}\n`);
+                    waLines.push(`Mohon informasi selanjutnya jika data kami telah lolos verifikasi. Terima kasih.`);
+                    
+                    textWA = waLines.join('\n');
                     waLink = `https://wa.me/${globalWaAdmin}?text=${encodeURIComponent(textWA)}`;
                 }
 
