@@ -322,6 +322,7 @@
                                 <button class="btn-action" style="background:#00695c; color:white; font-weight:bold;" onclick="openJerseyModal()">📦 REKAP JERSEY</button>
                                 <button class="btn-action btn-purple" onclick="startScanner()">📷 SCAN KAMERA</button>
                                 <button class="btn-action btn-blue" onclick="showRegQR()">📝 QR PENDAFTARAN</button>
+                                <button class="btn-action" style="background:#000; color:white; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.3);" onclick="openManualAddModal()">➕ INPUT MANUAL</button>
                             </div>
                             <div id="quota-monitor" style="width: 100%; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 10px;"></div>
                         </div>
@@ -363,6 +364,12 @@
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#1565c0;"><input type="checkbox" id="reg-multi-wa"> Izinkan 1 WA Mendaftar Banyak Tim</label>
                                     <hr style="border:0; border-top:1px dashed #ccc; margin:2px 0;">
                                     <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#2e7d32;"><input type="checkbox" id="reg-auto-wa" checked> <b>Alihkan otomatis ke WA setelah daftar (Hanya Jalur Normal)</b></label>
+                                    
+                                    <div class="form-group" style="margin-top:15px; background:#fff8e1; padding:10px; border:1px solid #ffecb3; border-radius:6px;">
+                                        <label style="color:#f57f17; font-size:11px; font-weight:800;">🌟 DAFTAR KODE VIP (AUTO-BURN)</label>
+                                        <textarea id="reg-vip-codes" class="form-control" style="height:80px; font-size:12px; font-weight:bold; font-family:monospace; resize:vertical; background:white;" placeholder="Ketik kode (Pisahkan dengan Enter)&#10;PAMOR-VIP1&#10;SPONSOR-BCA"></textarea>
+                                        <div style="font-size:9px; color:#555; margin-top:4px;">*Kode otomatis hilang setelah dipakai peserta.</div>
+                                    </div>
                                 </div>
 
                         <div class="section-title">3. DAFTAR KATEGORI & HARGA</div>
@@ -991,9 +998,60 @@
             </select>
 
             <div style="margin-top:30px; display:flex; gap:10px;">
-                <button onclick="closePrintModal()" class="btn-action btn-grey" style="flex:1; padding:12px; border-radius:5px; justify-content:center; font-size:12px;">BATAL</button>
-                <button onclick="executePrint()" class="btn-action btn-blue" style="flex:1; padding:12px; border-radius:5px; justify-content:center; font-size:12px;">CETAK PDF</button>
+                    <button onclick="closePrintModal()" class="btn-action btn-grey" style="flex:1; padding:12px; border-radius:5px; justify-content:center; font-size:12px;">BATAL</button>
+                    <button onclick="executePrint()" class="btn-action btn-blue" style="flex:1; padding:12px; border-radius:5px; justify-content:center; font-size:12px;">CETAK PDF</button>
+                </div>
             </div>
+        </div>
+
+    <div id="modal-add-manual" class="modal">
+        <div class="modal-box" style="width: 550px; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin:0; color:#111;">➕ INPUT PESERTA MANUAL (VVIP / OFFLINE)</h3>
+                <div style="cursor:pointer; font-weight:bold; color:#c62828; font-size:18px;" onclick="document.getElementById('modal-add-manual').style.display='none'">✕</div>
+            </div>
+            <div style="background:#e8f5e9; color:#2e7d32; padding:10px; border-radius:6px; font-size:11px; font-weight:bold; margin-bottom:15px; border:1px solid #c8e6c9;">
+                ✅ Peserta yang diinput lewat jalur ini otomatis berstatus LUNAS dan akan langsung masuk ke Database tanpa perlu proses Screening.
+            </div>
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div class="form-group"><label>Pilih Kategori</label><select id="man-cat" class="form-control" style="font-weight:bold;"></select></div>
+                <div class="form-group"><label>Nama Tim</label><input type="text" id="man-team" class="form-control" placeholder="Kosongi jika tidak ada"></div>
+            </div>
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div class="form-group"><label>Asal Klub</label><input type="text" id="man-club" class="form-control" placeholder="Kosongi jika tidak ada"></div>
+                <div class="form-group"><label>Status Pembayaran</label>
+                    <select id="man-status" class="form-control" style="font-weight:bold; color:#2e7d32;">
+                        <option value="LUNAS">✅ LUNAS</option>
+                        <option value="PENDING">⏳ PENDING (Hanya titip nama)</option>
+                    </select>
+                </div>
+            </div>
+
+            <hr style="border:0; border-top:1px dashed #ccc; margin:15px 0;">
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div class="form-group"><label style="color:#d81b60;">Nama Pemain 1 *</label><input type="text" id="man-p1" class="form-control" placeholder="Wajib Diisi"></div>
+                <div class="form-group"><label style="color:#d81b60;">WA Pemain 1 *</label><input type="tel" id="man-wa1" class="form-control" placeholder="Minimal 9 Angka"></div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div class="form-group"><label>Ukuran Jersey P1</label><input type="text" id="man-j1" class="form-control" placeholder="S/M/L/XL"></div>
+                <div class="form-group"><label>Tahun Lahir P1</label><input type="number" id="man-thn1" class="form-control" placeholder="Cth: 1990"></div>
+            </div>
+
+            <hr style="border:0; border-top:1px dashed #ccc; margin:15px 0;">
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div class="form-group"><label style="color:#1565c0;">Nama Pemain 2</label><input type="text" id="man-p2" class="form-control" placeholder="Kosongi jika Single"></div>
+                <div class="form-group"><label>Tahun Lahir P2</label><input type="number" id="man-thn2" class="form-control" placeholder="Cth: 1995"></div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+                <div class="form-group"><label>Ukuran Jersey P2</label><input type="text" id="man-j2" class="form-control" placeholder="S/M/L/XL"></div>
+                <div class="form-group"><label>Akun IG (Digabung)</label><input type="text" id="man-ig" class="form-control" placeholder="@ig1 & @ig2"></div>
+            </div>
+            
+            <button id="btn-save-manual" class="btn-primary" onclick="saveManualParticipant()" style="background:#000; color:white; width:100%; padding:15px; font-size:14px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">💾 SIMPAN PESERTA</button>
         </div>
     </div>
 
@@ -3676,6 +3734,25 @@ function openEstimasiModal() {
             if (catSelect && typeof updateDatalist === 'function') {
                 updateDatalist(catSelect.value);
             }
+            
+            // 🔥 SUNTIKAN PENYELARAS: Update kotak VIP diam-diam setiap ada yang mendaftar
+            refreshSettingsSilently();
+        }
+
+        // 🔥 FUNGSI BARU: Mengambil data VIP terbaru tanpa mengganggu layar
+        async function refreshSettingsSilently() {
+            try {
+                const { data } = await db.from('partners').select('form_settings').eq('tournament_id', ACTIVE_ID).single();
+                if (data && data.form_settings) {
+                    if (window.RAW_DB_DATA) window.RAW_DB_DATA.form_settings = data.form_settings;
+                    let fs = JSON.parse(data.form_settings);
+                    let vipBox = document.getElementById('reg-vip-codes');
+                    // Cegah overwrite jika panitia sedang klik/mengetik di dalam kotak VIP
+                    if (vipBox && document.activeElement !== vipBox) {
+                        vipBox.value = (fs.vipCodes || []).join('\n');
+                    }
+                }
+            } catch(e) {}
         }
 
         function populateRegCategoryFilter() {
@@ -3960,10 +4037,75 @@ tahun_lahir_a: document.getElementById('edit-reg-thn1').value,
             renderTableRegistrations(); // Render ulang tabel & indikator kuota
             
             // 2. Hapus dari database secara background
-            await db.from('registrations').delete().eq('id', id);
+                await db.from('registrations').delete().eq('id', id);
+            }
+
+        function openManualAddModal() {
+            const catSel = document.getElementById('man-cat');
+            let cats = [...new Set(GLOBAL_REGISTRATIONS.map(r => r.category))].filter(Boolean);
+            if(cats.length === 0 && window.RAW_DB_DATA && window.RAW_DB_DATA.categories) {
+                try { cats = JSON.parse(window.RAW_DB_DATA.categories).map(c => c.name); } catch(e) {}
+            }
+            let html = '';
+            cats.forEach(c => { html += `<option value="${c}">${c}</option>`; });
+            if(html === '') html = '<option value="-">Belum ada kategori</option>';
+            catSel.innerHTML = html;
+
+            document.querySelectorAll('#modal-add-manual input').forEach(el => el.value = '');
+            document.getElementById('man-status').value = 'LUNAS';
+            document.getElementById('modal-add-manual').style.display = 'flex';
         }
 
-        // --- SCANNER KAMERA (AUTO CLOSE) ---
+        async function saveManualParticipant() {
+            let cat = document.getElementById('man-cat').value;
+            let team = document.getElementById('man-team').value.trim() || 'Tanpa Nama';
+            let p1 = document.getElementById('man-p1').value.trim();
+            let wa1 = document.getElementById('man-wa1').value.replace(/\D/g, ''); 
+            let stat = document.getElementById('man-status').value;
+
+            if(!p1 || wa1.length < 9) {
+                alert("⚠️ Nama Pemain 1 dan Nomor WA (minimal 9 angka) wajib diisi!"); return;
+            }
+
+            if (wa1.startsWith('0')) wa1 = '62' + wa1.substring(1);
+            if (wa1.startsWith('8')) wa1 = '62' + wa1;
+
+            const btn = document.getElementById('btn-save-manual');
+            let ori = btn.innerText;
+            btn.innerText = "⏳ MENYIMPAN KE DATABASE...";
+            btn.disabled = true;
+
+            const payload = {
+                tournament_id: ACTIVE_ID,
+                category: cat,
+                team_name: team,
+                asal_klub: document.getElementById('man-club').value.trim(),
+                capt_name: p1,
+                capt_wa: wa1,
+                jersey_capt: document.getElementById('man-j1').value.toUpperCase().trim(),
+                tahun_lahir_a: document.getElementById('man-thn1').value,
+                partner_name: document.getElementById('man-p2').value.trim(),
+                jersey_partner: document.getElementById('man-j2').value.toUpperCase().trim(),
+                tahun_lahir_b: document.getElementById('man-thn2').value,
+                instagram: document.getElementById('man-ig').value.trim(),
+                price: 0,
+                status: stat,
+                vip_code: 'INPUT-MANUAL'
+            };
+
+            const { error } = await db.from('registrations').insert([payload]);
+            btn.innerText = ori;
+            btn.disabled = false;
+
+            if(error) {
+                alert("❌ GAGAL MENYIMPAN:\n" + error.message);
+            } else {
+                alert("✅ PESERTA BERHASIL DITAMBAHKAN!\n\nE-Ticket sudah aktif dan peserta sudah masuk ke dalam sistem.");
+                document.getElementById('modal-add-manual').style.display = 'none';
+            }
+        }
+
+            // --- SCANNER KAMERA (AUTO CLOSE) ---
         let html5QrcodeScanner = null;
         let isScanning = false;
 
@@ -4075,7 +4217,8 @@ reqUmur: document.getElementById('reg-req-umur') ? document.getElementById('reg-
                     regOrg: document.getElementById('reg-org') ? document.getElementById('reg-org').value : '',
                     regSponsorText: document.getElementById('reg-sponsor-text').value,
                     regSponsorLogo: document.getElementById('reg-sponsor-logo').value,
-                    regSponsorSize: document.getElementById('reg-sponsor-size').value
+                    regSponsorSize: document.getElementById('reg-sponsor-size').value,
+                    vipCodes: document.getElementById('reg-vip-codes').value.split('\n').map(c => c.trim()).filter(c => c !== '')
                 }),
                 categories: JSON.stringify(getCatData())
             };
@@ -4109,6 +4252,7 @@ if(document.getElementById('reg-sponsor-size')) {
                     document.getElementById('reg-sponsor-size').value = fs.regSponsorSize || 180;
                     document.getElementById('val-size').innerText = (fs.regSponsorSize || 180) + 'px';
                 }
+                if(document.getElementById('reg-vip-codes')) document.getElementById('reg-vip-codes').value = (fs.vipCodes || []).join('\n');
             } catch(e){ 
                 document.getElementById('reg-req-team').checked = true; document.getElementById('reg-req-club').checked = true; document.getElementById('reg-req-ig').checked = true; 
                 document.getElementById('reg-req-jersey').checked = true; document.getElementById('reg-multi-wa').checked = false; 

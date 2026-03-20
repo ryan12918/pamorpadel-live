@@ -506,17 +506,38 @@
             nextStep(4);
         }
 
-        function applyVip() {
-            const code = document.getElementById('vipCode').value;
+        async function applyVip() {
+            const code = document.getElementById('vipCode').value.trim();
             const msg = document.getElementById('vip-msg');
-            if(code === 'RC-VIP-2026') {
+            const btn = document.querySelector('.btn-vip');
+
+            if (code === '') {
+                msg.innerText = "Masukkan kode terlebih dahulu.";
+                msg.style.color = 'var(--danger)';
+                return;
+            }
+
+            // 🔥 Cek ke daftar kode yang valid dari database
+            if(validVipCodes.includes(code)) {
+                // 🛡️ DOUBLE SECURITY: Cek apakah kode ini sudah pernah dipakai di tabel registrations
+                btn.innerText = "⏳ CEK...";
+                const { data: usedCheck } = await db.from('registrations').select('id').eq('tournament_id', TOURNAMENT_ID).eq('vip_code', code);
+
+                if (usedCheck && usedCheck.length > 0) {
+                    msg.innerText = "❌ KODE SUDAH TERPAKAI!";
+                    msg.style.color = 'var(--danger)';
+                    btn.innerText = "TERAPKAN";
+                    return;
+                }
+
                 finalPrice = 0;
                 isVip = true;
                 document.getElementById('lbl-price').innerText = 'Rp 0 (LUNAS)';
                 document.getElementById('lbl-price').style.color = 'var(--success)';
-                msg.innerText = "✓ KODE DITERIMA. BIAYA REGISTRASI DIGRATISKAN.";
+                msg.innerText = "✓ KODE VIP DITERIMA. BIAYA DIGRATISKAN.";
                 msg.style.color = 'var(--success)';
                 document.getElementById('btn-submit').innerText = "KLAIM E-TICKET VIP";
+                btn.innerText = "TERAPKAN";
             } else {
                 msg.innerText = "❌ KODE TIDAK VALID ATAU KADALUARSA.";
                 msg.style.color = 'var(--danger)';
@@ -536,6 +557,7 @@
         let globalMultiWa = false;
         let globalAutoWa = true; // 🔥 Memori Saklar WA
         let globalFormat = "double";
+        let validVipCodes = []; // 🔥 SUNTIKAN: Memori penyimpan daftar kode VIP
 
         // SENSOR SAKLAR, WA KASIR, PEMBACA KATEGORI, & JUDUL
         async function fetchSettings() {
@@ -598,6 +620,7 @@
                             }
                             globalMultiWa = fs.multiWa === true;
                             globalAutoWa = fs.autoWa !== false; // 🔥 Baca posisi saklar WA
+                            validVipCodes = fs.vipCodes || []; // 🔥 SUNTIKAN: Tarik daftar kode VIP dari Cockpit
 // --- SUNTIKAN 7 FITUR COCKPIT (LUXURY AUTO-HIDE) ---
                             // 1. Judul Utama (Eyebrow)
                             if(fs.regTitle && fs.regTitle.trim() !== '') {
@@ -1038,6 +1061,19 @@ let tLahirA = document.getElementById('captTahun') ? document.getElementById('ca
                     tahun_lahir_a: tLahirA,
                     tahun_lahir_b: tLahirB
                 };
+
+                // 🔥 AUTO-BURN: Membakar kode VIP agar hilang dari Cockpit (DILAKUKAN SEBELUM INSERT TIKET)
+                if (isVip && vCode) {
+                    validVipCodes = validVipCodes.filter(c => c !== vCode);
+                    try {
+                        const { data: pData } = await db.from('partners').select('form_settings').eq('tournament_id', TOURNAMENT_ID).single();
+                        if (pData && pData.form_settings) {
+                            let fs = JSON.parse(pData.form_settings);
+                            fs.vipCodes = validVipCodes;
+                            await db.from('partners').update({ form_settings: JSON.stringify(fs) }).eq('tournament_id', TOURNAMENT_ID);
+                        }
+                    } catch(e) { console.log("Gagal membakar kode", e); }
+                }
 
                 const { error } = await db.from('registrations').insert([payload]);
                 if (error) throw error;
