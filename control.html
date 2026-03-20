@@ -361,7 +361,9 @@
 <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#d81b60;"><input type="checkbox" id="reg-req-umur"> Tampilkan Input Tahun Lahir (Auto-Umur)</label>
                             <hr style="border:0; border-top:1px dashed #ccc; margin:2px 0;">
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#1565c0;"><input type="checkbox" id="reg-multi-wa"> Izinkan 1 WA Mendaftar Banyak Tim</label>
-                        </div>
+                                    <hr style="border:0; border-top:1px dashed #ccc; margin:2px 0;">
+                                    <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#2e7d32;"><input type="checkbox" id="reg-auto-wa" checked> <b>Alihkan otomatis ke WA setelah daftar (Hanya Jalur Normal)</b></label>
+                                </div>
 
                         <div class="section-title">3. DAFTAR KATEGORI & HARGA</div>
                         <div id="category-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
@@ -4064,6 +4066,7 @@ tahun_lahir_a: document.getElementById('edit-reg-thn1').value,
                     reqJersey: document.getElementById('reg-req-jersey').checked,
 reqUmur: document.getElementById('reg-req-umur') ? document.getElementById('reg-req-umur').checked : false,
                     multiWa: document.getElementById('reg-multi-wa').checked,
+                    autoWa: document.getElementById('reg-auto-wa') ? document.getElementById('reg-auto-wa').checked : true,
                     regTitle: document.getElementById('reg-title') ? document.getElementById('reg-title').value : '',
                     regSub: document.getElementById('reg-sub') ? document.getElementById('reg-sub').value : '',
                     regSubCol: document.getElementById('reg-sub-col') ? document.getElementById('reg-sub-col').value : '#d81b60',
@@ -4092,6 +4095,7 @@ reqUmur: document.getElementById('reg-req-umur') ? document.getElementById('reg-
                 document.getElementById('reg-req-jersey').checked = fs.reqJersey === false ? false : true;
 if(document.getElementById('reg-req-umur')) document.getElementById('reg-req-umur').checked = fs.reqUmur === true ? true : false;
                 document.getElementById('reg-multi-wa').checked = fs.multiWa === true ? true : false;
+                if(document.getElementById('reg-auto-wa')) document.getElementById('reg-auto-wa').checked = fs.autoWa !== false;
                 
                 if(document.getElementById('reg-title')) document.getElementById('reg-title').value = fs.regTitle || '';
                 if(document.getElementById('reg-sub')) document.getElementById('reg-sub').value = fs.regSub || '';

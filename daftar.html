@@ -291,6 +291,11 @@
             <a href="#" class="back-link" onclick="nextStep(3)">Kembali ke Data Partner</a>
         </div>
 
+        <div id="step-5" class="step">
+            <div id="success-content" style="text-align:center; padding:20px 0;">
+                </div>
+        </div>
+
     </div>
 
     <div onclick="document.getElementById('modal-status').style.display='flex'" style="position:fixed; bottom:30px; right:30px; background:var(--text-main); color:white; padding:15px 25px; border-radius:30px; font-size:13px; font-weight:bold; cursor:pointer; box-shadow:0 10px 25px rgba(0,0,0,0.3); z-index:100; transition:0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
@@ -489,6 +494,7 @@
         // VARIABEL PENYIMPAN NOMOR WA KASIR & SAKLAR
         let globalWaAdmin = "";
         let globalMultiWa = false;
+        let globalAutoWa = true; // 🔥 Memori Saklar WA
         let globalFormat = "double";
 
         // SENSOR SAKLAR, WA KASIR, PEMBACA KATEGORI, & JUDUL
@@ -551,6 +557,7 @@
                                 if(document.getElementById('wrap-tahun-partner')) document.getElementById('wrap-tahun-partner').style.display = 'block';
                             }
                             globalMultiWa = fs.multiWa === true;
+                            globalAutoWa = fs.autoWa !== false; // 🔥 Baca posisi saklar WA
 // --- SUNTIKAN 7 FITUR COCKPIT (LUXURY AUTO-HIDE) ---
                             // 1. Judul Utama (Eyebrow)
                             if(fs.regTitle && fs.regTitle.trim() !== '') {
@@ -767,6 +774,10 @@
                                 <div style="margin-top:15px; font-size:10px; font-weight:bold; color:${col}; opacity:0.8; border-top:1px solid rgba(0,0,0,0.05); padding-top:10px;">
                                     *${infoText}
                                 </div>
+                                
+                                <div style="margin-top:15px; padding-top:15px; border-top:1px solid rgba(0,0,0,0.1); font-size:8px; line-height:1.4; color:#999; text-align:justify; font-weight:600;">
+                                    ⚠️ LEGALITAS E-TICKET: Dengan terbitnya tiket ini, peserta yang tercantum di atas menyatakan diri dalam kondisi sehat untuk bertanding. Segala bentuk cedera atau risiko medis di lapangan sepenuhnya menjadi tanggung jawab pribadi, dan membebaskan pihak penyelenggara dari segala tuntutan hukum.
+                                </div>
                             </div>
                         `;
                     });
@@ -979,36 +990,68 @@ let tLahirA = document.getElementById('captTahun') ? document.getElementById('ca
                 const { error } = await db.from('registrations').insert([payload]);
                 if (error) throw error;
 
+                // Siapkan Teks WA (Hanya untuk yang bukan WL)
+                let textWA = '';
+                let waLink = '#';
+                if (globalWaAdmin) {
+                    let cDet = []; if(jCapt) cDet.push(`Jersey: ${jCapt}`); if(tLahirA) cDet.push(`Thn: ${tLahirA}`); if(ig1) cDet.push(`IG: ${ig1}`);
+                    let cStr = cDet.length > 0 ? ` (${cDet.join(' | ')})` : '';
+                    let pDet = []; if(jPartner) pDet.push(`Jersey: ${jPartner}`); if(tLahirB) pDet.push(`Thn: ${tLahirB}`); if(ig2) pDet.push(`IG: ${ig2}`);
+                    let pStr = pDet.length > 0 ? ` (${pDet.join(' | ')})` : '';
+                    textWA = `Halo Admin, ini konfirmasi pendaftaran turnamen:\n\nTim: *${tName}*\nKlub: *${club || '-'}*\nKategori: *${selectedCat}*\nKapten: *${cName}*${cStr}\nPartner: *${pName}*${pStr}\nTagihan: *Rp ${finalPrice.toLocaleString('id-ID')}*\n\nBerikut saya lampirkan bukti transfernya. Terima kasih.`;
+                    waLink = `https://wa.me/${globalWaAdmin}?text=${encodeURIComponent(textWA)}`;
+                }
+
+                // Sembunyikan header atas agar peserta fokus ke layar sukses
+                let dynHeader = document.querySelector('.dyn-header');
+                if(dynHeader) dynHeader.style.display = 'none';
+
+                let successBox = document.getElementById('success-content');
+
                 if (isVip) {
-                    alert('🎉 REGISTRASI VIP BERHASIL TERCATAT!\n\nStatus Anda: LUNAS. E-Ticket akan segera diproses oleh sistem.');
-                    location.reload(); 
-                } else {
-                    alert('✅ SLOT BERHASIL DIAMANKAN!\n\nKlik OK untuk melihat instruksi selanjutnya.');
-                    
-                    // CEK APAKAH PANITIA SUDAH MEMASUKKAN NOMOR WA MEREKA
-                    if (globalWaAdmin) {
-                        // Mesin perakit detail Kapten
-                        let cDet = [];
-                        if(jCapt) cDet.push(`Jersey: ${jCapt}`);
-                        if(tLahirA) cDet.push(`Thn: ${tLahirA}`);
-                        if(ig1) cDet.push(`IG: ${ig1}`);
-                        let cStr = cDet.length > 0 ? ` (${cDet.join(' | ')})` : '';
-
-                        // Mesin perakit detail Partner
-                        let pDet = [];
-                        if(jPartner) pDet.push(`Jersey: ${jPartner}`);
-                        if(tLahirB) pDet.push(`Thn: ${tLahirB}`);
-                        if(ig2) pDet.push(`IG: ${ig2}`);
-                        let pStr = pDet.length > 0 ? ` (${pDet.join(' | ')})` : '';
-
-                        let textWA = `Halo Admin, ini konfirmasi pendaftaran turnamen:\n\nTim: *${tName}*\nKlub: *${club || '-'}*\nKategori: *${selectedCat}*\nKapten: *${cName}*${cStr}\nPartner: *${pName}*${pStr}\nTagihan: *Rp ${finalPrice.toLocaleString('id-ID')}*\n\nBerikut saya lampirkan bukti transfernya. Terima kasih.`;
-                        
-                        // Arahkan ke WA Panitia yang asli (Bukan nomor bohongan lagi)
-                        window.location.href = `https://wa.me/${globalWaAdmin}?text=${encodeURIComponent(textWA)}`;
+                    // FASE 3: VIP (LUNAS)
+                    successBox.innerHTML = `
+                        <div style="font-size:60px; margin-bottom:10px; text-shadow:0 10px 20px rgba(0,0,0,0.1);">🌟</div>
+                        <h2 style="font-family:'Playfair Display',serif; color:#b8860b; margin-bottom:10px;">REGISTRASI VIP SUKSES!</h2>
+                        <div style="background:#fffcf5; border:1px solid #daa520; border-radius:12px; padding:20px; font-size:13px; font-weight:600; line-height:1.6; color:#555; text-align:left;">
+                            Kode VIP valid. Status Anda sudah <b style="color:#2e7d32;">LUNAS</b>. Silakan cek E-Ticket Anda di halaman utama kapan saja.
+                        </div>
+                        <button class="btn-primary" onclick="location.reload()" style="margin-top:20px;">KEMBALI KE BERANDA</button>
+                    `;
+                    nextStep(5);
+                } 
+                else if (isWaitingList) {
+                    // FASE 2: WAITING LIST
+                    successBox.innerHTML = `
+                        <div style="font-size:60px; margin-bottom:10px; text-shadow:0 10px 20px rgba(0,0,0,0.1);">⏳</div>
+                        <h2 style="font-family:'Playfair Display',serif; color:#e65100; margin-bottom:10px; font-size:22px;">MASUK DAFTAR TUNGGU</h2>
+                        <div style="background:#fff3e0; border:1px solid #ffcc80; border-radius:12px; padding:20px; font-size:12px; font-weight:600; line-height:1.6; color:#555; text-align:left;">
+                            Terima kasih! Data tim <b style="color:#111;">${tName}</b> telah kami catat di antrean Waiting List kategori <b style="color:#111;">${selectedCat}</b>.<br><br>
+                            <span style="color:#c62828;">⚠️ <b>MOHON PERHATIAN:</b> JANGAN melakukan transfer atau pembayaran apa pun saat ini.</span><br><br>Panitia akan menghubungi Anda via WhatsApp JIKA ada tim utama yang batal dan slot tersedia.
+                        </div>
+                        <button class="btn-primary" onclick="location.reload()" style="margin-top:20px; background:#555;">🔄 KEMBALI KE BERANDA</button>
+                    `;
+                    nextStep(5);
+                }
+                else {
+                    // FASE 1: JALUR NORMAL (PENDING & SCREENING)
+                    if (globalAutoWa && globalWaAdmin) {
+                        // AUTO-WA ON: Langsung lempar ke WA
+                        alert('✅ DATA DITERIMA!\n\nKlik OK untuk diarahkan ke WhatsApp Panitia.');
+                        window.location.href = waLink;
                     } else {
-                        // Jika Panitia lupa mengisi nomor WA di Cockpit
-                        alert('⚠️ E-Ticket Anda sudah masuk ke sistem kami (Status: PENDING).\n\nNamun, penyelenggara belum mengatur nomor WhatsApp Kasir. Silakan hubungi panitia melalui Instagram/Kontak yang tersedia untuk melakukan pembayaran.');
-                        location.reload();
+                        // AUTO-WA OFF: Munculkan Layar Sukses Screening
+                        successBox.innerHTML = `
+                            <div style="font-size:60px; margin-bottom:10px; text-shadow:0 10px 20px rgba(0,0,0,0.1);">🔎</div>
+                            <h2 style="font-family:'Playfair Display',serif; color:#1a237e; margin-bottom:10px; font-size:22px;">TAHAP SCREENING</h2>
+                            <div style="background:#e8eaf6; border:1px solid #c5cae9; border-radius:12px; padding:20px; font-size:12px; font-weight:600; line-height:1.6; color:#555; text-align:left;">
+                                Selamat! Data tim <b style="color:#111;">${tName}</b> telah masuk ke sistem kami dan slot Anda untuk kategori <b style="color:#111;">${selectedCat}</b> telah dikunci sementara.<br><br>
+                                Saat ini, Komite Pertandingan sedang melakukan <b>Screening & Verifikasi</b> kelayakan pemain.<br><br>
+                                <span style="color:#c62828;">⚠️ <b>MOHON JANGAN TRANSFER DULU.</b> Jika tim Anda lolos verifikasi, Panitia akan menghubungi Anda via WhatsApp untuk memberikan instruksi pembayaran.</span>
+                            </div>
+                            <button class="btn-primary" onclick="location.reload()" style="margin-top:20px; background:#555;">🔄 KEMBALI KE BERANDA</button>
+                        `;
+                        nextStep(5);
                     }
                 }
             } catch (err) {
