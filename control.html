@@ -939,10 +939,10 @@
     </div>
 
 <div id="modal-finance" class="modal">
-        <div class="modal-box" style="width: 500px;">
+        <div class="modal-box" style="width: 95%; max-width: 500px; margin: 0 auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="margin:0; color:#1565c0;">💰 DASBOR INTELIJEN KEUANGAN</h3>
-                <div style="cursor:pointer; font-weight:bold; color:#aaa; font-size:18px;" onclick="document.getElementById('modal-finance').style.display='none'">✕</div>
+                <h3 style="margin:0; color:#1565c0; font-size:16px;">💰 DASBOR INTELIJEN KEUANGAN</h3>
+                <div style="cursor:pointer; font-weight:bold; color:#c62828; font-size:18px; line-height:1;" onclick="document.getElementById('modal-finance').style.display='none'">✕</div>
             </div>
             
             <div style="background:#e3f2fd; border:2px solid #90caf9; border-radius:8px; padding:15px; text-align:center; margin-bottom:15px;">
@@ -951,9 +951,9 @@
                 <div id="fin-total-pending" style="font-size:12px; font-weight:bold; color:#ef6c00; margin-top:5px;">Potensi PENDING: Rp 0</div>
             </div>
 
-            <div style="font-size:12px; font-weight:800; color:#555; border-bottom:1px solid #ddd; padding-bottom:5px; margin-bottom:10px;">RINCIAN KATEGORI (UANG LUNAS):</div>
-            <div id="fin-detail-cat" style="font-size:12px; color:#333; line-height:1.6; max-height: 200px; overflow-y:auto;">
-                </div>
+            <div style="font-size:12px; font-weight:800; color:#555; border-bottom:1px solid #ddd; padding-bottom:5px; margin-bottom:10px;">RINCIAN PENDAPATAN PER KATEGORI:</div>
+            <div id="fin-detail-cat" style="font-size:12px; color:#333; line-height:1.6; max-height: 250px; overflow-y:auto; padding-right:5px;">
+            </div>
         </div>
     </div>
 
@@ -4259,21 +4259,25 @@ if(document.getElementById('reg-sponsor-size')) {
         // ==========================================
         function openFinanceModal() {
             let totalLunas = 0; let totalPending = 0;
-            let catLunas = {}; let catPending = {};
+            let catData = {}; 
 
             GLOBAL_REGISTRATIONS.forEach(r => {
                 let price = parseInt(r.price) || 0;
                 let cat = r.category || 'TIDAK DIKETAHUI';
                 
-                if (!catLunas[cat]) catLunas[cat] = 0;
-                if (!catPending[cat]) catPending[cat] = 0;
+                // Siapkan wadah memori untuk setiap kategori baru yang terdeteksi
+                if (!catData[cat]) {
+                    catData[cat] = { lunasRp: 0, lunasQty: 0, pendingRp: 0, pendingQty: 0 };
+                }
 
                 if (r.status === 'LUNAS' || r.status === 'HADIR') {
                     totalLunas += price;
-                    catLunas[cat] += price;
+                    catData[cat].lunasRp += price;
+                    catData[cat].lunasQty++;
                 } else if (r.status === 'PENDING') {
                     totalPending += price;
-                    catPending[cat] += price;
+                    catData[cat].pendingRp += price;
+                    catData[cat].pendingQty++;
                 }
             });
 
@@ -4281,16 +4285,26 @@ if(document.getElementById('reg-sponsor-size')) {
             document.getElementById('fin-total-pending').innerText = 'Potensi PENDING: Rp ' + totalPending.toLocaleString('id-ID');
 
             let detailHtml = '';
-            for (let cat in catLunas) {
-                if (catLunas[cat] > 0 || catPending[cat] > 0) {
+            for (let cat in catData) {
+                let d = catData[cat];
+                if (d.lunasQty > 0 || d.pendingQty > 0) {
                     detailHtml += `
-                    <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #eee; padding:6px 0;">
-                        <span style="font-weight:bold;">${cat}</span>
-                        <span style="color:#2e7d32; font-weight:900;">Rp ${catLunas[cat].toLocaleString('id-ID')}</span>
+                    <div style="background:#fdfdfd; border:1px solid #eee; border-radius:6px; padding:10px; margin-bottom:10px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                        <div style="font-weight:800; color:#1a237e; font-size:12px; margin-bottom:8px; border-bottom:1px solid #eee; padding-bottom:5px;">🏆 ${cat}</div>
+                        
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span style="font-size:11px; color:#555; font-weight:600;">LUNAS (${d.lunasQty} Tim)</span>
+                            <span style="color:#2e7d32; font-weight:900; font-size:12px;">Rp ${d.lunasRp.toLocaleString('id-ID')}</span>
+                        </div>
+                        
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:11px; color:#ef6c00; font-weight:600;">PENDING (${d.pendingQty} Tim)</span>
+                            <span style="color:#ef6c00; font-weight:800; font-size:11px;">Rp ${d.pendingRp.toLocaleString('id-ID')}</span>
+                        </div>
                     </div>`;
                 }
             }
-            if(detailHtml === '') detailHtml = '<div style="color:#888; text-align:center; padding:10px;">Belum ada pendaftar</div>';
+            if(detailHtml === '') detailHtml = '<div style="color:#888; text-align:center; padding:10px; font-weight:bold;">Belum ada pendaftar</div>';
             document.getElementById('fin-detail-cat').innerHTML = detailHtml;
             document.getElementById('modal-finance').style.display = 'flex';
         }
