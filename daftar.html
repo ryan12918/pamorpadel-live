@@ -198,6 +198,12 @@
                 <input type="number" id="captTahun" class="form-control" placeholder="Masukkan 4 digit tahun" min="1940" max="2015">
             </div>
             
+            <div class="form-group" id="wrap-reclub-capt" style="display:none;">
+                <label id="lbl-p1-reclub">ID / Link Reclub Pemain 1</label>
+                <input type="text" id="captReclub" class="form-control" placeholder="Ketik ID atau Link Reclub">
+                <div class="error-text" id="err-captReclub">⚠️ Wajib diisi!</div>
+            </div>
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div class="form-group" id="wrap-jersey-capt">
                     <label id="lbl-p1-jersey">Ukuran Jersey Pemain 1</label>
@@ -231,6 +237,12 @@
 <div class="form-group" id="wrap-tahun-partner">
                 <label>Tahun Lahir Pemain 2 (Cth: 1995)</label>
                 <input type="number" id="partnerTahun" class="form-control" placeholder="Masukkan 4 digit tahun" min="1940" max="2015">
+            </div>
+
+            <div class="form-group" id="wrap-reclub-partner" style="display:none;">
+                <label>ID / Link Reclub Pemain 2</label>
+                <input type="text" id="partnerReclub" class="form-control" placeholder="Ketik ID atau Link Reclub">
+                <div class="error-text" id="err-partnerReclub">⚠️ Wajib diisi!</div>
             </div>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -383,6 +395,7 @@
             if (!checkRequired('clubName', 'wrap-club')) isValid = false;
             if (!checkRequired('captName', null)) isValid = false;
             if (!checkRequired('captWa', null)) isValid = false;
+            if (!checkRequired('captReclub', 'wrap-reclub-capt')) isValid = false;
             if (!checkRequired('captJersey', 'wrap-jersey-capt')) isValid = false;
             if (!checkRequired('captIg', 'wrap-ig-capt')) isValid = false;
             
@@ -395,6 +408,7 @@
             if (!checkRequired('clubName', 'wrap-club')) isValid = false;
             if (!checkRequired('captName', null)) isValid = false;
             if (!checkRequired('captWa', null)) isValid = false;
+            if (!checkRequired('captReclub', 'wrap-reclub-capt')) isValid = false;
             if (!checkRequired('captJersey', 'wrap-jersey-capt')) isValid = false;
             if (!checkRequired('captIg', 'wrap-ig-capt')) isValid = false;
             
@@ -405,6 +419,7 @@
             let isValid = true;
             // Di format Double, semua data Partner kini WAJIB diisi!
             if (!checkRequired('partnerName', null)) isValid = false;
+            if (!checkRequired('partnerReclub', 'wrap-reclub-partner')) isValid = false;
             if (!checkRequired('partnerJersey', 'wrap-jersey-partner')) isValid = false;
             if (!checkRequired('partnerIg', 'wrap-ig-partner')) isValid = false;
             
@@ -431,6 +446,8 @@
             let cJersey = wrapJerseyC ? document.getElementById('captJersey').value : '';
             let wrapIgC = document.getElementById('wrap-ig-capt').style.display !== 'none';
             let cIg = wrapIgC ? document.getElementById('captIg').value.trim() : '';
+            let wrapRecC = document.getElementById('wrap-reclub-capt').style.display !== 'none';
+            let cRec = wrapRecC ? document.getElementById('captReclub').value.trim() : '';
 
             let pName = document.getElementById('partnerName') ? document.getElementById('partnerName').value.trim() : '';
             let wrapTahunP = document.getElementById('wrap-tahun-partner') ? document.getElementById('wrap-tahun-partner').style.display !== 'none' : false;
@@ -439,6 +456,10 @@
             let pJersey = wrapJerseyP ? document.getElementById('partnerJersey').value : '';
             let wrapIgP = document.getElementById('wrap-ig-partner') ? document.getElementById('wrap-ig-partner').style.display !== 'none' : false;
             let pIg = wrapIgP ? document.getElementById('partnerIg').value.trim() : '';
+            let wrapRecP = document.getElementById('wrap-reclub-partner') ? document.getElementById('wrap-reclub-partner').style.display !== 'none' : false;
+            let pRec = wrapRecP ? document.getElementById('partnerReclub').value.trim() : '';
+
+            let cWa = document.getElementById('captWa') ? document.getElementById('captWa').value.trim() : '';
 
             // Merakit Struk Pintar
             let html = '';
@@ -457,6 +478,8 @@
             html += `<hr style="border:0; border-top:1px dashed #ddd; margin:15px 0;">`;
             html += `<div style="font-size:11px; font-weight:800; color:#555; margin-bottom:10px; text-transform:uppercase;">Identitas Pemain 1</div>`;
             html += rowHtml('Nama Lengkap', cName);
+            if(cWa) html += rowHtml('No. WhatsApp', cWa);
+            if(cRec) html += rowHtml('Akun Reclub', cRec);
             if(cTahun) html += rowHtml('Tahun Lahir', cTahun);
             if(cJersey) html += rowHtml('Ukuran Jersey', cJersey);
             if(cIg) html += rowHtml('Akun Instagram', cIg);
@@ -465,6 +488,7 @@
                 html += `<hr style="border:0; border-top:1px dashed #ddd; margin:15px 0;">`;
                 html += `<div style="font-size:11px; font-weight:800; color:#555; margin-bottom:10px; text-transform:uppercase;">Identitas Pemain 2</div>`;
                 html += rowHtml('Nama Lengkap', pName);
+                if(pRec) html += rowHtml('Akun Reclub', pRec);
                 if(pTahun) html += rowHtml('Tahun Lahir', pTahun);
                 if(pJersey) html += rowHtml('Ukuran Jersey', pJersey);
                 if(pIg) html += rowHtml('Akun Instagram', pIg);
@@ -609,6 +633,14 @@
                             if(fs.reqJersey === false) {
                                 if(document.getElementById('wrap-jersey-capt')) document.getElementById('wrap-jersey-capt').style.display = 'none';
                                 if(document.getElementById('wrap-jersey-partner')) document.getElementById('wrap-jersey-partner').style.display = 'none';
+                            }
+// --- SENSOR SAKLAR RECLUB ---
+                            if(fs.reqReclub !== true) {
+                                if(document.getElementById('wrap-reclub-capt')) document.getElementById('wrap-reclub-capt').style.display = 'none';
+                                if(document.getElementById('wrap-reclub-partner')) document.getElementById('wrap-reclub-partner').style.display = 'none';
+                            } else {
+                                if(document.getElementById('wrap-reclub-capt')) document.getElementById('wrap-reclub-capt').style.display = 'block';
+                                if(document.getElementById('wrap-reclub-partner')) document.getElementById('wrap-reclub-partner').style.display = 'block';
                             }
 // --- SENSOR SAKLAR TAHUN LAHIR ---
                             if(fs.reqUmur !== true) {
@@ -922,6 +954,8 @@
 
             let jCapt = document.getElementById('captJersey') ? document.getElementById('captJersey').value : '';
             let jPartner = document.getElementById('partnerJersey') ? document.getElementById('partnerJersey').value : '';
+            let rCapt = document.getElementById('captReclub') ? document.getElementById('captReclub').value.trim() : '';
+            let rPartner = document.getElementById('partnerReclub') ? document.getElementById('partnerReclub').value.trim() : '';
 let tLahirA = document.getElementById('captTahun') ? document.getElementById('captTahun').value : '';
             let tLahirB = document.getElementById('partnerTahun') ? document.getElementById('partnerTahun').value : '';
             let ckMedis = document.getElementById('klausul_medis');
@@ -1059,7 +1093,9 @@ let tLahirA = document.getElementById('captTahun') ? document.getElementById('ca
                     jersey_capt: jCapt,
                     jersey_partner: jPartner,
                     tahun_lahir_a: tLahirA,
-                    tahun_lahir_b: tLahirB
+                    tahun_lahir_b: tLahirB,
+                    reclub_capt: rCapt,
+                    reclub_partner: rPartner
                 };
 
                 // 🔥 AUTO-BURN: Membakar kode VIP agar hilang dari Cockpit (DILAKUKAN SEBELUM INSERT TIKET)
@@ -1090,6 +1126,7 @@ let tLahirA = document.getElementById('captTahun') ? document.getElementById('ca
                     if (club && club !== "-") waLines.push(`*Asal Klub:* ${club}`);
                     
                     let p1Details = [];
+                    if (rCapt) p1Details.push(`Reclub: ${rCapt}`);
                     if (jCapt) p1Details.push(`Jersey: ${jCapt}`);
                     if (tLahirA) p1Details.push(`Thn: ${tLahirA}`);
                     if (ig1) p1Details.push(`IG: ${ig1}`);
@@ -1098,6 +1135,7 @@ let tLahirA = document.getElementById('captTahun') ? document.getElementById('ca
                     
                     if (globalFormat !== 'single' && pName) {
                         let p2Details = [];
+                        if (rPartner) p2Details.push(`Reclub: ${rPartner}`);
                         if (jPartner) p2Details.push(`Jersey: ${jPartner}`);
                         if (tLahirB) p2Details.push(`Thn: ${tLahirB}`);
                         if (ig2) p2Details.push(`IG: ${ig2}`);

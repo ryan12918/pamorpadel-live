@@ -360,6 +360,7 @@
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-ig"> Tampilkan Input Akun Instagram</label>
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="reg-req-jersey"> Tampilkan Input Ukuran Jersey</label>
 <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#d81b60;"><input type="checkbox" id="reg-req-umur"> Tampilkan Input Tahun Lahir (Auto-Umur)</label>
+<label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#0277bd;"><input type="checkbox" id="reg-req-reclub"> Tampilkan Input Akun Reclub (Wajib Diisi)</label>
                             <hr style="border:0; border-top:1px dashed #ccc; margin:2px 0;">
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#1565c0;"><input type="checkbox" id="reg-multi-wa"> Izinkan 1 WA Mendaftar Banyak Tim</label>
                                     <hr style="border:0; border-top:1px dashed #ccc; margin:2px 0;">
@@ -905,6 +906,11 @@
                 <div class="form-group"><label>Thn Lahir P2 (Umur)</label><input type="number" id="edit-reg-thn2" class="form-control"></div>
             </div>
             
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div class="form-group"><label style="color:#0277bd;">Reclub P1</label><input type="text" id="edit-reg-rc1" class="form-control"></div>
+                <div class="form-group"><label style="color:#0277bd;">Reclub P2</label><input type="text" id="edit-reg-rc2" class="form-control"></div>
+            </div>
+
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                 <div class="form-group"><label>Asal Klub</label><input type="text" id="edit-reg-club" class="form-control"></div>
                 <div class="form-group"><label>Akun Instagram</label><input type="text" id="edit-reg-ig" class="form-control"></div>
@@ -3803,6 +3809,8 @@ function openEstimasiModal() {
                 let jC = r.jersey_capt ? `<span style="background:#e0f7fa; color:#006064; padding:2px 4px; border-radius:3px; font-size:8px; margin-left:3px; font-weight:800; border:1px solid #b2ebf2;">👕 ${r.jersey_capt}</span>` : '';
                 let jP = r.jersey_partner ? `<span style="background:#e0f7fa; color:#006064; padding:2px 4px; border-radius:3px; font-size:8px; margin-left:3px; font-weight:800; border:1px solid #b2ebf2;">👕 ${r.jersey_partner}</span>` : '';
                 let igText = r.instagram ? `<div style="font-size:9px; color:#d81b60; margin-top:3px; font-weight:bold;">📸 ${r.instagram}</div>` : '';
+                let rcC = r.reclub_capt ? `<div style="font-size:9px; color:#0277bd; margin-top:3px; font-weight:bold;">🏅 Reclub: ${r.reclub_capt}</div>` : '';
+                let rcP = r.reclub_partner ? `<div style="font-size:9px; color:#0277bd; margin-top:3px; font-weight:bold;">🏅 Reclub: ${r.reclub_partner}</div>` : '';
 // --- KALKULASI UMUR OTOMATIS ---
                 let currentYear = new Date().getFullYear();
                 let umurCapt = ''; let umurPartner = '';
@@ -3819,8 +3827,8 @@ function openEstimasiModal() {
                     <td style="padding:8px;">${idx+1}</td><td style="padding:8px;">${timeStr}</td>
                     <td style="padding:8px; font-weight:bold; color:#1a237e;">${safeHTML(r.team_name)} <br><span style="font-size:9px; font-weight:normal; color:#888;">${safeHTML(r.asal_klub)||'-'}</span>${igText}</td>
                     <td style="padding:8px;">${safeHTML(r.category)}</td>
-                    <td style="padding:8px;">${safeHTML(r.capt_name)} ${umurCapt} ${jC} <br> <a href="https://wa.me/${r.capt_wa}" target="_blank" style="color:#0277bd; text-decoration:none; font-weight:bold;">${r.capt_wa}</a></td>
-                    <td style="padding:8px;">${safeHTML(r.partner_name) || '-'} ${umurPartner} ${jP}</td>
+                    <td style="padding:8px;">${safeHTML(r.capt_name)} ${umurCapt} ${jC} ${rcC} <br> <a href="https://wa.me/${r.capt_wa}" target="_blank" style="color:#0277bd; text-decoration:none; font-weight:bold;">${r.capt_wa}</a></td>
+                    <td style="padding:8px;">${safeHTML(r.partner_name) || '-'} ${umurPartner} ${jP} ${rcP}</td>
                     <td style="padding:8px;">
                         <select onchange="updateRegStatus('${r.id}', this.value)" style="padding:5px; border-radius:6px; border:2px solid ${statCol}; color:${statCol}; font-weight:bold; cursor:pointer; outline:none; background:#fff;">
                             <option value="PENDING" ${selP}>⏳ PENDING</option>
@@ -3930,16 +3938,21 @@ function openEstimasiModal() {
             if (!GLOBAL_REGISTRATIONS || GLOBAL_REGISTRATIONS.length === 0) { alert("⚠️ Tidak ada data pendaftar untuk diekspor!"); return; }
             
             let dataArr = [
-                ["NO", "WAKTU DAFTAR", "STATUS", "KATEGORI", "NAMA TIM", "ASAL KLUB", "NAMA KAPTEN", "WA KAPTEN", "JERSEY KAPTEN", "NAMA PARTNER", "JERSEY PARTNER", "INSTAGRAM", "KODE TIKET"]
+                ["NO", "WAKTU DAFTAR", "STATUS", "KATEGORI", "NAMA TIM", "ASAL KLUB", "NAMA KAPTEN", "UMUR KAPTEN", "WA KAPTEN", "JERSEY KAPTEN", "RECLUB KAPTEN", "NAMA PARTNER", "UMUR PARTNER", "JERSEY PARTNER", "RECLUB PARTNER", "INSTAGRAM"]
             ];
+
+            let currentYear = new Date().getFullYear();
 
             GLOBAL_REGISTRATIONS.forEach((r, idx) => {
                 let d = new Date(r.created_at); let timeStr = ("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2) + " " + ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
+                
+                let uCapt = r.tahun_lahir_a ? (currentYear - parseInt(r.tahun_lahir_a)) : "-";
+                let uPart = r.tahun_lahir_b ? (currentYear - parseInt(r.tahun_lahir_b)) : "-";
+
                 dataArr.push([
                     idx + 1, timeStr, r.status || "", r.category || "", r.team_name || "", r.asal_klub || "-", 
-                    r.capt_name || "", r.capt_wa || "", r.jersey_capt || "-", 
-                    r.partner_name || "-", r.jersey_partner || "-", r.instagram || "-", 
-                    r.id || ""
+                    r.capt_name || "", uCapt, r.capt_wa || "", r.jersey_capt || "-", r.reclub_capt || "-", 
+                    r.partner_name || "-", uPart, r.jersey_partner || "-", r.reclub_partner || "-", r.instagram || "-"
                 ]);
             });
 
@@ -3954,12 +3967,15 @@ function openEstimasiModal() {
                 { wch: 20 }, // TIM
                 { wch: 15 }, // KLUB
                 { wch: 20 }, // KAPTEN
+                { wch: 8 },  // UMUR 1
                 { wch: 15 }, // WA
                 { wch: 15 }, // JERSEY 1
+                { wch: 15 }, // RECLUB 1
                 { wch: 20 }, // PARTNER
+                { wch: 8 },  // UMUR 2
                 { wch: 15 }, // JERSEY 2
-                { wch: 20 }, // IG
-                { wch: 35 }  // KODE TIKET
+                { wch: 15 }, // RECLUB 2
+                { wch: 20 }  // IG
             ];
             
             // INJEKSI AUTO-FILTER PINTAR DI BARIS PERTAMA (A1 sampai M1)
@@ -3992,6 +4008,8 @@ function openEstimasiModal() {
             document.getElementById('edit-reg-p2').value = r.partner_name || '';
 document.getElementById('edit-reg-thn1').value = r.tahun_lahir_a || '';
             document.getElementById('edit-reg-thn2').value = r.tahun_lahir_b || '';
+            document.getElementById('edit-reg-rc1').value = r.reclub_capt || '';
+            document.getElementById('edit-reg-rc2').value = r.reclub_partner || '';
             document.getElementById('edit-reg-jc').value = r.jersey_capt || '';
             document.getElementById('edit-reg-jp').value = r.jersey_partner || '';
             
@@ -4012,6 +4030,8 @@ document.getElementById('edit-reg-thn1').value = r.tahun_lahir_a || '';
                 partner_name: document.getElementById('edit-reg-p2').value,
 tahun_lahir_a: document.getElementById('edit-reg-thn1').value,
                 tahun_lahir_b: document.getElementById('edit-reg-thn2').value,
+                reclub_capt: document.getElementById('edit-reg-rc1').value.trim(),
+                reclub_partner: document.getElementById('edit-reg-rc2').value.trim(),
                 jersey_capt: document.getElementById('edit-reg-jc').value,
                 jersey_partner: document.getElementById('edit-reg-jp').value
             };
@@ -4207,6 +4227,7 @@ tahun_lahir_a: document.getElementById('edit-reg-thn1').value,
                     reqIg: document.getElementById('reg-req-ig').checked,
                     reqJersey: document.getElementById('reg-req-jersey').checked,
 reqUmur: document.getElementById('reg-req-umur') ? document.getElementById('reg-req-umur').checked : false,
+reqReclub: document.getElementById('reg-req-reclub') ? document.getElementById('reg-req-reclub').checked : false,
                     multiWa: document.getElementById('reg-multi-wa').checked,
                     autoWa: document.getElementById('reg-auto-wa') ? document.getElementById('reg-auto-wa').checked : true,
                     regTitle: document.getElementById('reg-title') ? document.getElementById('reg-title').value : '',
@@ -4237,6 +4258,7 @@ reqUmur: document.getElementById('reg-req-umur') ? document.getElementById('reg-
                 document.getElementById('reg-req-ig').checked = fs.reqIg === false ? false : true;
                 document.getElementById('reg-req-jersey').checked = fs.reqJersey === false ? false : true;
 if(document.getElementById('reg-req-umur')) document.getElementById('reg-req-umur').checked = fs.reqUmur === true ? true : false;
+if(document.getElementById('reg-req-reclub')) document.getElementById('reg-req-reclub').checked = fs.reqReclub === true ? true : false;
                 document.getElementById('reg-multi-wa').checked = fs.multiWa === true ? true : false;
                 if(document.getElementById('reg-auto-wa')) document.getElementById('reg-auto-wa').checked = fs.autoWa !== false;
                 
