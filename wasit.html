@@ -81,18 +81,21 @@
     <div id="conn-indicator" class="hidden" onclick="checkConnectionAndSync()">🟢 ONLINE</div>
 
     <div id="view-login" class="login-box">
-        <h3>WASIT PRO V17.0</h3>
+        <div style="font-size: 40px; margin-bottom: 5px;">🎾</div>
+        <h3 style="margin-top:0; margin-bottom: 5px;">WASIT PRO V17.0</h3>
+        <p style="color: #888; font-size: 11px; margin-bottom: 15px;">Akses Kredensial Supabase</p>
         
-        <div style="text-align:left; font-size:11px; color:#aaa; margin-bottom:2px; padding-left:5px;">Tournament ID:</div>
-        <input id="inp-tid" class="inp-login" placeholder="Misal: pamorpadel">
+        <input type="email" id="loginEmail" class="inp-login" placeholder="Email Wasit">
+        <input type="password" id="loginPassword" class="inp-login" placeholder="Password">
         
-        <div style="text-align:left; font-size:11px; color:#aaa; margin-top:10px; margin-bottom:2px; padding-left:5px;">Nama Court:</div>
+        <div style="text-align:left; font-size:11px; color:#aaa; margin-top:10px; margin-bottom:2px; padding-left:5px;">Nama Court (Wajib):</div>
         <input id="inp-court" class="inp-login" placeholder="Misal: Valencia">
         
         <div style="text-align:left; font-size:11px; color:#aaa; margin-top:10px; margin-bottom:2px; padding-left:5px;">PIN Match (Opsional):</div>
         <input id="inp-pin" type="tel" class="inp-login" placeholder="******">
         
-        <button onclick="login()" class="btn-login" id="btn-login-main">MASUK</button>
+        <button onclick="prosesLoginWasit()" class="btn-login" id="btn-login-main" style="background: #00e676; color: #000; font-weight: 900; letter-spacing: 1px;">MASUK</button>
+        <div id="loginError" style="color: #ff4d4d; margin-top: 15px; font-size: 13px; display: none; font-weight:bold;">Akses ditolak. Cek email & password.</div>
     </div>
 
     <div id="view-dash" class="hidden" style="width:100%; display:flex; flex-direction:column; align-items:center;">
@@ -369,20 +372,40 @@
             alert("✅ Pengaturan Berhasil Diterapkan!"); 
         }
 
-        async function login() {
+        async function prosesLoginWasit() {
             if(!db) {
-                alert("⚠️ KONEKSI TERPUTUS ATAU SCRIPT DIBLOKIR!\nSistem Database gagal dimuat. Pastikan internet Anda aktif lalu Refresh halaman ini untuk bisa Masuk.");
+                alert("⚠️ KONEKSI TERPUTUS ATAU SCRIPT DIBLOKIR!\nSistem Database gagal dimuat. Pastikan internet Anda aktif.");
                 return;
             }
             try {
-                const btn = document.getElementById('btn-login-main'); btn.innerText = "MEMUAT...";
-                const tid = document.getElementById('inp-tid').value.trim();
+                const btn = document.getElementById('btn-login-main');
+                const errEl = document.getElementById('loginError');
+                btn.innerText = "MEMUAT..."; errEl.style.display = 'none';
+
+                const email = document.getElementById('loginEmail').value.trim();
+                const pass = document.getElementById('loginPassword').value.trim();
                 const c = document.getElementById('inp-court').value.trim(); 
                 const p = document.getElementById('inp-pin').value.trim();
                 
-                if(!tid) { alert("⚠️ Tournament ID Tidak Boleh Kosong!"); btn.innerText = "MASUK"; return; }
-                if(!c) { alert("⚠️ Nama Court Tidak Boleh Kosong!"); btn.innerText = "MASUK"; return; }
+                if(!email || !pass) { errEl.innerText = "⚠️ Email dan Password wajib diisi!"; errEl.style.display = 'block'; btn.innerText = "MASUK"; return; }
+                if(!c) { errEl.innerText = "⚠️ Nama Court wajib diisi!"; errEl.style.display = 'block'; btn.innerText = "MASUK"; return; }
                 
+                // 1. Autentikasi ke Supabase
+                const { data: authData, error: authError } = await db.auth.signInWithPassword({ email: email, password: pass });
+                if (authError) { errEl.innerText = "❌ Email atau Password salah."; errEl.style.display = 'block'; btn.innerText = "MASUK"; return; }
+
+                btn.innerText = "MENCARI DATA...";
+
+                // 2. Cari Turnamen yang cocok dengan email ini (bisa sebagai Admin atau Wasit)
+                const { data: partnerData, error: pError } = await db.from('partners').select('*').or(`email_wasit.eq.${email},email_admin.eq.${email}`).maybeSingle();
+                
+                if(pError) throw pError;
+                if(!partnerData) { errEl.innerText = "❌ Akun ini belum ditautkan ke turnamen. Hubungi Panitia."; errEl.style.display = 'block'; btn.innerText = "MASUK"; return; }
+
+                const tid = partnerData.tournament_id;
+                tournamentId = tid;
+
+                // 3. Cari Match yang sedang LIVE di Court tersebut
                 const { data, error } = await db.from('matches_pro').select('*').eq('tournament_id', tid).ilike('court_name', c).eq('status', 'LIVE');
                                         
                 if(error) throw error; 
@@ -390,14 +413,10 @@
                 
                 const matchData = data[0];
                 let dbPin = matchData.pin ? String(matchData.pin).trim() : "";
-                if(dbPin !== "" && dbPin !== p) { alert("❌ PIN SALAH!"); btn.innerText = "MASUK"; return; }
+                if(dbPin !== "" && dbPin !== p) { alert("❌ PIN MATCH SALAH!"); btn.innerText = "MASUK"; return; }
                 
-                let sSys = 'manual'; let hServe = false;
-                if (matchData.tournament_id) { 
-                    tournamentId = matchData.tournament_id; 
-                    const { data: pData } = await db.from('partners').select('*').eq('tournament_id', tournamentId).maybeSingle(); 
-                    if(pData) { sSys = pData.serve_system || 'manual'; hServe = (pData.hide_serve === 'true'); } 
-                }
+                let sSys = partnerData.serve_system || 'manual'; 
+                let hServe = (partnerData.hide_serve === 'true');
                 
                 serveSystem = sSys; hideServe = hServe; matchId = matchData.id; 
                 document.getElementById('lbl-court').innerText = matchData.court_name; 

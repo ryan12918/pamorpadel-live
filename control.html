@@ -267,15 +267,19 @@
 </head>
 <body>
 
-    <div id="login-overlay">
-        <div class="login-box">
-            <h2 style="margin-top:0;">PARTNER COCKPIT</h2>
-            <input id="l-id" class="inp-login" placeholder="Tournament ID">
-            <input id="l-pass" type="password" class="inp-login" placeholder="Password">
-            <button onclick="login()" class="btn-login">MASUK DASHBOARD</button>
-            <p id="err-msg" style="color:red; font-size:12px; display:none; margin-top:10px; font-weight:bold; background:#ffebee; padding:5px; border:1px solid red; border-radius:4px;">Login Gagal!</p>
+    <div id="login-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: sans-serif;">
+        <div style="background: #1e1e1e; padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); text-align: center; width: 320px; border: 1px solid #333;">
+            <h2 style="color: #fff; margin-top: 0; margin-bottom: 25px;">Login Control Panel</h2>
+            <input type="email" id="loginEmail" placeholder="Email Panitia" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #444; border-radius: 6px; box-sizing: border-box; background: #2a2a2a; color: white; outline: none;">
+            <input type="password" id="loginPassword" placeholder="Password" style="width: 100%; padding: 12px; margin-bottom: 25px; border: 1px solid #444; border-radius: 6px; box-sizing: border-box; background: #2a2a2a; color: white; outline: none;">
+            <button onclick="prosesLogin()" style="width: 100%; padding: 12px; background: #28a745; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; transition: background 0.3s;">MASUK</button>
+            <div id="loginError" style="color: #ff4d4d; margin-top: 15px; font-size: 14px; display: none;">Login gagal. Periksa kembali email & password.</div>
         </div>
     </div>
+    ```
+
+**Permintaan Persetujuan:**
+Dengan panduan yang merujuk langsung ke kode Anda ini, proses *copy-paste* seharusnya menjadi jauh lebih mudah dan pasti. Silakan Anda blok kode lama tersebut dan timpa dengan kode yang baru. Jika sudah, silakan bagikan kembali hasil kode *full*-nya ke percakapan ini untuk saya pastikan tidak ada tag yang terpotong. Apakah instruksi ini sudah cukup jelas untuk dieksekusi?
 
     <div id="main-app">
         <div class="top-bar">
@@ -1112,34 +1116,67 @@
 
         function initUI() { const tc = document.getElementById('theme-container'); PRESETS.forEach(t => { tc.innerHTML += `<div class="theme-btn" onclick="applyTheme('${t.h1}','${t.h2}','${t.bg}','${t.neon}','${t.st}')">${t.n}</div>`; }); }
 
-        async function login() {
-            // 1. RADAR PENEMBUS CACHE
-            alert("SYSTEM CHECK: Membaca file terbaru dari GitHub... OK!"); 
+        // MESIN SINGLE LOGIN SUPABASE
+        async function prosesLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const errEl = document.getElementById('loginError');
+            const btn = document.querySelector('button[onclick="prosesLogin()"]');
 
-            const id = document.getElementById('l-id').value.trim(); 
-            const pass = document.getElementById('l-pass').value.trim();
-            const btn = document.querySelector('.btn-login');
-            const errEl = document.getElementById('err-msg');
-
-            // 2. SENSOR KOLOM KOSONG
-            if (!id || !pass) {
-                errEl.innerText = "⚠️ ID dan Password tidak boleh kosong!";
+            if (!email || !password) {
+                errEl.innerText = "⚠️ Email dan Password harus diisi!";
                 errEl.style.display = 'block';
-                return; // Hentikan proses jika kosong agar tidak freeze
+                return;
             }
 
-            // 3. PROSES LOGIN UTAMA
-            btn.innerText = "MEMUAT..."; errEl.style.display = 'none';
+            btn.innerText = "MENGHUBUNGKAN...";
+            errEl.style.display = 'none';
+
             try {
-                const { data, error } = await db.from('partners').select('*').eq('tournament_id', id).eq('password', pass).maybeSingle();
-                if (error) throw error;
-                if (data) { 
-                    ACTIVE_ID = data.tournament_id; document.getElementById('login-overlay').style.display = 'none'; document.getElementById('main-app').style.display = 'flex'; document.getElementById('lbl-user').innerText = ACTIVE_ID.toUpperCase(); 
-                    initUI(); loadSettings(data); await loadMatches(); subscribeControl(); loadRegistrations(); populateRegSettings(data);
-                } else { 
-                    errEl.innerText = "Kredensial Salah! Pastikan ID & Password sesuai."; errEl.style.display = 'block'; btn.innerText = "MASUK DASHBOARD";
+                // 1. Autentikasi ke Brankas Supabase
+                const { data: authData, error: authError } = await db.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (authError) throw authError;
+
+                btn.innerText = "MENCARI DATA...";
+
+                // 2. Jika sukses login, cari data turnamennya berdasarkan email_admin
+                const { data: partnerData, error: dbError } = await db
+                    .from('partners')
+                    .select('*')
+                    .eq('email_admin', email)
+                    .maybeSingle();
+
+                if (dbError) throw dbError;
+
+                if (partnerData) {
+                    // 3. Jika cocok, buka gembok dan muat aplikasinya
+                    ACTIVE_ID = partnerData.tournament_id;
+                    document.getElementById('login-overlay').style.display = 'none';
+                    document.getElementById('main-app').style.display = 'flex';
+                    document.getElementById('lbl-user').innerText = ACTIVE_ID.toUpperCase();
+
+                    initUI();
+                    loadSettings(partnerData);
+                    await loadMatches();
+                    subscribeControl();
+                    loadRegistrations();
+                    populateRegSettings(partnerData);
+                } else {
+                    // Jika login berhasil tapi dia belum diassign ke turnamen manapun
+                    throw new Error("Akun belum dipasangkan dengan Turnamen apapun. Hubungi Admin.");
                 }
-            } catch (err) { errEl.innerText = "Error Jaringan/Server: " + err.message; errEl.style.display = 'block'; btn.innerText = "MASUK DASHBOARD"; }
+
+            } catch (err) {
+                let msg = err.message;
+                if (msg.includes('Invalid login')) msg = "Email atau Password salah.";
+                errEl.innerText = "❌ " + msg;
+                errEl.style.display = 'block';
+                btn.innerText = "MASUK";
+            }
         }
 
         async function loadMatches() { const { data } = await db.from('matches_pro').select('*').eq('tournament_id', ACTIVE_ID).order('created_at', {ascending: true}); window.GLOBAL_MATCHES = data || []; window.GLOBAL_MATCHES.sort((a,b) => new Date(a.created_at) - new Date(b.created_at)); renderTableMatches(); updateBrandingPreview(); }
