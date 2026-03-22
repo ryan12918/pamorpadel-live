@@ -10,12 +10,12 @@ jobs:
   checkout-minify-push:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # Install NodeJS and CLI tools
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: '20'
       - run: npm install -g terser
       - run: npm install -g csso-cli
       - run: npm install -g html-minifier
