@@ -1046,6 +1046,7 @@
                 <div class="form-group"><label>Ukuran Jersey P1</label><input type="text" id="man-j1" class="form-control" placeholder="S/M/L/XL"></div>
                 <div class="form-group"><label>Tahun Lahir P1</label><input type="number" id="man-thn1" class="form-control" placeholder="Cth: 1990"></div>
             </div>
+            <div class="form-group" style="margin-bottom:10px;"><label style="color:#0277bd;">Reclub Pemain 1</label><input type="text" id="man-rc1" class="form-control" placeholder="Ketik ID / Link Reclub"></div>
 
             <hr style="border:0; border-top:1px dashed #ccc; margin:15px 0;">
 
@@ -1053,10 +1054,11 @@
                 <div class="form-group"><label style="color:#1565c0;">Nama Pemain 2</label><input type="text" id="man-p2" class="form-control" placeholder="Kosongi jika Single"></div>
                 <div class="form-group"><label>Tahun Lahir P2</label><input type="number" id="man-thn2" class="form-control" placeholder="Cth: 1995"></div>
             </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                 <div class="form-group"><label>Ukuran Jersey P2</label><input type="text" id="man-j2" class="form-control" placeholder="S/M/L/XL"></div>
                 <div class="form-group"><label>Akun IG (Digabung)</label><input type="text" id="man-ig" class="form-control" placeholder="@ig1 & @ig2"></div>
             </div>
+            <div class="form-group" style="margin-bottom:15px;"><label style="color:#0277bd;">Reclub Pemain 2</label><input type="text" id="man-rc2" class="form-control" placeholder="Ketik ID / Link Reclub"></div>
             
             <button id="btn-save-manual" class="btn-primary" onclick="saveManualParticipant()" style="background:#000; color:white; width:100%; padding:15px; font-size:14px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">💾 SIMPAN PESERTA</button>
         </div>
@@ -2855,6 +2857,9 @@ function saveOOPSettings() {
                 const customTag = document.getElementById('s-tag').value.trim();
                 const previewKlasemenFormat = document.getElementById('s-standings-format') ? document.getElementById('s-standings-format').value : 'GD';
 
+                window.PREVIEW_TAB = window.PREVIEW_TAB || 'jadwal';
+                const activePreviewTab = window.PREVIEW_TAB;
+
                 const textStyle = hideText ? 'display:none;' : 'display:block;';
                 const logoClass = (logoMode === 'classic') ? 'logo-classic' : 'logo-watermark';
                 const logoHTML = logo ? `<img src="${logo}" class="header-logo ${logoClass}" style="display:block;">` : '';
@@ -3377,7 +3382,14 @@ function saveOOPSettings() {
                             renderKlasemen();
                         }
 
-                        function go(id, btn) { document.querySelectorAll('.container').forEach(c=>c.classList.add('hidden')); document.getElementById('view-'+id).classList.remove('hidden'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); window.scrollTo(0,0); }
+                        function go(id, btn) { 
+                            if(window.parent) window.parent.PREVIEW_TAB = id;
+                            document.querySelectorAll('.container').forEach(c=>c.classList.add('hidden')); 
+                            document.getElementById('view-'+id).classList.remove('hidden'); 
+                            document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); 
+                            if(btn) btn.classList.add('active'); 
+                            window.scrollTo(0,0); 
+                        }
                         
                         let GLOBAL_EST_SETTINGS = null;
                         function applyEstimationLogic(matchList) {
@@ -3421,6 +3433,15 @@ function saveOOPSettings() {
 
                         function processAndRender() { applyEstimationLogic(matches); renderTabs(); renderAll(); }
                         processAndRender();
+                        
+                        let savedTab = '${activePreviewTab}';
+                        let tabBtn = document.querySelector(\`.nav-btn[onclick*="'\${savedTab}'"]\`);
+                        if(tabBtn) {
+                            document.querySelectorAll('.container').forEach(c=>c.classList.add('hidden')); 
+                            document.getElementById('view-'+savedTab).classList.remove('hidden'); 
+                            document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); 
+                            tabBtn.classList.add('active');
+                        }
                     <\/script>
                 </body>
                 </html>
@@ -3948,7 +3969,10 @@ function openEstimasiModal() {
             // Logika Deteksi Single / Double Cerdas
             let pName = r.partner_name && r.partner_name !== '-' && r.partner_name.toLowerCase() !== 'tba' ? " dan Kak " + r.partner_name : "";
             
-            let textWA = `Halo Kak ${r.capt_name}${pName},\n\nKami dari Panitia Turnamen menginformasikan bahwa pendaftaran Anda untuk kategori *${r.category}* (Tim: ${r.team_name}) masih berstatus *PENDING*.\n\nSisa kuota kami saat ini sangat terbatas. Mohon segera menyelesaikan pembayaran dan mengirimkan bukti transfer agar slot Anda tidak kami berikan kepada tim di daftar tunggu (Waiting List).\n\nTerima kasih atas partisipasinya!`;
+            // 🔥 LOGIKA CERDAS: Sembunyikan "(Tim: Tanpa Nama)" jika kosong
+            let teamDisplay = (r.team_name && r.team_name.trim().toLowerCase() !== 'tanpa nama') ? ` (Tim: ${r.team_name})` : '';
+            
+            let textWA = `Halo Kak ${r.capt_name}${pName},\n\nKami dari Panitia Turnamen menginformasikan bahwa pendaftaran Anda untuk kategori *${r.category}*${teamDisplay} masih berstatus *PENDING*.\n\nSisa kuota kami saat ini sangat terbatas. Mohon segera menyelesaikan pembayaran dan mengirimkan bukti transfer agar slot Anda tidak kami berikan kepada tim di daftar tunggu (Waiting List).\n\nTerima kasih atas partisipasinya!`;
 
             // Pasang Gembok Waktu 5 Menit
             cooldownTimers[id] = Date.now();
@@ -4142,6 +4166,8 @@ tahun_lahir_a: document.getElementById('edit-reg-thn1').value,
                 jersey_partner: document.getElementById('man-j2').value.toUpperCase().trim(),
                 tahun_lahir_b: document.getElementById('man-thn2').value,
                 instagram: document.getElementById('man-ig').value.trim(),
+                reclub_capt: document.getElementById('man-rc1').value.trim(),
+                reclub_partner: document.getElementById('man-rc2').value.trim(),
                 price: 0,
                 status: stat,
                 vip_code: 'INPUT-MANUAL'
