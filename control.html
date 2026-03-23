@@ -193,9 +193,15 @@
             
             /* Pengecilan ruang & huruf dalam kotak jadwal */
             #oop-matrix-container td { padding: 0 !important; }
-            #oop-matrix-container td > div { padding: 2px !important; font-size: 9px !important; } /* Huruf pemain dikecilkan agar muat */
+            #oop-matrix-container td > div { padding: 2px !important; } 
             #oop-matrix-container td > div:last-child { padding: 2px 4px !important; }
             #oop-matrix-container td > div > div { margin-bottom: 1px !important; margin-top: 1px !important; line-height: 1.2 !important; }
+            
+            /* KOREKSI: Pengecilan font HANYA untuk nama Tim A dan Tim B agar lebih lega saat dicetak */
+            #oop-matrix-container td > div > div:nth-child(2),
+            #oop-matrix-container td > div > div:nth-child(4) {
+                font-size: 9.5px !important; /* Memaksa turun dari 14px menjadi 9.5px khusus mode PDF */
+            }
             
             /* Kunci mati lebar kotak TIME (Kiri) sebesar 90px saat cetak */
             #oop-matrix-container tr > th:first-child:not([colspan]),
