@@ -20,7 +20,7 @@ jobs:
           node-version: '18'
 
       - name: 3. Menginstall Alat Pengacak
-        run: npm install javascript-obfuscator html-minifier-terser -g
+        run: npm install javascript-obfuscator html-minifier-terser
 
       - name: 4. Membuat Skrip Pengeksekusi
         run: |
