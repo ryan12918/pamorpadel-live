@@ -1,0 +1,83 @@
+name: Robot Pengacak Ryan
+
+on:
+  push:
+    branches:
+      - eksperimen-ryan
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: 1. Mengambil File Master
+        uses: actions/checkout@v3
+
+      - name: 2. Menyiapkan Mesin Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: 3. Menginstall Alat Pengacak
+        run: npm install javascript-obfuscator html-minifier-terser -g
+
+      - name: 4. Membuat Skrip Pengeksekusi
+        run: |
+          cat << 'EOF' > run_obfuscator.js
+          const fs = require('fs');
+          const JavaScriptObfuscator = require('javascript-obfuscator');
+          const { minify } = require('html-minifier-terser');
+
+          const files = ['control.html', 'daftar.html', 'index.html', 'overlay.html', 'tv.html', 'wasit.html'];
+
+          async function processFiles() {
+            for (let file of files) {
+              if (fs.existsSync(file)) {
+                let html = fs.readFileSync(file, 'utf8');
+                
+                // Acak JavaScript
+                html = html.replace(/<script(?![^>]*src=)([^>]*)>([\s\S]*?)<\/script>/gi, (match, attrs, code) => {
+                  try {
+                    let obfuscated = JavaScriptObfuscator.obfuscate(code, {
+                      compact: true,
+                      controlFlowFlattening: false,
+                      stringArray: true,
+                      stringArrayEncoding: ['base64']
+                    }).getObfuscatedCode();
+                    return `<script${attrs}>\n${obfuscated}\n</script>`;
+                  } catch (e) {
+                    console.error("Error acak " + file, e);
+                    return match;
+                  }
+                });
+
+                // Sedot Spasi HTML & CSS
+                html = await minify(html, {
+                  collapseWhitespace: true,
+                  removeComments: true,
+                  minifyCSS: true
+                });
+
+                fs.writeFileSync(file, html);
+                console.log(`Selesai memproses: ${file}`);
+              }
+            }
+          }
+          processFiles();
+          EOF
+
+      - name: 5. Mulai Menggiling Kode
+        run: node run_obfuscator.js
+
+      - name: 6. Membersihkan Mesin
+        run: rm run_obfuscator.js
+
+      - name: 7. Mengirim Hasil ke branch hasil-ryan
+        run: |
+          git config --global user.name "Robot Ryan"
+          git config --global user.email "robot@matchlivepro.com"
+          git checkout -B hasil-ryan
+          git add .
+          git commit -m "Auto-obfuscate selesai" || echo "Tidak ada perubahan"
+          git push -f origin hasil-ryan
