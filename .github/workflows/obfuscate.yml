@@ -22,14 +22,14 @@ jobs:
         with:
           node-version: '20'
 
-      - name: 3. Menginstall Alat Terser
-        run: npm install terser
+      - name: 3. Menginstall Alat Minifikasi Total
+        run: npm install html-minifier-terser
 
       - name: 4. Membuat Skrip Pengeksekusi
         run: |
           cat << 'EOF' > run_obfuscator.js
           const fs = require('fs');
-          const { minify } = require('terser');
+          const { minify } = require('html-minifier-terser');
 
           const files = ['control.html', 'daftar.html', 'index.html', 'overlay.html', 'tv.html', 'wasit.html'];
 
@@ -37,43 +37,31 @@ jobs:
             for (let file of files) {
               if (fs.existsSync(file)) {
                 let html = fs.readFileSync(file, 'utf8');
-                let scriptRegex = /(<script(?![^>]*src=)[^>]*>)([\s\S]*?)(<\/script>)/gi;
-                let replacements = [];
-                let match;
                 
-                while ((match = scriptRegex.exec(html)) !== null) {
-                  replacements.push({
-                    full: match[0],
-                    open: match[1],
-                    code: match[2],
-                    close: match[3]
-                  });
-                }
-
-                for (let r of replacements) {
-                  try {
-                    let result = await minify(r.code, {
+                try {
+                  let resultHtml = await minify(html, {
+                    collapseWhitespace: true,
+                    removeComments: true,
+                    minifyCSS: true,
+                    minifyJS: {
                       compress: { drop_console: true },
                       mangle: { keep_fnames: true },
                       format: { comments: false }
-                    });
-                    if (result.code) {
-                      html = html.replace(r.full, r.open + '\n' + result.code + '\n' + r.close);
                     }
-                  } catch (e) {
-                    console.error("Gagal compress JS di " + file, e);
-                  }
+                  });
+                  
+                  fs.writeFileSync(file, resultHtml);
+                  console.log(`Berhasil memadatkan HTML, CSS, & JS pada: ${file}`);
+                } catch (e) {
+                  console.error("Gagal compress file " + file, e);
                 }
-
-                fs.writeFileSync(file, html);
-                console.log(`Berhasil memproses: ${file}`);
               }
             }
           }
           processFiles();
           EOF
 
-      - name: 5. Mulai Menggiling Kode JS
+      - name: 5. Mulai Menggiling Kode Total
         run: node run_obfuscator.js
 
       - name: 6. Membersihkan Mesin dan Kotak Perkakas
@@ -87,5 +75,5 @@ jobs:
           git config --global user.email "robot@matchlivepro.com"
           git checkout -B hasil-ryan
           git add .
-          git commit -m "Auto-minify JS selesai dan bersih" || echo "Tidak ada perubahan"
+          git commit -m "Auto-minify HTML, CSS, & JS selesai" || echo "Tidak ada perubahan"
           git push -f origin hasil-ryan
