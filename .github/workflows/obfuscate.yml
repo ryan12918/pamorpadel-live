@@ -5,6 +5,9 @@ on:
     branches:
       - eksperimen-ryan
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -35,23 +38,24 @@ jobs:
               if (fs.existsSync(file)) {
                 let html = fs.readFileSync(file, 'utf8');
                 
-                // Acak JavaScript dengan level aman
+                // Acak JavaScript dengan level AMAN (Anti-Error / String Array dimatikan)
                 html = html.replace(/<script(?![^>]*src=)([^>]*)>([\s\S]*?)<\/script>/gi, (match, attrs, code) => {
                   try {
                     let obfuscated = JavaScriptObfuscator.obfuscate(code, {
                       compact: true,
                       controlFlowFlattening: false,
-                      stringArray: true,
-                      stringArrayEncoding: ['base64']
+                      renameGlobals: false,
+                      stringArray: false, 
+                      unicodeEscapeSequence: false
                     }).getObfuscatedCode();
-                    return `<script${attrs}>\n${obfuscated}\n</script>`;
+                    
+                    return `<script${attrs}>\n` + obfuscated + `\n</script>`;
                   } catch (e) {
                     console.error("Error acak " + file, e);
                     return match;
                   }
                 });
 
-                // Simpan tanpa menyedot spasi HTML
                 fs.writeFileSync(file, html);
                 console.log(`Selesai memproses JS pada: ${file}`);
               }
@@ -72,5 +76,5 @@ jobs:
           git config --global user.email "robot@matchlivepro.com"
           git checkout -B hasil-ryan
           git add .
-          git commit -m "Auto-obfuscate JS selesai" || echo "Tidak ada perubahan"
+          git commit -m "Auto-obfuscate JS level aman selesai" || echo "Tidak ada perubahan"
           git push -f origin hasil-ryan
