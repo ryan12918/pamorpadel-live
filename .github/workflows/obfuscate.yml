@@ -17,17 +17,16 @@ jobs:
       - name: 2. Menyiapkan Mesin Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: 3. Menginstall Alat Pengacak
-        run: npm install javascript-obfuscator html-minifier-terser
+        run: npm install javascript-obfuscator
 
       - name: 4. Membuat Skrip Pengeksekusi
         run: |
           cat << 'EOF' > run_obfuscator.js
           const fs = require('fs');
           const JavaScriptObfuscator = require('javascript-obfuscator');
-          const { minify } = require('html-minifier-terser');
 
           const files = ['control.html', 'daftar.html', 'index.html', 'overlay.html', 'tv.html', 'wasit.html'];
 
@@ -36,7 +35,7 @@ jobs:
               if (fs.existsSync(file)) {
                 let html = fs.readFileSync(file, 'utf8');
                 
-                // Acak JavaScript
+                // Acak JavaScript dengan level aman
                 html = html.replace(/<script(?![^>]*src=)([^>]*)>([\s\S]*?)<\/script>/gi, (match, attrs, code) => {
                   try {
                     let obfuscated = JavaScriptObfuscator.obfuscate(code, {
@@ -52,22 +51,16 @@ jobs:
                   }
                 });
 
-                // Sedot Spasi HTML & CSS
-                html = await minify(html, {
-                  collapseWhitespace: true,
-                  removeComments: true,
-                  minifyCSS: true
-                });
-
+                // Simpan tanpa menyedot spasi HTML
                 fs.writeFileSync(file, html);
-                console.log(`Selesai memproses: ${file}`);
+                console.log(`Selesai memproses JS pada: ${file}`);
               }
             }
           }
           processFiles();
           EOF
 
-      - name: 5. Mulai Menggiling Kode
+      - name: 5. Mulai Menggiling Kode JS
         run: node run_obfuscator.js
 
       - name: 6. Membersihkan Mesin
@@ -79,5 +72,5 @@ jobs:
           git config --global user.email "robot@matchlivepro.com"
           git checkout -B hasil-ryan
           git add .
-          git commit -m "Auto-obfuscate selesai" || echo "Tidak ada perubahan"
+          git commit -m "Auto-obfuscate JS selesai" || echo "Tidak ada perubahan"
           git push -f origin hasil-ryan
