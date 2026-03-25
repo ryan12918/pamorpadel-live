@@ -601,26 +601,68 @@ window.GLOBAL_PARTNER_DATA = d; // Simpan ke memori lokal
             });
 
             Object.keys(groups).sort().forEach(g => {
-                let headerLabel = isPct ? '%' : 'GD';
+                                let headerLabel = isPct ? '%' : 'GD';
 
-                let rows = Object.keys(groups[g]).filter(k=>k!=='cat'&&k!=='round').map(t=>({name:t, ...groups[g][t]}))
-                    .map(t => {
-                        if(isPct) {
-                            let totalGames = t.gw + t.gl;
-                            t.pct = totalGames > 0 ? ((t.gw / totalGames) * 100).toFixed(2) : 0;
-                            t.sortVal = (t.w * 10000) + parseFloat(t.pct); 
-                            t.displayVal = t.pct + '%';
-                        } else {
-                            t.sortVal = (t.w * 10000) + t.gd;
-                            t.displayVal = t.gd;
-                        }
-                        return t;
-                    })
-                    .sort((a,b)=> b.sortVal - a.sortVal)
-                    .map((t,i)=>`<tr ${i===0 ? 'style="background:rgba(128,128,128,0.15); font-weight:bold;"' : 'style="border-top:1px solid rgba(128,128,128,0.1);"'}><td style="padding:8px 0;">${i+1}</td><td style="text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.name}</td><td>${t.mp}</td><td>${t.w}</td><td>${t.l}</td><td>${t.gw}</td><td>${t.gl}</td><td>${t.displayVal}</td></tr>`).join('');
-                
-                el.innerHTML += `<div class="match-card theme-${cardPreset}" style="padding:0; overflow:hidden; margin-bottom:15px;"><div style="padding:12px 15px; font-weight:900; border-bottom:1px solid rgba(128,128,128,0.2); display:flex; justify-content:space-between; text-transform:uppercase; font-size:12px;"><span>${groups[g].cat}</span> <span style="opacity:0.7;">${groups[g].round}</span></div><table style="width:100%; border-collapse:collapse; font-size:11px; text-align:center; table-layout:fixed;"><thead><tr style="background:rgba(128,128,128,0.1);"><th style="width:25px; padding:8px 0;">#</th><th style="text-align:left; padding:8px; width:auto;">TIM</th><th style="width:25px;">MP</th><th style="width:25px;">W</th><th style="width:25px;">L</th><th style="width:25px;">GW</th><th style="width:25px;">GL</th><th style="width:45px;">${headerLabel}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
-            });
+                                let rows = Object.keys(groups[g]).filter(k=>k!=='cat'&&k!=='round').map(t=>({name:t, ...groups[g][t]}))
+                                    .map(t => {
+                                        if(isPct) {
+                                            let totalGames = t.gw + t.gl;
+                                            t.pct = totalGames > 0 ? ((t.gw / totalGames) * 100).toFixed(2) : 0;
+                                            t.sortVal = (t.w * 10000) + parseFloat(t.pct); 
+                                            t.displayVal = t.pct + '%';
+                                        } else {
+                                            t.sortVal = (t.w * 10000) + t.gd;
+                                            t.displayVal = t.gd;
+                                        }
+                                        return t;
+                                    })
+                                    .sort((a,b)=> b.sortVal - a.sortVal)
+                                    .map((t,i) => {
+                                        let teamHtml = '';
+                                        if (t.name.includes('/')) {
+                                            let parts = t.name.split('/');
+                                            teamHtml = `<div style="display:flex; width:100%; gap:3px; align-items:center; font-size:10px;">
+                                                            <div style="flex: 0 1 auto; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${parts[0].trim()}</div>
+                                                            <div style="opacity:0.5; font-size:9px; flex-shrink:0;">/</div>
+                                                            <div style="flex: 0 1 auto; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${parts[1].trim()}</div>
+                                                        </div>`;
+                                        } else {
+                                            teamHtml = `<div style="font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.name}</div>`;
+                                        }
+                                        
+                                        return `<tr ${i===0 ? 'style="background:rgba(128,128,128,0.15); font-weight:bold;"' : 'style="border-top:1px solid rgba(128,128,128,0.1);"'}>
+                                            <td style="padding:8px 0;">${i+1}</td>
+                                            <td style="text-align:left; padding:8px 4px;">${teamHtml}</td>
+                                            <td>${t.mp}</td>
+                                            <td>${t.w}</td>
+                                            <td>${t.l}</td>
+                                            <td>${t.gw}</td>
+                                            <td>${t.gl}</td>
+                                            <td>${t.displayVal}</td>
+                                        </tr>`;
+                                    }).join('');
+                                
+                                el.innerHTML += `<div class="match-card theme-${cardPreset}" style="padding:0; overflow:hidden; margin-bottom:15px;">
+                                    <div style="padding:12px 15px; font-weight:900; border-bottom:1px solid rgba(128,128,128,0.2); display:flex; justify-content:space-between; text-transform:uppercase; font-size:12px;">
+                                        <span>${groups[g].cat}</span> <span style="opacity:0.7;">${groups[g].round}</span>
+                                    </div>
+                                    <table style="width:100%; border-collapse:collapse; font-size:10px; text-align:center; table-layout:fixed;">
+                                        <thead>
+                                            <tr style="background:rgba(128,128,128,0.1);">
+                                                <th style="width:20px; padding:8px 0;">#</th>
+                                                <th style="text-align:left; padding:8px 4px; width:auto;">TIM</th>
+                                                <th style="width:20px; padding:8px 0;">MP</th>
+                                                <th style="width:20px; padding:8px 0;">W</th>
+                                                <th style="width:20px; padding:8px 0;">L</th>
+                                                <th style="width:20px; padding:8px 0;">GW</th>
+                                                <th style="width:20px; padding:8px 0;">GL</th>
+                                                <th style="width:35px; padding:8px 0;">${headerLabel}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>${rows}</tbody>
+                                    </table>
+                                </div>`;
+                            });
         }
 
         // 💡 VARIABEL MEMORI BAGAN
