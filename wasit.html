@@ -128,9 +128,33 @@
             </button>
         </div>
         
-        <div style="font-size:12px; font-weight:bold; margin-bottom:5px;">SET <span id="lbl-set">1</span></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; max-width:500px; margin-bottom:5px;">
+            <div style="font-size:12px; font-weight:bold;">SET <span id="lbl-set">1</span></div>
+            <button id="btn-koreksi-dna" class="hidden" onclick="koreksiDNA()" style="background:#333; color:#ffd700; border:1px solid #555; padding:4px 10px; font-size:10px; border-radius:4px; font-weight:bold; cursor:pointer;">🔄 KOREKSI SERVE</button>
+        </div>
         
         <div id="smart-alert" class="smart-alert hidden"></div>
+
+        <div id="setup-dna-overlay" class="modal" style="z-index:99999;">
+            <div class="modal-box" style="text-align:center;">
+                <h3 style="color:#76FF03; margin-top:0;">SETUP ROTASI SERVIS</h3>
+                <p style="font-size:11px; color:#aaa; margin-bottom:15px;">Tentukan urutan pemain untuk memulai Rantai DNA Auto-Rotasi.</p>
+                
+                <label style="display:block; text-align:left; font-size:11px; color:#ffeb3b; font-weight:bold;">Server Pertama TIM A:</label>
+                <select id="dna-a1" style="width:100%; padding:10px; margin-bottom:10px; background:#333; color:white; border-radius:6px; border:1px solid #555;"></select>
+                
+                <label style="display:block; text-align:left; font-size:11px; color:#ffeb3b; font-weight:bold;">Server Pertama TIM B:</label>
+                <select id="dna-b1" style="width:100%; padding:10px; margin-bottom:10px; background:#333; color:white; border-radius:6px; border:1px solid #555;"></select>
+                
+                <label style="display:block; text-align:left; font-size:11px; color:#76FF03; font-weight:bold;">Tim yang Serve di Game 1:</label>
+                <select id="dna-first-team" style="width:100%; padding:10px; margin-bottom:20px; background:#333; color:white; border-radius:6px; border:1px solid #555;">
+                    <option value="A">TIM A</option>
+                    <option value="B">TIM B</option>
+                </select>
+                
+                <button onclick="lockDNAAndStart()" style="width:100%; padding:12px; background:#76FF03; color:black; font-weight:900; border:none; border-radius:6px; cursor:pointer;">KUNCI DNA & MULAI</button>
+            </div>
+        </div>
 
         <div class="arena">
             <div class="side team-a">
@@ -462,18 +486,96 @@
             if (arrPlayersA.includes(globalServer)) lastServerA = globalServer; 
             if (arrPlayersB.includes(globalServer)) lastServerB = globalServer;
             
-            renderPlayerBoxes(); 
             renderScores(localMatchData); 
             renderButtons(); 
 
-            // Fire and forget
-            dbUpdate({});
+            // 🔥 CEK DNA ROTASI UNTUK TENIS/PADEL
+            if (serveSystem === 'classic' && !hideServe) {
+                document.getElementById('btn-koreksi-dna').classList.remove('hidden');
+                if (!localMatchData.server_dna || localMatchData.server_dna.length === 0) {
+                    showSetupDNA();
+                } else {
+                    calculateAutoServer();
+                    renderPlayerBoxes();
+                    dbUpdate({});
+                }
+            } else {
+                document.getElementById('btn-koreksi-dna').classList.add('hidden');
+                renderPlayerBoxes();
+                dbUpdate({});
+            }
         }
 
         function renderPlayerBoxes() {
             const boxA = document.getElementById('box-players-a'); const boxB = document.getElementById('box-players-b');
             let htmlA = ''; arrPlayersA.forEach(p => { let isAct = (globalServer === p || globalServer === 'a') && !hideServe; let actCls = isAct ? 'active' : ''; let clickEv = hideServe ? '' : `onclick="setServer('${p}')"`; let ball = hideServe ? '' : `<span class="ball-icon">🎾</span>`; htmlA += `<div class="player-row ${actCls}" ${clickEv}><span>${p}</span>${ball}</div>`; }); boxA.innerHTML = htmlA;
             let htmlB = ''; arrPlayersB.forEach(p => { let isAct = (globalServer === p || globalServer === 'b') && !hideServe; let actCls = isAct ? 'active' : ''; let clickEv = hideServe ? '' : `onclick="setServer('${p}')"`; let ball = hideServe ? '' : `<span class="ball-icon">🎾</span>`; htmlB += `<div class="player-row ${actCls}" ${clickEv}><span>${p}</span>${ball}</div>`; }); boxB.innerHTML = htmlB;
+        }
+
+        // 🔥 MESIN DNA AUTO-ROTASI
+        function showSetupDNA() {
+            document.getElementById('setup-dna-overlay').style.display = 'flex';
+            let htmlA = ''; arrPlayersA.forEach(p => htmlA += `<option value="${p}">${p}</option>`);
+            let htmlB = ''; arrPlayersB.forEach(p => htmlB += `<option value="${p}">${p}</option>`);
+            document.getElementById('dna-a1').innerHTML = htmlA;
+            document.getElementById('dna-b1').innerHTML = htmlB;
+        }
+
+        function lockDNAAndStart() {
+            const firstTeam = document.getElementById('dna-first-team').value;
+            const a1 = document.getElementById('dna-a1').value;
+            const b1 = document.getElementById('dna-b1').value;
+            
+            const a2 = arrPlayersA.find(p => p !== a1) || a1;
+            const b2 = arrPlayersB.find(p => p !== b1) || b1;
+
+            let dna = [];
+            if(firstTeam === 'A') dna = [a1, b1, a2, b2];
+            else dna = [b1, a1, b2, a2];
+            
+            dna = [...new Set(dna)]; // Amankan jika mode Singles (1 vs 1)
+
+            localMatchData.server_dna = dna;
+            document.getElementById('setup-dna-overlay').style.display = 'none';
+            
+            calculateAutoServer();
+            renderPlayerBoxes();
+            dbUpdate({ server_dna: dna });
+        }
+
+        function calculateAutoServer() {
+            if (!localMatchData.server_dna || localMatchData.server_dna.length === 0) return;
+
+            const totalGames = (parseInt(document.getElementById('game-a').value) || 0) + (parseInt(document.getElementById('game-b').value) || 0);
+            
+            if (!isTieBreak) {
+                // MODE NORMAL
+                const index = totalGames % localMatchData.server_dna.length;
+                globalServer = localMatchData.server_dna[index];
+            } else {
+                // MODE TIE BREAK (Pola: 1-2-2-2)
+                const pA = parseInt(document.getElementById('point-a').value) || 0;
+                const pB = parseInt(document.getElementById('point-b').value) || 0;
+                const totalPoints = pA + pB;
+                
+                const tieIndex = Math.floor((totalPoints + 1) / 2);
+                const baseIndex = totalGames % localMatchData.server_dna.length;
+                const finalIndex = (baseIndex + tieIndex) % localMatchData.server_dna.length;
+                
+                globalServer = localMatchData.server_dna[finalIndex];
+            }
+            if(!hideServe) renderPlayerBoxes();
+        }
+
+        function koreksiDNA() {
+            if(!localMatchData.server_dna || localMatchData.server_dna.length === 0) return;
+            if(!confirm("Koreksi urutan? Pemain berikutnya dalam rantai rotasi akan dipaksa serve sekarang.")) return;
+            
+            const first = localMatchData.server_dna.shift();
+            localMatchData.server_dna.push(first);
+            
+            calculateAutoServer();
+            dbUpdate({ server_dna: localMatchData.server_dna });
         }
 
         // 💡 SEMUA FUNGSI TOMBOL SEKARANG FIRE AND FORGET (TANPA AWAIT) 💡
@@ -503,25 +605,40 @@
         }
 
         function setPt(team, val) { document.getElementById('point-'+team).value = val; let otherTeam = team==='a'?'b':'a'; checkAlerts(val, document.getElementById('point-'+otherTeam).value); dbUpdate({}); }
-        function addPt(team, delta) { const el = document.getElementById('point-'+team); let now = parseInt(el.value); if(isNaN(now)) now = 0; let next = now + delta; if(next < 0) next = 0; el.value = next; dbUpdate({}); }
-        function resetPoint() { if(!confirm("Kembalikan Poin ke 0-0?")) return; document.getElementById('point-a').value = '0'; document.getElementById('point-b').value = '0'; checkAlerts('0', '0'); dbUpdate({}); }
+        function addPt(team, delta) { const el = document.getElementById('point-'+team); let now = parseInt(el.value); if(isNaN(now)) now = 0; let next = now + delta; if(next < 0) next = 0; el.value = next; if(serveSystem === 'classic' && isTieBreak) calculateAutoServer(); dbUpdate({}); }
+        function resetPoint() { if(!confirm("Kembalikan Poin ke 0-0?")) return; document.getElementById('point-a').value = '0'; document.getElementById('point-b').value = '0'; checkAlerts('0', '0'); if(serveSystem === 'classic' && isTieBreak) calculateAutoServer(); dbUpdate({}); }
 
         function winGame(team) {
             if(!confirm("Tim ini memenangkan Game?")) return;
             const elGame = document.getElementById('game-'+team); let val = parseInt(elGame.value) + 1; elGame.value = val;
-            let nextServer = globalServer; 
-            if(serveSystem === 'classic' && !hideServe) {
-                let currentTeam = arrPlayersA.includes(globalServer) ? 'A' : (arrPlayersB.includes(globalServer) ? 'B' : '');
-                if (currentTeam === 'A') { if (arrPlayersB.length === 2) { nextServer = (lastServerB === arrPlayersB[0]) ? arrPlayersB[1] : arrPlayersB[0]; } else { nextServer = arrPlayersB[0] || 'b'; } } 
-                else if (currentTeam === 'B') { if (arrPlayersA.length === 2) { nextServer = (lastServerA === arrPlayersA[0]) ? arrPlayersA[1] : arrPlayersA[0]; } else { nextServer = arrPlayersA[0] || 'a'; } }
-            }
-            globalServer = nextServer; if (arrPlayersA.includes(globalServer)) lastServerA = globalServer; if (arrPlayersB.includes(globalServer)) lastServerB = globalServer;
-            if(!hideServe) renderPlayerBoxes(); document.getElementById('point-a').value = '0'; document.getElementById('point-b').value = '0'; checkAlerts('0', '0');
             
-            dbUpdate({ server: nextServer }); 
+            document.getElementById('point-a').value = '0'; 
+            document.getElementById('point-b').value = '0'; 
+            checkAlerts('0', '0');
+            
+            // Trigger Mesin Rotasi
+            if(serveSystem === 'classic' && !hideServe) {
+                calculateAutoServer();
+            }
+            
+            if(!hideServe) renderPlayerBoxes(); 
+            dbUpdate({ server: globalServer }); 
         }
 
-        function adjGame(team, delta) { const el = document.getElementById('game-'+team); let val = parseInt(el.value) + delta; if(val < 0) val = 0; el.value = val; dbUpdate({}); }
+        function adjGame(team, delta) { 
+            const el = document.getElementById('game-'+team); 
+            let val = parseInt(el.value) + delta; 
+            if(val < 0) val = 0; 
+            el.value = val; 
+            
+            // 🔥 KOREKSI CERDAS: Paksa rotasi menyesuaikan jika game diubah manual (+ atau -)
+            if (serveSystem === 'classic' && !hideServe) {
+                calculateAutoServer();
+            }
+            
+            // Simpan perubahan game dan laporkan posisi server terbaru ke TV/Pusat
+            dbUpdate({ server: globalServer }); 
+        }
         
         function changeSet(delta) { 
             const next = currentSet + delta; 
