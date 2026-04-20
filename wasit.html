@@ -48,7 +48,39 @@
         .side.team-b { background: #3e1f1f; border: 2px solid #5c2c2c; }
 
         .serve-box { background: rgba(0,0,0,0.4); border-radius: 8px; padding: 8px; margin-bottom: 15px; min-height: 85px;}
-        .player-row { padding: 10px 8px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: 1px solid transparent; margin-bottom: 4px; background: rgba(255,255,255,0.05); font-size: 13px; font-weight: 600; transition: 0.2s;}
+        
+        /* 🔥 KUNCI TINGGI ABSOLUT (ANTI ASIMETRIS) */
+        .player-row { 
+            padding: 8px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border: 1px solid transparent; 
+            margin-bottom: 4px; 
+            background: rgba(255,255,255,0.05); 
+            font-size: 12px; /* Dikecilkan sedikit agar muat 2 baris */
+            font-weight: 600; 
+            transition: 0.2s;
+            height: 48px; /* TINGGI DIKUNCI MATI */
+            box-sizing: border-box;
+        }
+
+        /* 🔥 PEMOTONGAN TEKS MAKSIMAL 2 BARIS (ELLIPSIS) */
+        .player-row span:first-child {
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* Batas maksimal baris */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+            width: 100%;
+            text-align: left;
+            padding-right: 5px;
+            word-break: break-word;
+        }
+
         .player-row.active { border-color: #ffd700; background: rgba(255, 215, 0, 0.15); font-weight: 800; color: #ffd700; }
         .ball-icon { display: none; font-size: 14px; }
         .player-row.active .ball-icon { display: block; }
