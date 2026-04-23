@@ -920,7 +920,7 @@
             </div>
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-                <div class="form-group"><label>Asal Klub</label><input type="text" id="edit-reg-club" class="form-control"></div>
+                <div class="form-group"><label>Asal Kota</label><input type="text" id="edit-reg-club" class="form-control"></div>
                 <div class="form-group"><label>Akun Instagram</label><input type="text" id="edit-reg-ig" class="form-control"></div>
             </div>
 
@@ -1034,7 +1034,7 @@
             </div>
             
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-                <div class="form-group"><label>Asal Klub</label><input type="text" id="man-club" class="form-control" placeholder="Kosongi jika tidak ada"></div>
+                <div class="form-group"><label>Asal Kota</label><input type="text" id="man-club" class="form-control" placeholder="Kosongi jika tidak ada"></div>
                 <div class="form-group"><label>Status Pembayaran</label>
                     <select id="man-status" class="form-control" style="font-weight:bold; color:#2e7d32;">
                         <option value="LUNAS">✅ LUNAS</option>
@@ -4023,7 +4023,7 @@ function openEstimasiModal() {
             if (!GLOBAL_REGISTRATIONS || GLOBAL_REGISTRATIONS.length === 0) { alert("⚠️ Tidak ada data pendaftar untuk diekspor!"); return; }
             
             let dataArr = [
-                ["NO", "WAKTU DAFTAR", "STATUS", "KATEGORI", "NAMA TIM", "ASAL KLUB", "NAMA KAPTEN", "UMUR KAPTEN", "WA KAPTEN", "JERSEY KAPTEN", "RECLUB KAPTEN", "NAMA PARTNER", "UMUR PARTNER", "JERSEY PARTNER", "RECLUB PARTNER", "INSTAGRAM"]
+                ["NO", "WAKTU DAFTAR", "STATUS", "KATEGORI", "NAMA TIM", "ASAL KOTA", "NAMA KAPTEN", "UMUR KAPTEN", "WA KAPTEN", "JERSEY KAPTEN", "RECLUB KAPTEN", "NAMA PARTNER", "UMUR PARTNER", "JERSEY PARTNER", "RECLUB PARTNER", "INSTAGRAM"]
             ];
 
             let currentYear = new Date().getFullYear();
