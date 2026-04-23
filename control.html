@@ -4134,16 +4134,44 @@ tahun_lahir_a: document.getElementById('edit-reg-thn1').value,
 
         async function deleteRegMode() {
             let id = document.getElementById('edit-reg-id').value;
-            if(!confirm("YAKIN HAPUS DATA INI PERMANEN?")) return;
+            // Ambil data lengkap peserta dari memori lokal sebelum dihapus
+            let p = GLOBAL_REGISTRATIONS.find(r => r.id === id);
             
-            // 1. Hapus dari memori lokal & tutup modal seketika (Zero Delay)
-            GLOBAL_REGISTRATIONS = GLOBAL_REGISTRATIONS.filter(r => r.id !== id);
-            document.getElementById('modal-edit-reg').style.display = 'none';
-            renderTableRegistrations(); // Render ulang tabel & indikator kuota
+            if(!confirm("⚠️ PERINGATAN KRITIS!\n\nAnda akan menghapus data ini beserta seluruh file foto KTP di server secara permanen.\n\nLanjutkan?")) return;
             
-            // 2. Hapus dari database secara background
-                await db.from('registrations').delete().eq('id', id);
+            const btnRed = document.querySelector('#modal-edit-reg .btn-red');
+            let oriTxt = btnRed.innerText;
+            btnRed.innerText = "⏳ MEMBERSIHKAN SERVER...";
+            btnRed.disabled = true;
+
+            try {
+                // 1. PROSES PEMBERSIHAN STORAGE (FILE FISIK)
+                let paths = [];
+                if (p && p.ktp_url_1) paths.push(p.ktp_url_1);
+                if (p && p.ktp_url_2) paths.push(p.ktp_url_2);
+
+                if (paths.length > 0) {
+                    const { error: stError } = await db.storage.from('ktp_participants').remove(paths);
+                    if (stError) console.warn("Peringatan Storage:", stError.message);
+                }
+
+                // 2. PROSES HAPUS DATABASE (TEKS)
+                const { error: dbError } = await db.from('registrations').delete().eq('id', id);
+                if (dbError) throw dbError;
+
+                // 3. UPDATE TAMPILAN (UI)
+                GLOBAL_REGISTRATIONS = GLOBAL_REGISTRATIONS.filter(r => r.id !== id);
+                document.getElementById('modal-edit-reg').style.display = 'none';
+                renderTableRegistrations();
+                
+                alert("✅ DATA & FILE BERHASIL DIHAPUS BERSIH.");
+            } catch (err) {
+                alert("❌ GAGAL MENGHAPUS: " + err.message);
+            } finally {
+                btnRed.innerText = oriTxt;
+                btnRed.disabled = false;
             }
+        }
 
         function openManualAddModal() {
             const catSel = document.getElementById('man-cat');
