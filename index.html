@@ -510,7 +510,7 @@ window.GLOBAL_PARTNER_DATA = d; // Simpan ke memori lokal
                 let showCat = (cat !== '' && cat !== '-') ? cat : 'SPECIAL EVENT';
                 let showRound = (rnd !== '' && rnd !== '-') ? ' • ' + rnd : '';
                 return `
-                <div class="${cardClass} ${themeClass}" style="${status === 'FINISHED' ? 'opacity: 0.85;' : ''} display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding: 20px; text-transform:uppercase; margin-bottom: 12px; border-radius: var(--card-radius);">
+                <div class="${cardClass} ${themeClass} target-match-${m.id}" style="${status === 'FINISHED' ? 'opacity: 0.85;' : ''} display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding: 20px; text-transform:uppercase; margin-bottom: 12px; border-radius: var(--card-radius);">
                     <div style="font-size: 10px; font-weight: 800; opacity: 0.8; margin-bottom: 12px; border-bottom: 1px solid rgba(128,128,128,0.2); padding-bottom: 6px; letter-spacing: 1px;">
                         🌟 ${showCat}${showRound} 🌟
                     </div>
@@ -565,7 +565,7 @@ window.GLOBAL_PARTNER_DATA = d; // Simpan ke memori lokal
             let styleTA = ''; let styleTB = '';
             if (isDone) { if (totalA > totalB) { styleTB = 'opacity: 0.3;'; } else if (totalB > totalA) { styleTA = 'opacity: 0.3;'; } else { styleTA = 'opacity: 0.8;'; styleTB = 'opacity: 0.8;'; } }
             
-            return `<div class="match-card ${themeClassObj} ${isLive?'is-live':''}" style="${isDone ? 'opacity: 0.85;' : ''}">
+            return `<div class="match-card ${themeClassObj} ${isLive?'is-live':''} target-match-${m.id}" style="${isDone ? 'opacity: 0.85;' : ''}">
                 <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(0,0,0,0.05); padding-bottom:5px; margin-bottom:8px;">${metaHTML} <div style="display:flex; gap:10px; align-items:center;">${timeInfo}</div></div>
                 <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
                     <div class="team" style="text-align:left; ${styleTA}">${teamA_Formatted}</div>
@@ -924,8 +924,41 @@ window.GLOBAL_PARTNER_DATA = d; // Simpan ke memori lokal
 
         let fetchTimeout = null;
         function triggerFetch() { clearTimeout(fetchTimeout); fetchTimeout = setTimeout(() => { fetchMatches(); }, 500); }
+        
         function subscribe() {
-            db.channel('public:matches_pro').on('postgres_changes', {event:'*', schema:'public', table:'matches_pro', filter:`tournament_id=eq.${TOURNAMENT_ID}`}, ()=>triggerFetch()).subscribe();
+            db.channel('public:matches_pro').on('postgres_changes', {event:'*', schema:'public', table:'matches_pro', filter:`tournament_id=eq.${TOURNAMENT_ID}`}, (payload) => {
+                
+                if (payload.eventType === 'UPDATE') {
+                    let newM = payload.new;
+                    let existingIdx = matches.findIndex(m => String(m.id) === String(newM.id));
+                    
+                    if (existingIdx !== -1) {
+                        let existingM = matches[existingIdx];
+                        
+                        // 🔥 OPSI B (INJEKSI PRESISI): Jika HANYA ada perubahan skor saat status masih LIVE
+                        if (existingM.status === 'LIVE' && newM.status === 'LIVE') {
+                            matches[existingIdx] = newM; // 1. Update memori lokal
+                            
+                            // 2. Tembak jitu langsung ke kotak pertandingan tanpa merusak layar
+                            let cards = document.querySelectorAll('.target-match-' + newM.id);
+                            cards.forEach(card => {
+                                card.outerHTML = createCardHTML(newM); 
+                            });
+                            
+                            // 3. Jaga filter pencarian (jika peserta sedang mengetik nama di kolom Search)
+                            if (typeof executeGlobalSearch === 'function') executeGlobalSearch();
+                            
+                            return; // 🛑 BATALKAN PROSES RE-RENDER! LAYAR DIJAMIN TIDAK AKAN MELOMPAT!
+                        }
+                    }
+                }
+                
+                // Jika event adalah Match Baru, Hapus Match, atau Pindah Status (Pending -> Live -> Finished), 
+                // barulah kita susun dan gambar ulang layarnya secara penuh (Wajib)
+                triggerFetch(); 
+                
+            }).subscribe();
+            
             db.channel('public:partners').on('postgres_changes', {event:'UPDATE', schema:'public', table:'partners', filter:`tournament_id=eq.${TOURNAMENT_ID}`}, (p)=>applyTheme(p.new)).subscribe();
         }
         
