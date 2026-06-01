@@ -64,9 +64,25 @@
         .skel-card { width: 100%; height: 100px; border-radius: var(--card-radius); margin-bottom: 12px; }
         @keyframes shine { to { background-position-x: -200%; } }
 
-        .nav { position: fixed; bottom: 0; width: 100%; background: white; border-top-left-radius: 20px; border-top-right-radius: 20px; display: flex; padding: 12px 0; z-index: 100; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); }
-        .nav-btn { flex: 1; text-align: center; font-size: 10px; color: #ccc; font-weight: 600; cursor:pointer; }
-        .nav-btn.active { color: var(--primary-start); font-weight: 800; }
+        /* --- NAVIGASI BAWAH & TOMBOL --- */
+        .nav { position: fixed; bottom: 0; width: 100%; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-top-left-radius: 25px; border-top-right-radius: 25px; display: flex; padding: 10px 15px; z-index: 100; box-shadow: 0 -5px 25px rgba(0,0,0,0.08); gap: 8px; justify-content: space-around; box-sizing: border-box; }
+        .nav-btn { flex: 1; text-align: center; font-size: 10px; color: #999; font-weight: 700; cursor:pointer; padding: 10px 0; border-radius: 15px; transition: all 0.3s ease; box-shadow: inset 0 0 0 1px transparent; }
+        .nav-btn.active { color: #fff; background: linear-gradient(135deg, var(--primary-start), var(--primary-end)); font-weight: 900; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transform: translateY(-2px); }
+
+        /* --- KOTAK PENCARIAN (SEARCH BAR) --- */
+        #global-search-container { position: sticky; top: 10px; z-index: 60; margin: 0 15px 15px 15px; display: flex; align-items: center; transition: all 0.3s ease; }
+        .search-box { flex: 1; display: flex; align-items: center; background: #fff; border-radius: 20px; padding: 8px 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid rgba(128,128,128,0.1); transition: all 0.3s; }
+        .search-box:focus-within { box-shadow: 0 4px 20px rgba(0,0,0,0.15); border-color: var(--primary-start); transform: translateY(-1px); }
+        .search-icon { opacity: 0.5; font-size: 14px; margin-right: 8px; }
+        .search-input { border: none; background: transparent; flex: 1; font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700; color: #333; outline: none; }
+        .search-input::placeholder { color: #aaa; font-weight: 600; }
+        .search-reset { background: rgba(0,0,0,0.05); border: none; width: 20px; height: 20px; border-radius: 50%; font-size: 10px; color: #555; cursor: pointer; display: none; align-items: center; justify-content: center; font-weight: bold; }
+        .search-reset:active { background: rgba(0,0,0,0.1); }
+
+        /* --- EFEK HIGHLIGHT KLASEMEN & BAGAN --- */
+        @keyframes highlight-pulse { 0% { background-color: rgba(255, 235, 59, 0.2); } 100% { background-color: rgba(255, 235, 59, 0.8); } }
+        tr.highlight-row td { animation: highlight-pulse 1s infinite alternate; font-weight: 900 !important; color: #000 !important; }
+        .highlight-bracket { animation: highlight-pulse 1s infinite alternate !important; border-color: #fbc02d !important; border-width: 3px !important; transform: scale(1.05) !important; z-index: 100 !important; box-shadow: 0 0 15px rgba(255, 235, 59, 0.8) !important;}
 
         #rules-text { font-size: 13px; line-height: 1.4; color: inherit; font-family: 'Segoe UI', sans-serif; }
         #rules-text p, #rules-text div { margin: 0 0 6px 0; }
@@ -238,6 +254,15 @@
     </div>
 
     <div class="cat-scroll-wrapper" id="cat-tabs"></div>
+
+    <!-- INJEKSI KOTAK PENCARIAN GLOBAL -->
+    <div id="global-search-container" class="container">
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="global-search-input" class="search-input" placeholder="Cari Tim / Pemain..." onkeyup="executeGlobalSearch()">
+            <button id="search-reset-btn" class="search-reset" onclick="resetGlobalSearch()">✕</button>
+        </div>
+    </div>
 
     <div id="view-jadwal" class="container">
         <div id="skeleton-box">
@@ -908,10 +933,74 @@ window.GLOBAL_PARTNER_DATA = d; // Simpan ke memori lokal
             sessionStorage.setItem('activeTab', id);
             document.querySelectorAll('.container').forEach(c=>c.classList.add('hidden')); 
             document.getElementById('view-'+id).classList.remove('hidden'); 
+            
+            // Logika Auto-Hide Search Bar
+            const searchCont = document.getElementById('global-search-container');
+            if (searchCont) {
+                if (id === 'peraturan') {
+                    searchCont.classList.add('hidden');
+                } else {
+                    searchCont.classList.remove('hidden');
+                    if (typeof executeGlobalSearch === 'function') executeGlobalSearch(); 
+                }
+            }
+
             document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); 
             let btn = document.querySelector(`.nav-btn[onclick="go('${id}')"]`);
             if(btn) btn.classList.add('active'); 
             window.scrollTo(0,0); 
+        }
+
+        // --- MESIN PENCARIAN GLOBAL (GLOBAL SEARCH) ---
+        function executeGlobalSearch() {
+            let inputEl = document.getElementById('global-search-input');
+            if(!inputEl) return;
+            let input = inputEl.value.trim().toLowerCase();
+            let resetBtn = document.getElementById('search-reset-btn');
+            
+            resetBtn.style.display = input.length > 0 ? 'flex' : 'none';
+
+            let activeTab = 'jadwal';
+            if(!document.getElementById('view-klasemen').classList.contains('hidden')) activeTab = 'klasemen';
+            if(!document.getElementById('view-bagan').classList.contains('hidden')) activeTab = 'bagan';
+
+            if (activeTab === 'jadwal') {
+                let cards = document.querySelectorAll('#jadwal-content .match-card');
+                cards.forEach(card => {
+                    let text = card.innerText.toLowerCase();
+                    card.style.display = text.includes(input) ? '' : 'none';
+                });
+            } 
+            else if (activeTab === 'klasemen') {
+                let rows = document.querySelectorAll('#klasemen-content tbody tr');
+                rows.forEach(row => {
+                    row.classList.remove('highlight-row');
+                    let teamCol = row.querySelector('td:nth-child(2)');
+                    if (teamCol && input !== '') {
+                        let teamName = teamCol.innerText.toLowerCase();
+                        if (teamName.includes(input)) {
+                            row.classList.add('highlight-row');
+                            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
+                });
+            }
+            else if (activeTab === 'bagan') {
+                let cards = document.querySelectorAll('#bagan-content .match-card:not(.ghost)');
+                cards.forEach(card => {
+                    card.classList.remove('highlight-bracket');
+                    let text = card.innerText.toLowerCase();
+                    if (input !== '' && text.includes(input)) {
+                        card.classList.add('highlight-bracket');
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                    }
+                });
+            }
+        }
+
+        function resetGlobalSearch() {
+            document.getElementById('global-search-input').value = '';
+            executeGlobalSearch();
         }
         
         init();
