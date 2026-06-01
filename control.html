@@ -1376,7 +1376,19 @@
                 let klData = [];
                 
                 if (window.GLOBAL_GROUP_DATA) {
+                    // 🔥 SISTEM FILTER HANTU: Ambil Laci Daftar Kategori Resmi
+                    let validCats = [];
+                    try {
+                        if(window.RAW_DB_DATA && window.RAW_DB_DATA.categories) {
+                            let parsedCats = JSON.parse(window.RAW_DB_DATA.categories);
+                            if(Array.isArray(parsedCats)) validCats = parsedCats.map(c => c.name);
+                        }
+                    } catch(e) {}
+
                     for (let cat in window.GLOBAL_GROUP_DATA) {
+                        // 🔥 EKSEKUSI BLOKIR: Jika kategori dari masa lalu ini tidak ada di daftar resmi, LEWATI!
+                        if (validCats.length > 0 && !validCats.includes(cat)) continue;
+
                         let groups = window.GLOBAL_GROUP_DATA[cat];
                         groups.forEach(g => {
                             let teams = g.teams.filter(t => t.trim() !== '' && t.toUpperCase() !== 'BYE' && t.toUpperCase() !== 'KOSONG');
