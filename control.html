@@ -1374,81 +1374,118 @@
                 let formatHeader = isPct ? "PRESENTASE (%)" : "TOTAL SCORE (GD)";
                 
                 let klData = [];
-                
+                let dynamicGroups = {};
+
+                // 🔥 SISTEM FILTER HANTU: Ambil Laci Daftar Kategori Resmi
+                let validCats = [];
+                try {
+                    if(window.RAW_DB_DATA && window.RAW_DB_DATA.categories) {
+                        let parsedCats = JSON.parse(window.RAW_DB_DATA.categories);
+                        if(Array.isArray(parsedCats)) validCats = parsedCats.map(c => c.name);
+                    }
+                } catch(e) {}
+
+                // TAHAP 1: Ekstrak dari Memori Group Stage (Awal)
                 if (window.GLOBAL_GROUP_DATA) {
-                    // 🔥 SISTEM FILTER HANTU: Ambil Laci Daftar Kategori Resmi
-                    let validCats = [];
-                    try {
-                        if(window.RAW_DB_DATA && window.RAW_DB_DATA.categories) {
-                            let parsedCats = JSON.parse(window.RAW_DB_DATA.categories);
-                            if(Array.isArray(parsedCats)) validCats = parsedCats.map(c => c.name);
-                        }
-                    } catch(e) {}
-
                     for (let cat in window.GLOBAL_GROUP_DATA) {
-                        // 🔥 EKSEKUSI BLOKIR: Jika kategori dari masa lalu ini tidak ada di daftar resmi, LEWATI!
-                        if (validCats.length > 0 && !validCats.includes(cat)) continue;
-
-                        let groups = window.GLOBAL_GROUP_DATA[cat];
-                        groups.forEach(g => {
-                            let teams = g.teams.filter(t => t.trim() !== '' && t.toUpperCase() !== 'BYE' && t.toUpperCase() !== 'KOSONG');
-                            if(teams.length > 1) {
-                                klData.push([`🏆 ${cat} - ${g.name}`]);
-                                
-                                // A. CETAK MATRIKS SILANG (Cross-Table)
-                                let matrixHeader = ["MATRIKS"];
-                                teams.forEach(t => matrixHeader.push(t));
-                                klData.push(matrixHeader);
-
-                                let rStartMatrix = klData.length + 1;
-                                teams.forEach((t1, idx1) => {
-                                    let row = [t1];
-                                    teams.forEach((t2, idx2) => {
-                                        if(idx1 === idx2) {
-                                            row.push("X"); // Arsiran Diri Sendiri
-                                        } else {
-                                            let myCol = String.fromCharCode(66 + idx2); // B, C, D...
-                                            let myRow = rStartMatrix + idx1;
-                                            // Rumus KACAMATA KUDA: Wajib filter berdasarkan Kolom C (Babak) == g.name
-                                            let fScore = { t: 's', f: `(SUMIFS(DATA_MATCH!$O:$O, DATA_MATCH!$D:$D, $A${myRow}, DATA_MATCH!$Q:$Q, ${myCol}$${rStartMatrix-1}, DATA_MATCH!$C:$C, "${g.name}") + SUMIFS(DATA_MATCH!$P:$P, DATA_MATCH!$Q:$Q, $A${myRow}, DATA_MATCH!$D:$D, ${myCol}$${rStartMatrix-1}, DATA_MATCH!$C:$C, "${g.name}")) & " - " & (SUMIFS(DATA_MATCH!$P:$P, DATA_MATCH!$D:$D, $A${myRow}, DATA_MATCH!$Q:$Q, ${myCol}$${rStartMatrix-1}, DATA_MATCH!$C:$C, "${g.name}") + SUMIFS(DATA_MATCH!$O:$O, DATA_MATCH!$Q:$Q, $A${myRow}, DATA_MATCH!$D:$D, ${myCol}$${rStartMatrix-1}, DATA_MATCH!$C:$C, "${g.name}"))` };
-                                            row.push(fScore);
-                                        }
-                                    });
-                                    klData.push(row);
-                                });
-                                
-                                klData.push([]); // Jeda spasi
-                                
-                                // B. CETAK TABEL REKAPITULASI (W, L, GD/PCT)
-                                let rStartTable = klData.length + 2;
-                                klData.push(["TIM", "MAIN", "W", "L", "GW", "GL", formatHeader, "RANK"]);
-                                
-                                teams.forEach((t, idx) => {
-                                    let tr = rStartTable + idx;
-                                    // Semua rumus dipasangi Kacamata Kuda: DATA_MATCH!$C:$C, "${g.name}"
-                                    let fMain = {t:'n', f:`SUMIFS(DATA_MATCH!$S:$S, DATA_MATCH!$D:$D, $A${tr}, DATA_MATCH!$C:$C, "${g.name}") + SUMIFS(DATA_MATCH!$S:$S, DATA_MATCH!$Q:$Q, $A${tr}, DATA_MATCH!$C:$C, "${g.name}")`};
-                                    let fW = {t:'n', f:`COUNTIFS(DATA_MATCH!$R:$R, $A${tr}, DATA_MATCH!$C:$C, "${g.name}")`};
-                                    let fL = {t:'n', f:`B${tr} - C${tr}`};
-                                    let fGW = {t:'n', f:`SUMIFS(DATA_MATCH!$O:$O, DATA_MATCH!$D:$D, $A${tr}, DATA_MATCH!$C:$C, "${g.name}") + SUMIFS(DATA_MATCH!$P:$P, DATA_MATCH!$Q:$Q, $A${tr}, DATA_MATCH!$C:$C, "${g.name}")`};
-                                    let fGL = {t:'n', f:`SUMIFS(DATA_MATCH!$P:$P, DATA_MATCH!$D:$D, $A${tr}, DATA_MATCH!$C:$C, "${g.name}") + SUMIFS(DATA_MATCH!$O:$O, DATA_MATCH!$Q:$Q, $A${tr}, DATA_MATCH!$C:$C, "${g.name}")`};
-                                    
-                                    // Logika Kolom Bunglon
-                                    let fGD_PCT;
-                                    if(isPct) {
-                                        fGD_PCT = {t:'n', f:`IF((E${tr}+F${tr})=0, 0, (E${tr}/(E${tr}+F${tr}))*100)`};
-                                    } else {
-                                        fGD_PCT = {t:'n', f:`E${tr}-F${tr}`};
-                                    }
-                                    
-                                    // Rumus Abadi & Anti-Error IFERROR untuk RANK
-                                    let fRank = {t:'n', f:`IFERROR(RANK(G${tr}, $G$${rStartTable}:$G$${rStartTable+teams.length-1}, 0), 0)`};
-                                    
-                                    klData.push([t, fMain, fW, fL, fGW, fGL, fGD_PCT, fRank]);
-                                });
-                                
-                                klData.push([]); klData.push([]);
-                            }
+                        if (validCats.length > 0 && cat !== 'UMUM' && !validCats.includes(cat)) continue;
+                        if (!dynamicGroups[cat]) dynamicGroups[cat] = {};
+                        
+                        window.GLOBAL_GROUP_DATA[cat].forEach(g => {
+                            if (!dynamicGroups[cat][g.name]) dynamicGroups[cat][g.name] = new Set();
+                            g.teams.forEach(t => {
+                                if (t.trim() !== '' && t.toUpperCase() !== 'BYE' && t.toUpperCase() !== 'KOSONG') {
+                                    dynamicGroups[cat][g.name].add(t.trim());
+                                }
+                            });
                         });
+                    }
+                }
+
+                // TAHAP 2: Ekstrak dari Tabel Data Match (Match Manual / Hasil '+ BARU')
+                const klasemenKeywords = ['grup', 'group', 'pool', 'penyisihan', 'liga'];
+                const isKlasemen = (r) => klasemenKeywords.some(kw => (r||'').toLowerCase().includes(kw));
+                
+                if (matches && matches.length > 0) {
+                    matches.forEach(m => {
+                        if (isKlasemen(m.round)) {
+                            let cat = m.category || "UMUM";
+                            if (validCats.length > 0 && cat !== 'UMUM' && !validCats.includes(cat)) return;
+                            
+                            let gName = m.round;
+                            if (!dynamicGroups[cat]) dynamicGroups[cat] = {};
+                            if (!dynamicGroups[cat][gName]) dynamicGroups[cat][gName] = new Set();
+                            
+                            let ta = (m.team_a || "").trim();
+                            let tb = (m.team_b || "").trim();
+                            
+                            if (ta !== '' && ta !== '-' && ta.toUpperCase() !== 'BYE' && ta.toUpperCase() !== 'KOSONG' && !ta.includes('[')) dynamicGroups[cat][gName].add(ta);
+                            if (tb !== '' && tb !== '-' && tb.toUpperCase() !== 'BYE' && tb.toUpperCase() !== 'KOSONG' && !tb.includes('[')) dynamicGroups[cat][gName].add(tb);
+                        }
+                    });
+                }
+
+                // TAHAP 3: Cetak ke Matriks Excel (Menyatukan Tahap 1 & 2)
+                for (let cat in dynamicGroups) {
+                    for (let gName in dynamicGroups[cat]) {
+                        let teams = Array.from(dynamicGroups[cat][gName]);
+                        
+                        if(teams.length > 1) {
+                            klData.push([`🏆 ${cat} - ${gName}`]);
+                            
+                            // A. CETAK MATRIKS SILANG (Cross-Table)
+                            let matrixHeader = ["MATRIKS"];
+                            teams.forEach(t => matrixHeader.push(t));
+                            klData.push(matrixHeader);
+
+                            let rStartMatrix = klData.length + 1;
+                            teams.forEach((t1, idx1) => {
+                                let row = [t1];
+                                teams.forEach((t2, idx2) => {
+                                    if(idx1 === idx2) {
+                                        row.push("X"); // Arsiran Diri Sendiri
+                                    } else {
+                                        let myCol = String.fromCharCode(66 + idx2); // B, C, D...
+                                        let myRow = rStartMatrix + idx1;
+                                        // Rumus KACAMATA KUDA: Wajib filter berdasarkan Kolom C (Babak) == gName
+                                        let fScore = { t: 's', f: `(SUMIFS(DATA_MATCH!$O:$O, DATA_MATCH!$D:$D, $A${myRow}, DATA_MATCH!$Q:$Q, ${myCol}$${rStartMatrix-1}, DATA_MATCH!$C:$C, "${gName}") + SUMIFS(DATA_MATCH!$P:$P, DATA_MATCH!$Q:$Q, $A${myRow}, DATA_MATCH!$D:$D, ${myCol}$${rStartMatrix-1}, DATA_MATCH!$C:$C, "${gName}")) & " - " & (SUMIFS(DATA_MATCH!$P:$P, DATA_MATCH!$D:$D, $A${myRow}, DATA_MATCH!$Q:$Q, ${myCol}$${rStartMatrix-1}, DATA_MATCH!$C:$C, "${gName}") + SUMIFS(DATA_MATCH!$O:$O, DATA_MATCH!$Q:$Q, $A${myRow}, DATA_MATCH!$D:$D, ${myCol}$${rStartMatrix-1}, DATA_MATCH!$C:$C, "${gName}"))` };
+                                        row.push(fScore);
+                                    }
+                                });
+                                klData.push(row);
+                            });
+                            
+                            klData.push([]); // Jeda spasi
+                            
+                            // B. CETAK TABEL REKAPITULASI (W, L, GD/PCT)
+                            let rStartTable = klData.length + 2;
+                            klData.push(["TIM", "MAIN", "W", "L", "GW", "GL", formatHeader, "RANK"]);
+                            
+                            teams.forEach((t, idx) => {
+                                let tr = rStartTable + idx;
+                                // Semua rumus dipasangi Kacamata Kuda: DATA_MATCH!$C:$C, "${gName}"
+                                let fMain = {t:'n', f:`SUMIFS(DATA_MATCH!$S:$S, DATA_MATCH!$D:$D, $A${tr}, DATA_MATCH!$C:$C, "${gName}") + SUMIFS(DATA_MATCH!$S:$S, DATA_MATCH!$Q:$Q, $A${tr}, DATA_MATCH!$C:$C, "${gName}")`};
+                                let fW = {t:'n', f:`COUNTIFS(DATA_MATCH!$R:$R, $A${tr}, DATA_MATCH!$C:$C, "${gName}")`};
+                                let fL = {t:'n', f:`B${tr} - C${tr}`};
+                                let fGW = {t:'n', f:`SUMIFS(DATA_MATCH!$O:$O, DATA_MATCH!$D:$D, $A${tr}, DATA_MATCH!$C:$C, "${gName}") + SUMIFS(DATA_MATCH!$P:$P, DATA_MATCH!$Q:$Q, $A${tr}, DATA_MATCH!$C:$C, "${gName}")`};
+                                let fGL = {t:'n', f:`SUMIFS(DATA_MATCH!$P:$P, DATA_MATCH!$D:$D, $A${tr}, DATA_MATCH!$C:$C, "${gName}") + SUMIFS(DATA_MATCH!$O:$O, DATA_MATCH!$Q:$Q, $A${tr}, DATA_MATCH!$C:$C, "${gName}")`};
+                                
+                                // Logika Kolom Bunglon
+                                let fGD_PCT;
+                                if(isPct) {
+                                    fGD_PCT = {t:'n', f:`IF((E${tr}+F${tr})=0, 0, (E${tr}/(E${tr}+F${tr}))*100)`};
+                                } else {
+                                    fGD_PCT = {t:'n', f:`E${tr}-F${tr}`};
+                                }
+                                
+                                // Rumus Abadi & Anti-Error IFERROR untuk RANK
+                                let fRank = {t:'n', f:`IFERROR(RANK(G${tr}, $G$${rStartTable}:$G$${rStartTable+teams.length-1}, 0), 0)`};
+                                
+                                klData.push([t, fMain, fW, fL, fGW, fGL, fGD_PCT, fRank]);
+                            });
+                            
+                            klData.push([]); klData.push([]);
+                        }
                     }
                 }
 
