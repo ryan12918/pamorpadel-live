@@ -369,6 +369,7 @@
 <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#d81b60;"><input type="checkbox" id="reg-req-umur"> Tampilkan Input Tahun Lahir (Auto-Umur)</label>
 <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#0277bd;"><input type="checkbox" id="reg-req-reclub"> Tampilkan Input Akun Reclub (Wajib Diisi)</label>
 <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#e65100;"><input type="checkbox" id="reg-req-ktp"> Wajib Lampirkan Foto KTP (Screening)</label>
+<label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#0288d1;"><input type="checkbox" id="reg-req-foto"> Wajib Lampirkan Foto Pemain (Bebas)</label>
                             <hr style="border:0; border-top:1px dashed #ccc; margin:2px 0;">
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#1565c0;"><input type="checkbox" id="reg-multi-wa"> Izinkan 1 WA Mendaftar Banyak Tim</label>
                                     <hr style="border:0; border-top:1px dashed #ccc; margin:2px 0;">
@@ -3949,8 +3950,8 @@ function openEstimasiModal() {
                         </select>
                     </td>
                     <td style="padding:8px; text-align:center; display:flex; gap:4px; justify-content:center; flex-wrap:nowrap; min-width:130px;">
-                        ${r.ktp_url_1 ? `<button class="badge" style="background:#0288d1; border:none; padding:6px 8px; cursor:pointer; color:white; border-radius:4px; box-shadow:0 2px 4px rgba(0,0,0,0.2);" onclick="viewKTP('${r.ktp_url_1}')" title="KTP Pemain 1">🏷️ KTP 1</button>` : ''}
-                        ${r.ktp_url_2 ? `<button class="badge" style="background:#0288d1; border:none; padding:6px 8px; cursor:pointer; color:white; border-radius:4px; box-shadow:0 2px 4px rgba(0,0,0,0.2);" onclick="viewKTP('${r.ktp_url_2}')" title="KTP Pemain 2">🏷️ KTP 2</button>` : ''}
+                        ${(r.ktp_url_1 || r.ktp_url_2) ? `<button class="badge" style="background:#0288d1; border:none; padding:6px 8px; cursor:pointer; color:white; border-radius:4px; box-shadow:0 2px 4px rgba(0,0,0,0.2);" onclick="viewGallery(event, '${r.ktp_url_1}', '${r.ktp_url_2}', 'KTP PESERTA', 'ktp_participants')" title="Lihat KTP">🏷️ KTP</button>` : ''}
+                        ${(r.foto_url_1 || r.foto_url_2) ? `<button class="badge" style="background:#8e24aa; border:none; padding:6px 8px; cursor:pointer; color:white; border-radius:4px; box-shadow:0 2px 4px rgba(0,0,0,0.2);" onclick="viewGallery(event, '${r.foto_url_1}', '${r.foto_url_2}', 'FOTO PEMAIN', 'foto_participants')" title="Lihat Foto">📸 FOTO</button>` : ''}
                         <button class="badge" style="background:#f39c12; border:none; padding:6px 8px; cursor:pointer; color:white; border-radius:4px; box-shadow:0 2px 4px rgba(0,0,0,0.2);" onclick='openEditData(${JSON.stringify(r).replace(/'/g, "&#39;")})'>✏️ EDIT</button>
                     </td>
                 </tr>`;
@@ -3963,22 +3964,48 @@ function openEstimasiModal() {
             
             updateQuotaMonitor(); // <-- SUNTIKAN BARU
         }
-// 🔥 FUNGSI BUKA KTP DI TAB BARU
-        window.viewKTP = function(url1, url2) {
-            if(url1 && url1 !== '') window.open(url1, '_blank');
-            // Beri jeda sedikit agar browser tidak mengira ini popup spam
-            if(url2 && url2 !== '') setTimeout(() => window.open(url2, '_blank'), 500); 
-        };
-
-        // 🔥 FUNGSI BUKA KTP DENGAN KUNCI SEMENTARA (SIGNED URL - 60 DETIK)
-        window.viewKTP = async function(path) {
+// 🔥 MESIN PENAMPIL GANDA (GALLERY VIEWER) UNTUK KTP DAN FOTO
+        window.viewGallery = async function(event, path1, path2, titleStr, bucketName) {
             try {
-                if(path && path !== '' && path !== 'undefined') {
-                    const { data, error } = await db.storage.from('ktp_participants').createSignedUrl(path, 60);
-                    if(data) window.open(data.signedUrl, '_blank');
-                    if(error) alert("❌ Akses ditolak Supabase: " + error.message);
+                let btnOri = event.target.innerText;
+                event.target.innerText = "⏳ BUKA...";
+                event.target.style.pointerEvents = "none";
+
+                let url1 = '', url2 = '';
+                
+                if(path1 && path1 !== 'undefined' && path1 !== 'null') {
+                    const { data } = await db.storage.from(bucketName).createSignedUrl(path1, 60);
+                    if(data) url1 = data.signedUrl;
                 }
-            } catch(e) { alert("Gagal membuka KTP: " + e.message); }
+                if(path2 && path2 !== 'undefined' && path2 !== 'null') {
+                    const { data } = await db.storage.from(bucketName).createSignedUrl(path2, 60);
+                    if(data) url2 = data.signedUrl;
+                }
+
+                event.target.innerText = btnOri;
+                event.target.style.pointerEvents = "auto";
+
+                if(!url1 && !url2) { alert("⚠️ File gambar tidak ditemukan di server."); return; }
+
+                // Buka Tab Baru dengan Mode Galeri Profesional
+                let html = `<html><head><title>GALERI ${titleStr}</title><meta name="viewport" content="width=device-width, initial-scale=1">
+                <style>body{background:#121212;color:#fff;font-family:'Segoe UI',sans-serif;text-align:center;margin:0;padding:20px;} img{max-width:100%;max-height:75vh;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.8);margin:10px;border:2px solid #333;} .container{display:flex;flex-wrap:wrap;justify-content:center;gap:30px;align-items:center;min-height:85vh;} .img-box{display:flex;flex-direction:column;align-items:center;} h3{color:#bbb;margin-bottom:15px;font-size:16px;letter-spacing:2px;text-transform:uppercase;}</style></head>
+                <body><h2 style="color:#0288d1; font-weight:900; letter-spacing:2px;">🔍 ${titleStr}</h2>
+                <div class="container">`;
+                
+                if(url1) html += `<div class="img-box"><h3>PEMAIN 1</h3><img src="${url1}"></div>`;
+                if(url2) html += `<div class="img-box"><h3>PEMAIN 2</h3><img src="${url2}"></div>`;
+                
+                html += `</div></body></html>`;
+
+                let newWin = window.open('', '_blank');
+                newWin.document.write(html);
+                newWin.document.close();
+            } catch(e) {
+                alert("Gagal membuka galeri: " + e.message);
+                event.target.innerText = "ERROR";
+                event.target.style.pointerEvents = "auto";
+            }
         };
 
         // --- MESIN MONITOR KUOTA & BLAST PENAGIHAN ---
@@ -4195,13 +4222,20 @@ tahun_lahir_a: document.getElementById('edit-reg-thn1').value,
 
             try {
                 // 1. PROSES PEMBERSIHAN STORAGE (FILE FISIK)
-                let paths = [];
-                if (p && p.ktp_url_1) paths.push(p.ktp_url_1);
-                if (p && p.ktp_url_2) paths.push(p.ktp_url_2);
+                let pathsKtp = [];
+                let pathsFoto = [];
+                if (p && p.ktp_url_1) pathsKtp.push(p.ktp_url_1);
+                if (p && p.ktp_url_2) pathsKtp.push(p.ktp_url_2);
+                if (p && p.foto_url_1) pathsFoto.push(p.foto_url_1);
+                if (p && p.foto_url_2) pathsFoto.push(p.foto_url_2);
 
-                if (paths.length > 0) {
-                    const { error: stError } = await db.storage.from('ktp_participants').remove(paths);
-                    if (stError) console.warn("Peringatan Storage:", stError.message);
+                if (pathsKtp.length > 0) {
+                    const { error: errKtp } = await db.storage.from('ktp_participants').remove(pathsKtp);
+                    if (errKtp) console.warn("Peringatan Storage KTP:", errKtp.message);
+                }
+                if (pathsFoto.length > 0) {
+                    const { error: errFoto } = await db.storage.from('foto_participants').remove(pathsFoto);
+                    if (errFoto) console.warn("Peringatan Storage FOTO:", errFoto.message);
                 }
 
                 // 2. PROSES HAPUS DATABASE (TEKS)
@@ -4393,6 +4427,7 @@ tahun_lahir_a: document.getElementById('edit-reg-thn1').value,
 reqUmur: document.getElementById('reg-req-umur') ? document.getElementById('reg-req-umur').checked : false,
 reqReclub: document.getElementById('reg-req-reclub') ? document.getElementById('reg-req-reclub').checked : false,
 reqKtp: document.getElementById('reg-req-ktp') ? document.getElementById('reg-req-ktp').checked : false,
+                    reqFoto: document.getElementById('reg-req-foto') ? document.getElementById('reg-req-foto').checked : false,
                     multiWa: document.getElementById('reg-multi-wa').checked,
                     autoWa: document.getElementById('reg-auto-wa') ? document.getElementById('reg-auto-wa').checked : true,
                     regTitle: document.getElementById('reg-title') ? document.getElementById('reg-title').value : '',
@@ -4425,6 +4460,7 @@ reqKtp: document.getElementById('reg-req-ktp') ? document.getElementById('reg-re
 if(document.getElementById('reg-req-umur')) document.getElementById('reg-req-umur').checked = fs.reqUmur === true ? true : false;
 if(document.getElementById('reg-req-reclub')) document.getElementById('reg-req-reclub').checked = fs.reqReclub === true ? true : false;
 if(document.getElementById('reg-req-ktp')) document.getElementById('reg-req-ktp').checked = fs.reqKtp === true ? true : false;
+if(document.getElementById('reg-req-foto')) document.getElementById('reg-req-foto').checked = fs.reqFoto === true ? true : false;
                 document.getElementById('reg-multi-wa').checked = fs.multiWa === true ? true : false;
                 if(document.getElementById('reg-auto-wa')) document.getElementById('reg-auto-wa').checked = fs.autoWa !== false;
                 

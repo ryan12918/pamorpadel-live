@@ -226,6 +226,13 @@
                 <div style="font-size:10px; color:#666; margin-top:5px;">*Foto otomatis dikompres agar hemat kuota.</div>
                 <div class="error-text" id="err-captKtp">⚠️ KTP Pemain 1 Wajib dilampirkan!</div>
             </div>
+
+            <div class="form-group" id="wrap-foto-capt" style="display:none; background:#e1f5fe; padding:15px; border-radius:12px; border:1px dashed #0288d1; margin-bottom:20px;">
+                <label style="color:#0277bd; font-weight:800;">📸 FOTO PEMAIN 1 (BEBAS / UNTUK ID CARD)</label>
+                <input type="file" id="captFoto" accept="image/*" class="form-control" style="padding:10px; background:#fff; font-size:11px;">
+                <div style="font-size:10px; color:#666; margin-top:5px;">*Foto akan dikompres otomatis oleh sistem.</div>
+                <div class="error-text" id="err-captFoto">⚠️ Foto Pemain 1 Wajib dilampirkan!</div>
+            </div>
             
             <button class="btn-primary" id="btn-lanjut-step2" onclick="validateStep2()">LANJUT KE DATA PEMAIN 2</button>
             <a href="#" class="back-link" onclick="nextStep(1)">Kembali ke Kategori</a>
@@ -273,6 +280,13 @@
                 <input type="file" id="partnerKtp" accept="image/*" class="form-control" style="padding:10px; background:#fff; font-size:11px;">
                 <div style="font-size:10px; color:#666; margin-top:5px;">*Foto otomatis dikompres agar hemat kuota.</div>
                 <div class="error-text" id="err-partnerKtp">⚠️ KTP Pemain 2 Wajib dilampirkan!</div>
+            </div>
+
+            <div class="form-group" id="wrap-foto-partner" style="display:none; background:#e1f5fe; padding:15px; border-radius:12px; border:1px dashed #0288d1; margin-bottom:20px;">
+                <label style="color:#0277bd; font-weight:800;">📸 FOTO PEMAIN 2 (BEBAS / UNTUK ID CARD)</label>
+                <input type="file" id="partnerFoto" accept="image/*" class="form-control" style="padding:10px; background:#fff; font-size:11px;">
+                <div style="font-size:10px; color:#666; margin-top:5px;">*Foto akan dikompres otomatis oleh sistem.</div>
+                <div class="error-text" id="err-partnerFoto">⚠️ Foto Pemain 2 Wajib dilampirkan!</div>
             </div>
             
             <button class="btn-primary" onclick="validateStep3()">LIHAT RINGKASAN</button>
@@ -413,6 +427,7 @@
             if (!checkRequired('captJersey', 'wrap-jersey-capt')) isValid = false;
             if (!checkRequired('captIg', 'wrap-ig-capt')) isValid = false;
             if (globalReqKtp && !checkRequired('captKtp', 'wrap-ktp-capt')) isValid = false; // Validasi KTP
+            if (globalReqFoto && !checkRequired('captFoto', 'wrap-foto-capt')) isValid = false; // Validasi Foto
             
             if (isValid) nextStep(3); // Masuk ke tahap Partner (Double)
         }
@@ -427,6 +442,7 @@
             if (!checkRequired('captJersey', 'wrap-jersey-capt')) isValid = false;
             if (!checkRequired('captIg', 'wrap-ig-capt')) isValid = false;
             if (globalReqKtp && !checkRequired('captKtp', 'wrap-ktp-capt')) isValid = false; // Validasi KTP
+            if (globalReqFoto && !checkRequired('captFoto', 'wrap-foto-capt')) isValid = false; // Validasi Foto
             
             if (isValid) goToCheckout(); // Langsung lompat ke Checkout (Single)
         }
@@ -438,6 +454,7 @@
             if (!checkRequired('partnerJersey', 'wrap-jersey-partner')) isValid = false;
             if (!checkRequired('partnerIg', 'wrap-ig-partner')) isValid = false;
             if (globalReqKtp && !checkRequired('partnerKtp', 'wrap-ktp-partner')) isValid = false; // Validasi KTP
+            if (globalReqFoto && !checkRequired('partnerFoto', 'wrap-foto-partner')) isValid = false; // Validasi Foto
             
             if (isValid) goToCheckout();
         }
@@ -599,6 +616,7 @@
         let globalFormat = "double";
         let validVipCodes = []; // 🔥 SUNTIKAN: Memori penyimpan daftar kode VIP
         let globalReqKtp = false; // 🔥 SUNTIKAN: Memori Sakelar KTP
+        let globalReqFoto = false; // 🔥 SUNTIKAN: Memori Sakelar FOTO
 
         // SENSOR SAKLAR, WA KASIR, PEMBACA KATEGORI, & JUDUL
         async function fetchSettings() {
@@ -675,6 +693,11 @@
                             globalReqKtp = fs.reqKtp === true;
                             if(document.getElementById('wrap-ktp-capt')) document.getElementById('wrap-ktp-capt').style.display = globalReqKtp ? 'block' : 'none';
                             if(document.getElementById('wrap-ktp-partner')) document.getElementById('wrap-ktp-partner').style.display = globalReqKtp ? 'block' : 'none';
+
+                            // --- SENSOR SAKLAR FOTO ---
+                            globalReqFoto = fs.reqFoto === true;
+                            if(document.getElementById('wrap-foto-capt')) document.getElementById('wrap-foto-capt').style.display = globalReqFoto ? 'block' : 'none';
+                            if(document.getElementById('wrap-foto-partner')) document.getElementById('wrap-foto-partner').style.display = globalReqFoto ? 'block' : 'none';
 
 // --- SUNTIKAN 7 FITUR COCKPIT (LUXURY AUTO-HIDE) ---
                             // 1. Judul Utama (Eyebrow)
@@ -982,7 +1005,7 @@
         }
 
         // 🔥 MESIN UPLOAD KE PRIVATE BUCKET (HANYA MENGEMBALIKAN PATH RAHASIA)
-        async function uploadKtpToSupabase(fileInputId, playerName) {
+        async function uploadImageToSupabase(fileInputId, playerName, bucketName) {
             const fileInput = document.getElementById(fileInputId);
             if (!fileInput || fileInput.files.length === 0) return "";
             
@@ -992,7 +1015,7 @@
             let safeName = playerName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
             let fileName = `${TOURNAMENT_ID}_${safeName}_${Date.now()}.jpg`;
 
-            const { data, error } = await db.storage.from('ktp_participants').upload(fileName, compressedFile, { contentType: 'image/jpeg' });
+            const { data, error } = await db.storage.from(bucketName).upload(fileName, compressedFile, { contentType: 'image/jpeg' });
             if (error) { console.error("Upload Error:", error); throw error; }
             
             return data.path; 
@@ -1140,18 +1163,23 @@ let tLahirA = document.getElementById('captTahun') ? document.getElementById('ca
                 }
                 // --- END SATPAM ANTI-BOCOR ---
 
-                // 🔥 PROSES UPLOAD KTP PRIVATE (JIKA WAJIB) SEBELUM TIKET TERBIT
-                let ktpPath1 = "";
-                let ktpPath2 = "";
-                if (globalReqKtp) {
-                    btn.innerText = "⏳ MENGUNGGAH FOTO KTP (MOHON TUNGGU)...";
+                // 🔥 PROSES UPLOAD KTP & FOTO (JIKA WAJIB) SEBELUM TIKET TERBIT
+                let ktpPath1 = "", ktpPath2 = "";
+                let fotoPath1 = "", fotoPath2 = "";
+                
+                if (globalReqKtp || globalReqFoto) {
+                    btn.innerText = "⏳ MENGUNGGAH FILE (MOHON TUNGGU)...";
                     try {
-                        ktpPath1 = await uploadKtpToSupabase('captKtp', cName);
-                        if (globalFormat !== 'single' && pName) {
-                            ktpPath2 = await uploadKtpToSupabase('partnerKtp', pName);
+                        if (globalReqKtp) {
+                            ktpPath1 = await uploadImageToSupabase('captKtp', cName, 'ktp_participants');
+                            if (globalFormat !== 'single' && pName) ktpPath2 = await uploadImageToSupabase('partnerKtp', pName, 'ktp_participants');
+                        }
+                        if (globalReqFoto) {
+                            fotoPath1 = await uploadImageToSupabase('captFoto', cName, 'foto_participants');
+                            if (globalFormat !== 'single' && pName) fotoPath2 = await uploadImageToSupabase('partnerFoto', pName, 'foto_participants');
                         }
                     } catch(err) {
-                        alert("❌ Gagal mengunggah foto KTP. Pastikan koneksi internet Anda stabil.");
+                        alert("❌ Gagal mengunggah foto. Pastikan koneksi internet Anda stabil.");
                         btn.innerText = oriText; btn.style.pointerEvents = "auto"; return;
                     }
                 }
@@ -1175,7 +1203,9 @@ let tLahirA = document.getElementById('captTahun') ? document.getElementById('ca
                     reclub_capt: rCapt,
                     reclub_partner: rPartner,
                     ktp_url_1: ktpPath1,
-                    ktp_url_2: ktpPath2
+                    ktp_url_2: ktpPath2,
+                    foto_url_1: fotoPath1,
+                    foto_url_2: fotoPath2
                 };
 
                 // 🔥 AUTO-BURN: Membakar kode VIP agar hilang dari Cockpit (DILAKUKAN SEBELUM INSERT TIKET)
