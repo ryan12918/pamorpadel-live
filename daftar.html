@@ -1021,6 +1021,13 @@
                     let html = `<div id="ticket-scroll-box" style="max-height:400px; overflow-y:auto; padding-right:5px; scroll-behavior: smooth;">`;
                     html += `<div style="font-size:11px; color:#666; margin-bottom:15px; text-align:center; font-weight:800; background:#f5f5f5; padding:5px; border-radius:6px;">Ditemukan ${data.length} Tiket untuk nomor WA ini</div>`;
                     
+                    // 🔥 SUNTIKAN: TOMBOL PINDAH KE ATAS (Muncul 1 kali jika ada tiket LUNAS)
+                    let firstLunas = data.find(t => t.status === 'LUNAS');
+                    if (firstLunas) {
+                        let safeCat = firstLunas.category.replace(/'/g, "&apos;");
+                        html += `<button onclick="openRoster(this, '${safeCat}')" style="margin-bottom:20px; width:100%; padding:14px; background:linear-gradient(135deg, #1a237e, #0d47a1); color:white; border:none; border-radius:12px; font-weight:900; font-size:13px; cursor:pointer; box-shadow:0 6px 15px rgba(26,35,126,0.3); letter-spacing:1px; animation: fadeInDown 0.4s ease;">📋 LIHAT DAFTAR PESERTA RESMI</button>`;
+                    }
+
                     data.forEach(t => {
                         // 🔥 4 FASE WARNA DAN STATUS TIKET (DISEMPURNAKAN)
                         let bg, col, icon, infoText, visualHTML = '';
@@ -1073,10 +1080,6 @@
                                 <div style="margin-top:15px; padding-top:15px; border-top:1px solid rgba(0,0,0,0.1); font-size:8px; line-height:1.4; color:#999; text-align:justify; font-weight:600;">
                                     ⚠️ LEGALITAS E-TICKET: Dengan terbitnya tiket ini, peserta yang tercantum di atas menyatakan diri dalam kondisi sehat untuk bertanding. Segala bentuk cedera atau risiko medis di lapangan sepenuhnya menjadi tanggung jawab pribadi, dan membebaskan pihak penyelenggara dari segala tuntutan hukum.
                                 </div>
-                                ${t.status === 'LUNAS' ? (() => { 
-                                    let safeCat = t.category.replace(/'/g, "&apos;");
-                                    return `<button onclick="openRoster(this, '${safeCat}')" style="margin-top:15px; width:100%; padding:12px; background:linear-gradient(135deg, #1a237e, #0d47a1); color:white; border:none; border-radius:12px; font-weight:900; font-size:12px; cursor:pointer; box-shadow:0 4px 10px rgba(26,35,126,0.3); letter-spacing:1px;">📋 LIHAT DAFTAR PESERTA RESMI</button>`;
-                                })() : ''}
                             </div>
                         `;
                     });
