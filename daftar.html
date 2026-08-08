@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrasi Resmi - MatchLive Pro</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
@@ -329,13 +329,13 @@
         🎫 CEK E-TICKET
     </div>
 
-    <div id="modal-roster" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(5px); z-index:9999; justify-content:center; align-items:flex-end; padding:0; box-sizing:border-box; animation: fadeIn 0.3s ease;">
-        <div style="background:#f4f6f8; width:100%; max-width:500px; height:90vh; border-top-left-radius:25px; border-top-right-radius:25px; display:flex; flex-direction:column; position:relative; box-shadow:0 -10px 40px rgba(0,0,0,0.3); overflow:hidden;">
-            <!-- Header -->
-            <div style="background:white; padding:20px; text-align:center; border-bottom:1px solid #ddd; position:relative; flex-shrink:0;">
-                <div style="position:absolute; top:15px; right:20px; cursor:pointer; font-weight:900; font-size:24px; color:#aaa; line-height:1;" onclick="document.getElementById('modal-roster').style.display='none'">✕</div>
-                <h3 style="margin:0; color:#111; font-weight:900; font-size:18px; text-transform:uppercase; letter-spacing:1px;">📋 DAFTAR PESERTA RESMI</h3>
-                <div style="font-size:10px; color:#666; margin-top:5px; font-weight:600;">Intelijen Terbuka - Hanya Peserta LUNAS</div>
+    <div id="modal-roster" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(5px); z-index:9999; justify-content:center; align-items:center; padding:0; box-sizing:border-box; animation: fadeIn 0.3s ease;">
+        <div style="background:#f4f6f8; width:100%; height:100%; max-width:none; display:flex; flex-direction:column; position:relative; box-shadow:none; overflow:hidden;">
+            <!-- Header Full Screen -->
+            <div style="background:white; padding:15px 20px; text-align:center; border-bottom:1px solid #ddd; position:relative; flex-shrink:0;">
+                <div style="position:absolute; top:12px; right:20px; cursor:pointer; font-weight:900; font-size:22px; color:#555; line-height:1;" onclick="document.getElementById('modal-roster').style.display='none'">✕</div>
+                <h3 style="margin:0; color:#111; font-weight:900; font-size:16px; text-transform:uppercase; letter-spacing:1px;">📋 DAFTAR PESERTA RESMI</h3>
+                <div style="font-size:10px; color:#666; margin-top:3px; font-weight:600;">Intelijen Terbuka - Hanya Peserta LUNAS</div>
             </div>
             <!-- Dropdown Selector Kategori (Hemat Ruang untuk 6-10 Kategori) -->
             <div style="background:white; padding:12px 15px; border-bottom:1px solid #ddd; flex-shrink:0;">
@@ -917,35 +917,22 @@
                 let img1 = r.foto_url_1 ? db.storage.from('foto_participants').getPublicUrl(r.foto_url_1).data.publicUrl : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(r.capt_name) + '&background=e0e0e0&color=555';
                 let img2 = r.foto_url_2 ? db.storage.from('foto_participants').getPublicUrl(r.foto_url_2).data.publicUrl : (r.partner_name && r.partner_name !== '-' ? 'https://ui-avatars.com/api/?name=' + encodeURIComponent(r.partner_name) + '&background=e0e0e0&color=555' : '');
 
-                // Foto Pemain 1 (Diperbesar jadi 90px & Bisa diklik untuk Zoom)
-                let p1Html = `<div style="display:flex; flex-direction:column; align-items:center; width:90px; flex-shrink:0;">
-                                <img src="${img1}" onclick="openLightbox('${img1}')" style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.15); margin-bottom:6px; background:#eee; cursor:pointer;" title="Ketuk untuk memperbesar foto">
-                                <div style="font-size:11px; font-weight:900; color:#222; text-align:center; overflow:hidden; text-overflow:ellipsis; width:100%; white-space:nowrap;" title="${r.capt_name}">${r.capt_name}</div>
+                // Foto Pemain 1 (90px & Pinch-to-zoom ready)
+                let p1Html = `<div style="display:flex; flex-direction:column; align-items:center; width:85px; flex-shrink:0;">
+                                <img src="${img1}" onclick="openLightbox('${img1}')" style="width:85px; height:85px; border-radius:50%; object-fit:cover; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.15); margin-bottom:5px; background:#eee; cursor:pointer;" title="Ketuk untuk memperbesar foto">
+                                <div style="font-size:10px; font-weight:900; color:#222; text-align:center; overflow:hidden; text-overflow:ellipsis; width:100%; white-space:nowrap;" title="${r.capt_name}">${r.capt_name}</div>
                               </div>`;
                 
                 // Foto Pemain 2 (Jika ada)
                 let p2Html = '';
                 if (r.partner_name && r.partner_name !== '-') {
-                    p2Html = `<div style="display:flex; flex-direction:column; align-items:center; width:90px; flex-shrink:0;">
-                                <img src="${img2}" onclick="openLightbox('${img2}')" style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.15); margin-bottom:6px; background:#eee; cursor:pointer;" title="Ketuk untuk memperbesar foto">
-                                <div style="font-size:11px; font-weight:900; color:#222; text-align:center; overflow:hidden; text-overflow:ellipsis; width:100%; white-space:nowrap;" title="${r.partner_name}">${r.partner_name}</div>
+                    p2Html = `<div style="display:flex; flex-direction:column; align-items:center; width:85px; flex-shrink:0;">
+                                <img src="${img2}" onclick="openLightbox('${img2}')" style="width:85px; height:85px; border-radius:50%; object-fit:cover; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.15); margin-bottom:5px; background:#eee; cursor:pointer;" title="Ketuk untuk memperbesar foto">
+                                <div style="font-size:10px; font-weight:900; color:#222; text-align:center; overflow:hidden; text-overflow:ellipsis; width:100%; white-space:nowrap;" title="${r.partner_name}">${r.partner_name}</div>
                               </div>`;
                 }
 
-                // Informasi Tim & Kota di Tengah-tengah Diapit Kedua Foto (Hemat Ruang Vertikal)
-                let teamInfo = '';
-                if (showTeam && r.team_name && r.team_name !== 'Tanpa Nama') {
-                    teamInfo += `<div style="font-weight:900; color:#1a237e; font-size:13px; text-align:center; line-height:1.3; margin-bottom:4px; word-break:break-word;">${r.team_name}</div>`;
-                }
-                if (showClub && r.asal_klub && r.asal_klub !== '-') {
-                    teamInfo += `<div style="font-size:10px; color:#555; background:#f0f2f5; padding:2px 8px; border-radius:6px; font-weight:bold; text-align:center; display:inline-block; border:1px solid #e2e8f0;">📍 ${r.asal_klub}</div>`;
-                }
-                
-                let centerHtml = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; padding:0 8px; text-align:center;">
-                                    ${teamInfo}
-                                  </div>`;
-
-                // Draf Laporan WA
+                // Draf Laporan WA untuk Screening
                 let tNameText = (r.team_name && r.team_name !== 'Tanpa Nama') ? r.team_name : '-';
                 let pNameText = r.partner_name && r.partner_name !== '-' ? r.partner_name : '-';
                 let evName = window.GLOBAL_PARTNER_DATA ? window.GLOBAL_PARTNER_DATA.event_name : 'Turnamen';
@@ -953,17 +940,30 @@
                 let repText = `Halo Panitia ${evName},\n\nSaya adalah peserta yang sudah terdaftar. Saya ingin mengajukan tinjauan/screening untuk peserta berikut:\n\n*Kategori:* ${cat}\n*Tim:* ${tNameText}\n*Pemain:* ${r.capt_name} & ${pNameText}\n\n*Alasan Keberatan:*\n(Ketik alasan Anda di sini, misal: atlet pro / level terlalu tinggi)\n\n*Bukti Pendukung:*\n(Mohon lampirkan screenshot riwayat turnamen/Reclub/IG di sini)\n\nTerima kasih.`;
                 let repUrl = `https://wa.me/${globalWaAdmin}?text=${encodeURIComponent(repText)}`;
 
+                // Informasi Tim, Kota, & Tombol Screening Bertingkat di Tengah
+                let teamInfo = '';
+                if (showTeam && r.team_name && r.team_name !== 'Tanpa Nama') {
+                    teamInfo += `<div style="font-weight:900; color:#1a237e; font-size:12px; text-align:center; line-height:1.2; margin-bottom:3px; word-break:break-word;">${r.team_name}</div>`;
+                }
+                if (showClub && r.asal_klub && r.asal_klub !== '-') {
+                    teamInfo += `<div style="font-size:9px; color:#555; background:#f0f2f5; padding:2px 6px; border-radius:4px; font-weight:bold; text-align:center; display:inline-block; border:1px solid #e2e8f0; margin-bottom:6px;">📍 ${r.asal_klub}</div>`;
+                }
+
+                teamInfo += `<a href="${repUrl}" target="_blank" style="text-decoration:none; background:#ffebee; color:#c62828; border:1px solid #ffcdd2; padding:3px 8px; border-radius:6px; font-size:9px; font-weight:800; display:inline-flex; flex-direction:column; align-items:center; line-height:1.1; transition:0.2s;">
+                                <span>Ajukan</span>
+                                <span>Screening</span>
+                            </a>`;
+                
+                let centerHtml = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; padding:0 4px; text-align:center;">
+                                    ${teamInfo}
+                                  </div>`;
+
                 html += `
-                <div style="background:white; border-radius:14px; padding:15px; margin-bottom:12px; box-shadow:0 4px 12px rgba(0,0,0,0.04); position:relative;">
-                    <div style="display:flex; align-items:center; justify-content:space-between; gap:5px;">
+                <div style="background:white; border-radius:14px; padding:12px; margin-bottom:10px; box-shadow:0 4px 12px rgba(0,0,0,0.04); position:relative;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:2px;">
                         ${p1Html}
                         ${centerHtml}
                         ${p2Html}
-                    </div>
-                    <div style="text-align:right; margin-top:10px; padding-top:8px; border-top:1px dashed #eee;">
-                        <a href="${repUrl}" target="_blank" style="text-decoration:none; background:#ffebee; color:#c62828; border:1px solid #ffcdd2; padding:4px 12px; border-radius:20px; font-size:10px; font-weight:800; display:inline-flex; align-items:center; gap:4px; transition:0.2s;">
-                            ⚖️ Screening
-                        </a>
                     </div>
                 </div>`;
             });
