@@ -371,6 +371,7 @@
 <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#e65100;"><input type="checkbox" id="reg-req-ktp"> Wajib Lampirkan Foto KTP (Screening)</label>
 <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#0288d1;"><input type="checkbox" id="reg-req-foto"> Wajib Lampirkan Foto Pemain (Bebas)</label>
                             <hr style="border:0; border-top:1px dashed #ccc; margin:2px 0;">
+                            <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#2e7d32;"><input type="checkbox" id="reg-show-quota" checked> <b>Tampilkan Label Sisa Kuota (Mode FOMO)</b></label>
                             <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#1565c0;"><input type="checkbox" id="reg-multi-wa"> Izinkan 1 WA Mendaftar Banyak Tim</label>
                                     <hr style="border:0; border-top:1px dashed #ccc; margin:2px 0;">
                                     <label style="display:flex; align-items:center; gap:5px; cursor:pointer; color:#2e7d32;"><input type="checkbox" id="reg-auto-wa" checked> <b>Alihkan otomatis ke WA setelah daftar (Hanya Jalur Normal)</b></label>
@@ -4428,6 +4429,7 @@ reqUmur: document.getElementById('reg-req-umur') ? document.getElementById('reg-
 reqReclub: document.getElementById('reg-req-reclub') ? document.getElementById('reg-req-reclub').checked : false,
 reqKtp: document.getElementById('reg-req-ktp') ? document.getElementById('reg-req-ktp').checked : false,
                     reqFoto: document.getElementById('reg-req-foto') ? document.getElementById('reg-req-foto').checked : false,
+                    showQuota: document.getElementById('reg-show-quota') ? document.getElementById('reg-show-quota').checked : true,
                     multiWa: document.getElementById('reg-multi-wa').checked,
                     autoWa: document.getElementById('reg-auto-wa') ? document.getElementById('reg-auto-wa').checked : true,
                     regTitle: document.getElementById('reg-title') ? document.getElementById('reg-title').value : '',
@@ -4461,6 +4463,7 @@ if(document.getElementById('reg-req-umur')) document.getElementById('reg-req-umu
 if(document.getElementById('reg-req-reclub')) document.getElementById('reg-req-reclub').checked = fs.reqReclub === true ? true : false;
 if(document.getElementById('reg-req-ktp')) document.getElementById('reg-req-ktp').checked = fs.reqKtp === true ? true : false;
 if(document.getElementById('reg-req-foto')) document.getElementById('reg-req-foto').checked = fs.reqFoto === true ? true : false;
+if(document.getElementById('reg-show-quota')) document.getElementById('reg-show-quota').checked = fs.showQuota !== false;
                 document.getElementById('reg-multi-wa').checked = fs.multiWa === true ? true : false;
                 if(document.getElementById('reg-auto-wa')) document.getElementById('reg-auto-wa').checked = fs.autoWa !== false;
                 
@@ -4480,6 +4483,7 @@ if(document.getElementById('reg-sponsor-size')) {
             } catch(e){ 
                 document.getElementById('reg-req-team').checked = true; document.getElementById('reg-req-club').checked = true; document.getElementById('reg-req-ig').checked = true; 
                 document.getElementById('reg-req-jersey').checked = true; document.getElementById('reg-multi-wa').checked = false; 
+                if(document.getElementById('reg-show-quota')) document.getElementById('reg-show-quota').checked = true;
             }
             document.getElementById('category-list').innerHTML = '';
             try { let cats = JSON.parse(d.categories); if(Array.isArray(cats)) { cats.forEach(c => addCategoryRow(c.name, c.price, c.quota, c.format)); } } catch(e) {}

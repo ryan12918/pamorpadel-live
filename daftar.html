@@ -617,6 +617,7 @@
         let validVipCodes = []; // 🔥 SUNTIKAN: Memori penyimpan daftar kode VIP
         let globalReqKtp = false; // 🔥 SUNTIKAN: Memori Sakelar KTP
         let globalReqFoto = false; // 🔥 SUNTIKAN: Memori Sakelar FOTO
+        let globalShowQuota = true; // 🔥 SUNTIKAN: Memori Sakelar FOMO Kuota
 
         // SENSOR SAKLAR, WA KASIR, PEMBACA KATEGORI, & JUDUL
         async function fetchSettings() {
@@ -699,6 +700,9 @@
                             if(document.getElementById('wrap-foto-capt')) document.getElementById('wrap-foto-capt').style.display = globalReqFoto ? 'block' : 'none';
                             if(document.getElementById('wrap-foto-partner')) document.getElementById('wrap-foto-partner').style.display = globalReqFoto ? 'block' : 'none';
 
+                            // --- SENSOR SAKLAR FOMO KUOTA ---
+                            globalShowQuota = fs.showQuota !== false;
+
 // --- SUNTIKAN 7 FITUR COCKPIT (LUXURY AUTO-HIDE) ---
                             // 1. Judul Utama (Eyebrow)
                             if(fs.regTitle && fs.regTitle.trim() !== '') {
@@ -765,7 +769,7 @@
                             
                             if (sisaUtama > 0) {
                                 // FASE 1: KUOTA UTAMA MASIH ADA
-                                let fomoHtml = `<div class="fomo-tag" style="animation: pulse-fomo 1.2s infinite alternate ease-in-out;">🔥 ${sisaUtama} slots left!</div>`;
+                                let fomoHtml = globalShowQuota ? `<div class="fomo-tag" style="animation: pulse-fomo 1.2s infinite alternate ease-in-out;">🔥 ${sisaUtama} slots left!</div>` : '';
                                 html += `
                                 <div class="card" onclick="selectCategory('${safeName}', ${c.price}, '${cFormat}', false)">
                                     <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -777,6 +781,7 @@
                             } 
                             else if (sisaWL > 0) {
                                 // FASE 2: KUOTA UTAMA HABIS, TAPI WL MASIH BUKA
+                                let wlLabel = globalShowQuota ? `(${sisaWL} slots left)` : '';
                                 html += `
                                 <div class="card" style="border-color:#ff9800; background:#fffde7;" onclick="selectCategory('${safeName}', ${c.price}, '${cFormat}', true)">
                                     <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -784,7 +789,7 @@
                                         <span class="cat-price" style="color:#e65100; font-weight:900;">⚠️ SOLD OUT</span>
                                     </div>
                                     <div class="fomo-tag" style="background:#ffcc80; color:#b26a00; margin-top:8px;">
-                                        ⏳ Join Waiting List (${sisaWL} slots left)
+                                        ⏳ Join Waiting List ${wlLabel}
                                     </div>
                                 </div>`;
                             } 
