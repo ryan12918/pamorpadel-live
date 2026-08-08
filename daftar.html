@@ -837,8 +837,7 @@
         // ==============================================================
         let rosterData = [];
         
-        async function openRoster(event, defaultCat) {
-            let btn = event.currentTarget;
+        async function openRoster(btn, defaultCat) {
             let ori = btn.innerText;
             btn.innerText = "⏳ MEMUAT DATA...";
             btn.style.pointerEvents = "none";
@@ -1074,7 +1073,10 @@
                                 <div style="margin-top:15px; padding-top:15px; border-top:1px solid rgba(0,0,0,0.1); font-size:8px; line-height:1.4; color:#999; text-align:justify; font-weight:600;">
                                     ⚠️ LEGALITAS E-TICKET: Dengan terbitnya tiket ini, peserta yang tercantum di atas menyatakan diri dalam kondisi sehat untuk bertanding. Segala bentuk cedera atau risiko medis di lapangan sepenuhnya menjadi tanggung jawab pribadi, dan membebaskan pihak penyelenggara dari segala tuntutan hukum.
                                 </div>
-                                ${t.status === 'LUNAS' ? `<button onclick="openRoster(event, '${t.category}')" style="margin-top:15px; width:100%; padding:12px; background:linear-gradient(135deg, #1a237e, #0d47a1); color:white; border:none; border-radius:12px; font-weight:900; font-size:12px; cursor:pointer; box-shadow:0 4px 10px rgba(26,35,126,0.3); letter-spacing:1px;">📋 LIHAT DAFTAR PESERTA RESMI</button>` : ''}
+                                ${t.status === 'LUNAS' ? (() => { 
+                                    let safeCat = t.category.replace(/'/g, "&apos;");
+                                    return `<button onclick="openRoster(this, '${safeCat}')" style="margin-top:15px; width:100%; padding:12px; background:linear-gradient(135deg, #1a237e, #0d47a1); color:white; border:none; border-radius:12px; font-weight:900; font-size:12px; cursor:pointer; box-shadow:0 4px 10px rgba(26,35,126,0.3); letter-spacing:1px;">📋 LIHAT DAFTAR PESERTA RESMI</button>`;
+                                })() : ''}
                             </div>
                         `;
                     });
