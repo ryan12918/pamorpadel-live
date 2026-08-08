@@ -1021,11 +1021,12 @@
                     let html = `<div id="ticket-scroll-box" style="max-height:400px; overflow-y:auto; padding-right:5px; scroll-behavior: smooth;">`;
                     html += `<div style="font-size:11px; color:#666; margin-bottom:15px; text-align:center; font-weight:800; background:#f5f5f5; padding:5px; border-radius:6px;">Ditemukan ${data.length} Tiket untuk nomor WA ini</div>`;
                     
-                    // 🔥 SUNTIKAN: TOMBOL PINDAH KE ATAS (Muncul 1 kali jika ada tiket LUNAS)
-                    let firstLunas = data.find(t => t.status === 'LUNAS');
-                    if (firstLunas) {
-                        let safeCat = firstLunas.category.replace(/'/g, "&apos;");
-                        html += `<button onclick="openRoster(this, '${safeCat}')" style="margin-bottom:20px; width:100%; padding:14px; background:linear-gradient(135deg, #1a237e, #0d47a1); color:white; border:none; border-radius:12px; font-weight:900; font-size:13px; cursor:pointer; box-shadow:0 6px 15px rgba(26,35,126,0.3); letter-spacing:1px; animation: fadeInDown 0.4s ease;">📋 LIHAT DAFTAR PESERTA RESMI</button>`;
+                    // 🔥 SUNTIKAN TUNGGAL: TOMBOL DI ATAS (Dioptimalkan agar responsif di semua HP)
+                    let lunasTickets = data.filter(t => t && String(t.status).trim().toUpperCase() === 'LUNAS');
+                    if (lunasTickets.length > 0) {
+                        let firstLunas = lunasTickets[0];
+                        let safeCat = String(firstLunas.category || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                        html += `<button type="button" onclick="openRoster(this, '${safeCat}')" style="margin-bottom:20px; width:100%; padding:14px; background:linear-gradient(135deg, #1a237e, #0d47a1); color:white; border:none; border-radius:12px; font-weight:900; font-size:13px; cursor:pointer; box-shadow:0 6px 15px rgba(26,35,126,0.3); letter-spacing:1px; animation: fadeInDown 0.4s ease;">📋 LIHAT DAFTAR PESERTA RESMI</button>`;
                     }
 
                     data.forEach(t => {
