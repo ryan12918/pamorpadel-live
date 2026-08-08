@@ -329,6 +329,21 @@
         🎫 CEK E-TICKET
     </div>
 
+    <div id="modal-roster" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(5px); z-index:9999; justify-content:center; align-items:flex-end; padding:0; box-sizing:border-box; animation: fadeIn 0.3s ease;">
+        <div style="background:#f4f6f8; width:100%; max-width:500px; height:90vh; border-top-left-radius:25px; border-top-right-radius:25px; display:flex; flex-direction:column; position:relative; box-shadow:0 -10px 40px rgba(0,0,0,0.3); overflow:hidden;">
+            <!-- Header -->
+            <div style="background:white; padding:20px; text-align:center; border-bottom:1px solid #ddd; position:relative; flex-shrink:0;">
+                <div style="position:absolute; top:15px; right:20px; cursor:pointer; font-weight:900; font-size:24px; color:#aaa; line-height:1;" onclick="document.getElementById('modal-roster').style.display='none'">✕</div>
+                <h3 style="margin:0; color:#111; font-weight:900; font-size:18px; text-transform:uppercase; letter-spacing:1px;">📋 DAFTAR PESERTA RESMI</h3>
+                <div style="font-size:10px; color:#666; margin-top:5px; font-weight:600;">Intelijen Terbuka - Hanya Peserta LUNAS</div>
+            </div>
+            <!-- Tabs -->
+            <div id="roster-tabs" class="cat-scroll-wrapper" style="background:white; padding:10px 15px; border-bottom:1px solid #ddd; margin-bottom:0; flex-shrink:0;"></div>
+            <!-- Content -->
+            <div id="roster-content" style="flex:1; overflow-y:auto; padding:15px; background:#f4f6f8;"></div>
+        </div>
+    </div>
+
     <div id="modal-status" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:999; justify-content:center; align-items:center; padding:20px; box-sizing:border-box; animation: fadeIn 0.3s ease;">
         <div style="background:white; width:100%; max-width:400px; border-radius:20px; padding:30px; position:relative; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
             <div style="position:absolute; top:15px; right:20px; cursor:pointer; font-weight:900; font-size:20px; color:#aaa;" onclick="document.getElementById('modal-status').style.display='none'">✕</div>
@@ -647,6 +662,9 @@
                 }
 
                 if (data) {
+                    // 🔥 SUNTIKAN MEMORI GLOBAL UNTUK ROSTER
+                    window.GLOBAL_PARTNER_DATA = data;
+                    window.GLOBAL_FORM_SETTINGS = data.form_settings ? JSON.parse(data.form_settings) : {};
 
                     // 2. CEK SAKLAR PENDAFTARAN BUKA/TUTUP
                     if (data.is_registration_open === false) {
@@ -814,8 +832,128 @@
                 }
             } catch (err) { console.log("Gagal memuat pengaturan", err); }
         }
+        // ==============================================================
+        // 🚀 MESIN INTELIJEN PESERTA (ROSTER SCREENING)
+        // ==============================================================
+        let rosterData = [];
+        
+        async function openRoster(event, defaultCat) {
+            let btn = event.currentTarget;
+            let ori = btn.innerText;
+            btn.innerText = "⏳ MEMUAT DATA...";
+            btn.style.pointerEvents = "none";
+
+            try {
+                // 🛡️ API LEVEL SECURITY: HANYA AMBIL KOLOM YANG AMAN (KTP & WA DIBLOKIR TOTAL)
+                const { data, error } = await db.from('registrations')
+                    .select('id, category, team_name, asal_klub, capt_name, partner_name, foto_url_1, foto_url_2, instagram, reclub_capt, reclub_partner')
+                    .eq('tournament_id', TOURNAMENT_ID)
+                    .eq('status', 'LUNAS');
+                
+                if (error) throw error;
+                rosterData = data || [];
+                
+                document.getElementById('modal-status').style.display = 'none';
+                document.getElementById('modal-roster').style.display = 'flex';
+                
+                let cats = [...new Set(rosterData.map(r => r.category))].filter(Boolean);
+                if(!cats.includes(defaultCat) && cats.length > 0) defaultCat = cats[0];
+                
+                renderRosterTabs(cats, defaultCat);
+                renderRosterCards(defaultCat);
+                
+            } catch(e) {
+                alert("Gagal memuat daftar peserta: " + e.message);
+            }
+            btn.innerText = ori;
+            btn.style.pointerEvents = "auto";
+        }
+
+        function renderRosterTabs(cats, activeCat) {
+            let html = '';
+            cats.forEach(c => {
+                let act = (c === activeCat) ? 'active' : '';
+                html += `<div class="cat-pill ${act}" onclick="selectRosterCat('${c.replace(/'/g, "\\'")}')">${c}</div>`;
+            });
+            document.getElementById('roster-tabs').innerHTML = html;
+        }
+
+        function selectRosterCat(cat) {
+            let cats = [...new Set(rosterData.map(r => r.category))].filter(Boolean);
+            renderRosterTabs(cats, cat);
+            renderRosterCards(cat);
+        }
+
+        function renderRosterCards(cat) {
+            let container = document.getElementById('roster-content');
+            let filtered = rosterData.filter(r => r.category === cat);
+            
+            if (filtered.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:#888; font-weight:bold;">Belum ada peserta LUNAS di kategori ini.</div>`;
+                return;
+            }
+
+            let fs = window.GLOBAL_FORM_SETTINGS || {};
+            let showTeam = fs.reqTeam !== false;
+            let showClub = fs.reqClub !== false;
+
+            let html = '';
+            filtered.forEach(r => {
+                // Menarik URL Foto Publik dari Supabase, jika kosong pakai Avatar huruf
+                let img1 = r.foto_url_1 ? db.storage.from('foto_participants').getPublicUrl(r.foto_url_1).data.publicUrl : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(r.capt_name) + '&background=e0e0e0&color=555';
+                let img2 = r.foto_url_2 ? db.storage.from('foto_participants').getPublicUrl(r.foto_url_2).data.publicUrl : (r.partner_name && r.partner_name !== '-' ? 'https://ui-avatars.com/api/?name=' + encodeURIComponent(r.partner_name) + '&background=e0e0e0&color=555' : '');
+
+                let p1Html = `<div style="display:flex; flex-direction:column; align-items:center; flex:1;">
+                                <img src="${img1}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:3px solid #fff; box-shadow:0 2px 10px rgba(0,0,0,0.1); margin-bottom:8px; background:#eee;">
+                                <div style="font-size:12px; font-weight:900; color:#222; text-align:center;">${r.capt_name}</div>
+                              </div>`;
+                
+                let p2Html = '';
+                if (r.partner_name && r.partner_name !== '-') {
+                    p2Html = `<div style="display:flex; flex-direction:column; align-items:center; flex:1;">
+                                <img src="${img2}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:3px solid #fff; box-shadow:0 2px 10px rgba(0,0,0,0.1); margin-bottom:8px; background:#eee;">
+                                <div style="font-size:12px; font-weight:900; color:#222; text-align:center;">${r.partner_name}</div>
+                              </div>`;
+                }
+
+                let teamInfo = '';
+                if (showTeam && r.team_name && r.team_name !== 'Tanpa Nama') {
+                    teamInfo += `<span style="font-weight:900; color:#1a237e; font-size:16px;">${r.team_name}</span>`;
+                }
+                if (showClub && r.asal_klub && r.asal_klub !== '-') {
+                    teamInfo += ` <span style="font-size:10px; color:#777; background:#eee; padding:3px 8px; border-radius:6px; font-weight:bold; vertical-align:middle;">${r.asal_klub}</span>`;
+                }
+
+                let headerHtml = teamInfo ? `<div style="text-align:center; padding-bottom:12px; margin-bottom:15px; border-bottom:1px dashed #ddd;">${teamInfo}</div>` : '';
+
+                // Draf Laporan WA
+                let tNameText = (r.team_name && r.team_name !== 'Tanpa Nama') ? r.team_name : '-';
+                let pNameText = r.partner_name && r.partner_name !== '-' ? r.partner_name : '-';
+                let evName = window.GLOBAL_PARTNER_DATA ? window.GLOBAL_PARTNER_DATA.event_name : 'Turnamen';
+                
+                let repText = `Halo Panitia ${evName},\n\nSaya adalah peserta yang sudah terdaftar. Saya ingin mengajukan tinjauan/screening untuk peserta berikut:\n\n*Kategori:* ${cat}\n*Tim:* ${tNameText}\n*Pemain:* ${r.capt_name} & ${pNameText}\n\n*Alasan Keberatan:*\n(Ketik alasan Anda di sini, misal: atlet pro / level terlalu tinggi)\n\n*Bukti Pendukung:*\n(Mohon lampirkan screenshot riwayat turnamen/Reclub/IG di sini)\n\nTerima kasih.`;
+                let repUrl = `https://wa.me/${globalWaAdmin}?text=${encodeURIComponent(repText)}`;
+
+                html += `
+                <div style="background:white; border-radius:16px; padding:20px; margin-bottom:15px; box-shadow:0 5px 15px rgba(0,0,0,0.05); position:relative; overflow:hidden;">
+                    ${headerHtml}
+                    <div style="display:flex; justify-content:space-around; gap:10px; margin-bottom:20px;">
+                        ${p1Html}
+                        ${p2Html}
+                    </div>
+                    <div style="display:flex; justify-content:center;">
+                        <a href="${repUrl}" target="_blank" style="text-decoration:none; background:#ffebee; color:#c62828; border:1px solid #ffcdd2; padding:8px 20px; border-radius:30px; font-size:11px; font-weight:800; display:flex; align-items:center; gap:6px; transition:0.2s; box-shadow:0 2px 5px rgba(217,83,79,0.1);" onmouseover="this.style.background='#ffcdd2'" onmouseout="this.style.background='#ffebee'">
+                            ⚖️ AJUKAN SCREENING
+                        </a>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
         fetchSettings();
-// --- RADAR REAL-TIME SISI PENDAFTAR (SINKRONISASI KUOTA & PENGATURAN) ---
+
+        // --- RADAR REAL-TIME SISI PENDAFTAR (SINKRONISASI KUOTA & PENGATURAN) ---
         let publicRadar = null;
         function setupRealtimeRadar() {
             if(publicRadar) db.removeChannel(publicRadar);
@@ -936,6 +1074,7 @@
                                 <div style="margin-top:15px; padding-top:15px; border-top:1px solid rgba(0,0,0,0.1); font-size:8px; line-height:1.4; color:#999; text-align:justify; font-weight:600;">
                                     ⚠️ LEGALITAS E-TICKET: Dengan terbitnya tiket ini, peserta yang tercantum di atas menyatakan diri dalam kondisi sehat untuk bertanding. Segala bentuk cedera atau risiko medis di lapangan sepenuhnya menjadi tanggung jawab pribadi, dan membebaskan pihak penyelenggara dari segala tuntutan hukum.
                                 </div>
+                                ${t.status === 'LUNAS' ? `<button onclick="openRoster(event, '${t.category}')" style="margin-top:15px; width:100%; padding:12px; background:linear-gradient(135deg, #1a237e, #0d47a1); color:white; border:none; border-radius:12px; font-weight:900; font-size:12px; cursor:pointer; box-shadow:0 4px 10px rgba(26,35,126,0.3); letter-spacing:1px;">📋 LIHAT DAFTAR PESERTA RESMI</button>` : ''}
                             </div>
                         `;
                     });
