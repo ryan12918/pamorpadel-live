@@ -335,7 +335,6 @@
             <div style="background:white; padding:15px 20px; text-align:center; border-bottom:1px solid #ddd; position:relative; flex-shrink:0;">
                 <div style="position:absolute; top:12px; right:20px; cursor:pointer; font-weight:900; font-size:22px; color:#555; line-height:1;" onclick="document.getElementById('modal-roster').style.display='none'">✕</div>
                 <h3 style="margin:0; color:#111; font-weight:900; font-size:16px; text-transform:uppercase; letter-spacing:1px;">📋 DAFTAR PESERTA RESMI</h3>
-                <div style="font-size:10px; color:#666; margin-top:3px; font-weight:600;">Intelijen Terbuka - Hanya Peserta LUNAS</div>
             </div>
             <!-- Dropdown Selector Kategori (Hemat Ruang untuk 6-10 Kategori) -->
             <div style="background:white; padding:12px 15px; border-bottom:1px solid #ddd; flex-shrink:0;">
@@ -932,15 +931,15 @@
                               </div>`;
                 }
 
-                // Draf Laporan WA untuk Screening
+                // Draf Laporan WA untuk Appeal
                 let tNameText = (r.team_name && r.team_name !== 'Tanpa Nama') ? r.team_name : '-';
                 let pNameText = r.partner_name && r.partner_name !== '-' ? r.partner_name : '-';
                 let evName = window.GLOBAL_PARTNER_DATA ? window.GLOBAL_PARTNER_DATA.event_name : 'Turnamen';
                 
-                let repText = `Halo Panitia ${evName},\n\nSaya adalah peserta yang sudah terdaftar. Saya ingin mengajukan tinjauan/screening untuk peserta berikut:\n\n*Kategori:* ${cat}\n*Tim:* ${tNameText}\n*Pemain:* ${r.capt_name} & ${pNameText}\n\n*Alasan Keberatan:*\n(Ketik alasan Anda di sini, misal: atlet pro / level terlalu tinggi)\n\n*Bukti Pendukung:*\n(Mohon lampirkan screenshot riwayat turnamen/Reclub/IG di sini)\n\nTerima kasih.`;
+                let repText = `Halo Panitia ${evName},\n\nSaya adalah peserta yang sudah terdaftar. Saya ingin mengajukan appeal untuk peserta berikut:\n\n*Kategori:* ${cat}\n*Tim:* ${tNameText}\n*Pemain:* ${r.capt_name} & ${pNameText}\n\n*Alasan Keberatan:*\n(Ketik alasan Anda di sini, misal: atlet pon, juara 1 di turnamen xxx sebanyak 2 kali)\n\n*Bukti Pendukung:*\n(Mohon lampirkan screenshot riwayat bukti turnamen/IG di sini)\n\nTerima kasih.\n\n*Note :*\n- official tournament ( more than 8 hours )\n- Not include ( mabar,tarkam,mini tour )`;
                 let repUrl = `https://wa.me/${globalWaAdmin}?text=${encodeURIComponent(repText)}`;
 
-                // Informasi Tim, Kota, & Tombol Screening Bertingkat di Tengah
+                // Informasi Tim, Kota, & Tombol Appeal di Tengah
                 let teamInfo = '';
                 if (showTeam && r.team_name && r.team_name !== 'Tanpa Nama') {
                     teamInfo += `<div style="font-weight:900; color:#1a237e; font-size:12px; text-align:center; line-height:1.2; margin-bottom:3px; word-break:break-word;">${r.team_name}</div>`;
@@ -949,9 +948,8 @@
                     teamInfo += `<div style="font-size:9px; color:#555; background:#f0f2f5; padding:2px 6px; border-radius:4px; font-weight:bold; text-align:center; display:inline-block; border:1px solid #e2e8f0; margin-bottom:6px;">📍 ${r.asal_klub}</div>`;
                 }
 
-                teamInfo += `<a href="${repUrl}" target="_blank" style="text-decoration:none; background:#ffebee; color:#c62828; border:1px solid #ffcdd2; padding:3px 8px; border-radius:6px; font-size:9px; font-weight:800; display:inline-flex; flex-direction:column; align-items:center; line-height:1.1; transition:0.2s;">
-                                <span>Ajukan</span>
-                                <span>Screening</span>
+                teamInfo += `<a href="${repUrl}" target="_blank" style="text-decoration:none; background:#ffebee; color:#c62828; border:1px solid #ffcdd2; padding:5px 12px; border-radius:8px; font-size:10px; font-weight:800; display:inline-flex; align-items:center; gap:4px; transition:0.2s; box-shadow:0 2px 4px rgba(217,83,79,0.1);">
+                                ⚖️ Appeal
                             </a>`;
                 
                 let centerHtml = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; padding:0 4px; text-align:center;">
