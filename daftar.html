@@ -936,7 +936,7 @@
                 let pNameText = r.partner_name && r.partner_name !== '-' ? r.partner_name : '-';
                 let evName = window.GLOBAL_PARTNER_DATA ? window.GLOBAL_PARTNER_DATA.event_name : 'Turnamen';
                 
-                let repText = `Halo Panitia ${evName},\n\nSaya adalah peserta yang sudah terdaftar. Saya ingin mengajukan appeal untuk peserta berikut:\n\n*Kategori:* ${cat}\n*Tim:* ${tNameText}\n*Pemain:* ${r.capt_name} & ${pNameText}\n\n*Alasan Keberatan:*\n(Ketik alasan Anda di sini, misal: atlet pon, juara 1 di turnamen xxx sebanyak 2 kali)\n\n*Bukti Pendukung:*\n(Mohon lampirkan screenshot riwayat bukti turnamen/IG di sini)\n\nTerima kasih.\n\n*Note :*\n- official tournament ( more than 8 hours )\n- Not include ( mabar,tarkam,mini tour )`;
+                let repText = `Halo Panitia ${evName},\n\nSaya adalah peserta yang sudah terdaftar. Saya ingin mengajukan appeal untuk peserta berikut:\n\n*Kategori:* ${cat}\n*Tim:* ${tNameText}\n*Pemain:* ${r.capt_name} & ${pNameText}\n\n*Alasan Keberatan:*\n(Ketik alasan Anda di sini, misal: atlet pon, juara 1 di turnamen xxx sebanyak 2 kali)\n\n*Bukti Pendukung:*\n(Mohon lampirkan screenshot riwayat bukti turnamen/IG di sini)\n\nTerima kasih.\n\n*Note :*\n- official tournament ( more than 8 hours ) Sanctioned By PBPI\n- Not include ( mabar,tarkam,mini tour )`;
                 let repUrl = `https://wa.me/${globalWaAdmin}?text=${encodeURIComponent(repText)}`;
 
                 // Informasi Tim, Kota, & Tombol Appeal di Tengah
